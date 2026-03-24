@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Verhandlungspoker Terror">
+  <rect width="128" height="128" rx="28" fill="#1d2d44"/>
+  <path d="M24 92h80" stroke="#f5f1e8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M40 86V34c0-3 2-5 5-5h38c3 0 5 2 5 5v52" fill="none" stroke="#c39a64" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M53 44h22M53 58h22M53 72h22" stroke="#f5f1e8" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="92" cy="40" r="12" fill="#8f2f2f"/>
+</svg>

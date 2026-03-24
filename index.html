@@ -6,8 +6,14 @@
   <title>Verantwortungspoker: Terror</title>
   <meta
     name="description"
-    content="Ein digitales Verantwortungspoker zu Ferdinand von Schirachs Terror mit Rollen, Kartenwahl, Verantwortungsmatrix und jurischer Endauswertung."
+    content="Ein digitales Verantwortungspoker zu Ferdinand von Schirachs Terror mit wechselnden Kartenhänden, Unterrichtsmodus, Verantwortungsmatrix und jurischer Endauswertung."
   />
+  <meta name="theme-color" content="#1d2d44" />
+  <meta property="og:title" content="Verantwortungspoker: Terror" />
+  <meta property="og:description" content="Rollenbasiertes Webspiel zu Schirachs Terror mit Verantwortungsmatrix, Reflexion und Urteilsauswertung." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/social-preview.svg" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -18,8 +24,8 @@
         <h1>Verantwortungspoker: <span>Terror</span></h1>
         <p class="lead">
           Ein rundenbasiertes Rollen- und Entscheidungsspiel zu Ferdinand von Schirachs
-          <em>Terror</em>: sechs Rollen, dreizehn Lagefenster, keine Zufallswürfel,
-          dafür Konsequenzen, Unterlassungen und eine sichtbare Verantwortungsmatrix.
+          <em>Terror</em>: sechs Rollen, dreizehn Lagefenster, kleine wechselnde Kartenhände,
+          verdeckte Einzelziele, Reflexionsfragen und eine sichtbare Verantwortungsmatrix.
         </p>
       </div>
 
@@ -28,7 +34,7 @@
         <p>
           Nicht nur Handeln, auch Nicht-Handeln erzeugt Verantwortung. Zwischen
           Menschenwürde, Zeitdruck, Befehlskette und Rettungslogik verschiebt sich
-          die Schuldfrage mit jeder Karte.
+          die Schuldfrage mit jeder Karte und jedem ausgelassenen Schritt.
         </p>
       </aside>
     </header>
@@ -37,7 +43,7 @@
       <div class="top-bar-copy">
         <h2>Lagezentrum</h2>
         <p id="storageHint">
-          Die Partie wird lokal gespeichert. Ihr könnt eine Sitzung später wieder aufnehmen.
+          Die Partie wird lokal gespeichert. Szenario- und Rollenänderungen gelten ab der nächsten neuen Partie.
         </p>
       </div>
       <div class="button-row">
@@ -50,12 +56,44 @@
       Eine gespeicherte Partie wurde geladen.
     </section>
 
+    <section class="panel config-panel">
+      <div class="panel-head">
+        <h2>Konfiguration</h2>
+        <p>Hier steuerst du Szenario, Unterrichtsmodus und aktive Rollen für die nächste Runde oder die nächste neue Partie.</p>
+      </div>
+
+      <div class="config-grid">
+        <div class="config-box">
+          <label class="config-label" for="scenarioSelect">Szenario</label>
+          <select id="scenarioSelect" class="config-select"></select>
+          <p id="scenarioDescription" class="config-help"></p>
+        </div>
+
+        <div class="config-box">
+          <label class="config-label" for="modeSelect">Modus</label>
+          <select id="modeSelect" class="config-select"></select>
+          <p id="modeDescription" class="config-help"></p>
+        </div>
+
+        <div class="config-box">
+          <span class="config-label">Unterrichts-Presets</span>
+          <div id="presetButtons" class="preset-buttons"></div>
+          <p class="config-help">Presets können Rollen vorkonfigurieren. Die Checkboxen darunter bleiben weiterhin anpassbar.</p>
+        </div>
+      </div>
+
+      <div class="config-box">
+        <span class="config-label">Aktive Rollen</span>
+        <div id="roleToggles" class="role-toggles"></div>
+      </div>
+    </section>
+
     <main class="dashboard">
       <section class="board-column">
         <section class="panel status-panel">
           <div class="panel-head compact">
             <h2>Gesamtlage</h2>
-            <p>Der obere Streifen verdichtet Runde, Zeit, Bedrohung und jurische Tendenz.</p>
+            <p>Der obere Streifen verdichtet Runde, Zeit, Bedrohung, Szenario und jurische Tendenz.</p>
           </div>
           <div id="statusStrip" class="status-strip"></div>
         </section>
@@ -75,10 +113,23 @@
           </div>
           <div id="resolutionOrder" class="resolution-order"></div>
           <div id="roundFeedback" class="round-feedback">
-            Wählt für jede Rolle genau eine Karte und löst dann die Runde aus.
+            Wählt für jede aktive Rolle genau eine Karte und löst dann die Runde aus.
           </div>
           <div class="button-row">
             <button id="resolveBtn" class="primary-btn wide" type="button">Runde auswerten</button>
+          </div>
+        </section>
+
+        <section class="panel reflection-panel">
+          <div class="panel-head compact">
+            <h2>Reflexion</h2>
+            <p>Die Frage nach jeder Runde macht die Verantwortung nicht nur sichtbar, sondern diskutierbar.</p>
+          </div>
+          <div id="reflectionPrompt" class="reflection-prompt"></div>
+          <label class="config-label" for="reflectionNote">Notiz zur Reflexionsfrage</label>
+          <textarea id="reflectionNote" class="reflection-note" rows="4" placeholder="Kurze Unterrichtsnotiz oder Gruppenreaktion festhalten"></textarea>
+          <div class="button-row">
+            <button id="saveReflectionBtn" class="ghost-btn" type="button">Notiz speichern</button>
           </div>
         </section>
 
@@ -86,8 +137,8 @@
           <div class="panel-head">
             <h2>Rollenkarten</h2>
             <p>
-              Jede Rolle legt pro Runde eine Karte. Das erzeugt sichtbare Beiträge zu
-              aktivem Handeln, Unterlassung und rechtlicher Verantwortung.
+              Jede aktive Rolle erhält pro Runde nur eine kleine Hand. Das zwingt zu knapperen,
+              deutlicheren Entscheidungen statt zu vollständiger Wunschlogik.
             </p>
           </div>
           <div id="rolesGrid" class="roles-grid"></div>
@@ -106,7 +157,7 @@
         <section class="panel matrix-panel">
           <div class="panel-head compact">
             <h2>Verantwortungsmatrix</h2>
-            <p>Die Matrix sammelt Spuren aus Kartenwahl und Folgenberechnung.</p>
+            <p>Die Matrix sammelt Spuren aus Kartenwahl, Unterlassung und Folgenberechnung.</p>
           </div>
           <div id="matrixTable" class="matrix-table"></div>
         </section>
@@ -132,13 +183,25 @@
     <section id="endScreen" class="panel end-screen hidden">
       <div class="panel-head">
         <h2>Einsatzbilanz</h2>
-        <p>Die Runde ist beendet. Jetzt wird die Verantwortungsverteilung als Ergebnis lesbar.</p>
+        <p>Die Runde ist beendet. Jetzt werden Verantwortungsverteilung, Urteil und Argumentlinien lesbar.</p>
       </div>
 
+      <div id="verdictBanner" class="verdict-banner"></div>
       <div id="endingHeadline" class="ending-headline"></div>
       <div id="endingStats" class="ending-stats"></div>
 
       <div class="closing-grid">
+        <article class="closing-card">
+          <p class="mini-label">Verantwortungsdiagramm</p>
+          <div id="responsibilityChart" class="chart-wrap"></div>
+        </article>
+        <article class="closing-card">
+          <p class="mini-label">Verdeckte Ziele</p>
+          <div id="goalSummary" class="goal-summary"></div>
+        </article>
+      </div>
+
+      <div class="argument-grid">
         <article class="closing-card">
           <p class="mini-label">Generierte Anklage</p>
           <div id="indictmentText" class="closing-text"></div>
@@ -148,9 +211,26 @@
           <div id="defenseText" class="closing-text"></div>
         </article>
       </div>
+
+      <div class="argument-grid">
+        <article class="closing-card">
+          <p class="mini-label">Pro-Argumente</p>
+          <ul id="proList" class="argument-list"></ul>
+        </article>
+        <article class="closing-card">
+          <p class="mini-label">Contra-Argumente</p>
+          <ul id="conList" class="argument-list"></ul>
+        </article>
+      </div>
+
+      <div class="button-row export-row">
+        <button id="exportTxtBtn" class="ghost-btn" type="button">Bericht als Text</button>
+        <button id="exportPdfBtn" class="primary-btn" type="button">Bericht als PDF</button>
+      </div>
     </section>
   </div>
 
+  <script src="game-core.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

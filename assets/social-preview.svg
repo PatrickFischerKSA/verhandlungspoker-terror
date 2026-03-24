@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Verantwortungspoker Terror Vorschau">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d2d44"/>
+      <stop offset="100%" stop-color="#8d5e29"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1020" cy="118" r="78" fill="rgba(255,250,241,0.08)"/>
+  <circle cx="1080" cy="510" r="120" fill="rgba(255,250,241,0.06)"/>
+  <rect x="76" y="84" width="1048" height="462" rx="34" fill="rgba(255,250,241,0.9)"/>
+  <text x="120" y="170" fill="#8d5e29" font-size="28" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="800" letter-spacing="4">DIGITALES UNTERRICHTSSPIEL</text>
+  <text x="120" y="266" fill="#18202c" font-size="72" font-family="Iowan Old Style, Baskerville, serif" font-weight="700">Verantwortungspoker: Terror</text>
+  <text x="120" y="330" fill="#5d6470" font-size="30" font-family="Avenir Next, Segoe UI, sans-serif">Rollen, Urteile, Unterlassung und eine sichtbare Verantwortungsmatrix</text>
+  <g transform="translate(120 386)">
+    <rect width="280" height="108" rx="22" fill="#fffaf1"/>
+    <text x="26" y="34" fill="#8f2f2f" font-size="18" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="800">KOCH</text>
+    <text x="26" y="66" fill="#18202c" font-size="24" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="700">Spielende Karte:</text>
+    <text x="26" y="94" fill="#5d6470" font-size="22" font-family="Avenir Next, Segoe UI, sans-serif">Abschuss</text>
+  </g>
+  <g transform="translate(438 386)">
+    <rect width="280" height="108" rx="22" fill="#fffaf1"/>
+    <text x="26" y="34" fill="#425f8f" font-size="18" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="800">URTEIL</text>
+    <text x="26" y="66" fill="#18202c" font-size="24" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="700">Freispruch?</text>
+    <text x="26" y="94" fill="#5d6470" font-size="22" font-family="Avenir Next, Segoe UI, sans-serif">Verurteilung? Systemversagen?</text>
+  </g>
+  <g transform="translate(756 386)">
+    <rect width="280" height="108" rx="22" fill="#fffaf1"/>
+    <text x="26" y="34" fill="#2f6f59" font-size="18" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="800">AUSWERTUNG</text>
+    <text x="26" y="66" fill="#18202c" font-size="24" font-family="Avenir Next, Segoe UI, sans-serif" font-weight="700">Diagramm + Export</text>
+    <text x="26" y="94" fill="#5d6470" font-size="22" font-family="Avenir Next, Segoe UI, sans-serif">für Unterricht und Debatte</text>
+  </g>
+</svg>
