@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verantwortungspoker: Terror</title>
+  <meta
+    name="description"
+    content="Ein digitales Verantwortungspoker zu Ferdinand von Schirachs Terror mit Rollen, Kartenwahl, Verantwortungsmatrix und jurischer Endauswertung."
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Digitales Unterrichts- und Diskussionsspiel</p>
+        <h1>Verantwortungspoker: <span>Terror</span></h1>
+        <p class="lead">
+          Ein rundenbasiertes Rollen- und Entscheidungsspiel zu Ferdinand von Schirachs
+          <em>Terror</em>: sechs Rollen, dreizehn Lagefenster, keine Zufallswürfel,
+          dafür Konsequenzen, Unterlassungen und eine sichtbare Verantwortungsmatrix.
+        </p>
+      </div>
+
+      <aside class="hero-note">
+        <p class="note-kicker">Didaktischer Fokus</p>
+        <p>
+          Nicht nur Handeln, auch Nicht-Handeln erzeugt Verantwortung. Zwischen
+          Menschenwürde, Zeitdruck, Befehlskette und Rettungslogik verschiebt sich
+          die Schuldfrage mit jeder Karte.
+        </p>
+      </aside>
+    </header>
+
+    <section class="top-bar panel">
+      <div class="top-bar-copy">
+        <h2>Lagezentrum</h2>
+        <p id="storageHint">
+          Die Partie wird lokal gespeichert. Ihr könnt eine Sitzung später wieder aufnehmen.
+        </p>
+      </div>
+      <div class="button-row">
+        <button id="newGameBtn" class="primary-btn" type="button">Neue Partie</button>
+        <button id="resetBtn" class="ghost-btn" type="button">Speicher löschen</button>
+      </div>
+    </section>
+
+    <section id="restoredBanner" class="restore-banner hidden" aria-live="polite">
+      Eine gespeicherte Partie wurde geladen.
+    </section>
+
+    <main class="dashboard">
+      <section class="board-column">
+        <section class="panel status-panel">
+          <div class="panel-head compact">
+            <h2>Gesamtlage</h2>
+            <p>Der obere Streifen verdichtet Runde, Zeit, Bedrohung und jurische Tendenz.</p>
+          </div>
+          <div id="statusStrip" class="status-strip"></div>
+        </section>
+
+        <section class="panel briefing-panel">
+          <div class="panel-head">
+            <h2>Aktuelles Lagefenster</h2>
+            <p>Jede Runde bildet einen neuen Ausschnitt aus der eskalierenden Entscheidungslage ab.</p>
+          </div>
+          <div id="briefingCard" class="briefing-card"></div>
+        </section>
+
+        <section class="panel sequence-panel">
+          <div class="panel-head compact">
+            <h2>Auflösung</h2>
+            <p>Fixe Reihenfolge, damit sichtbar bleibt, wie operative und juristische Ebenen ineinandergreifen.</p>
+          </div>
+          <div id="resolutionOrder" class="resolution-order"></div>
+          <div id="roundFeedback" class="round-feedback">
+            Wählt für jede Rolle genau eine Karte und löst dann die Runde aus.
+          </div>
+          <div class="button-row">
+            <button id="resolveBtn" class="primary-btn wide" type="button">Runde auswerten</button>
+          </div>
+        </section>
+
+        <section class="panel roles-panel">
+          <div class="panel-head">
+            <h2>Rollenkarten</h2>
+            <p>
+              Jede Rolle legt pro Runde eine Karte. Das erzeugt sichtbare Beiträge zu
+              aktivem Handeln, Unterlassung und rechtlicher Verantwortung.
+            </p>
+          </div>
+          <div id="rolesGrid" class="roles-grid"></div>
+        </section>
+      </section>
+
+      <aside class="side-column">
+        <section class="panel meters-panel">
+          <div class="panel-head compact">
+            <h2>Statusanzeigen</h2>
+            <p>Evakuierung, Informationslage, Gefahr und Rechtsrisiko verschieben sich von Runde zu Runde.</p>
+          </div>
+          <div id="resourceMeters" class="resource-meters"></div>
+        </section>
+
+        <section class="panel matrix-panel">
+          <div class="panel-head compact">
+            <h2>Verantwortungsmatrix</h2>
+            <p>Die Matrix sammelt Spuren aus Kartenwahl und Folgenberechnung.</p>
+          </div>
+          <div id="matrixTable" class="matrix-table"></div>
+        </section>
+
+        <section class="panel meta-panel">
+          <div class="panel-head compact">
+            <h2>Meta-System</h2>
+            <p>Nelson sammelt Anklagepunkte, Biegler Verteidigungspunkte.</p>
+          </div>
+          <div id="metaSummary" class="meta-summary"></div>
+        </section>
+
+        <section class="panel protocol-panel">
+          <div class="panel-head compact">
+            <h2>Protokoll</h2>
+            <p>Keine Zufallsereignisse, nur nachvollziehbare Entscheidungen.</p>
+          </div>
+          <ol id="logList" class="log-list"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <section id="endScreen" class="panel end-screen hidden">
+      <div class="panel-head">
+        <h2>Einsatzbilanz</h2>
+        <p>Die Runde ist beendet. Jetzt wird die Verantwortungsverteilung als Ergebnis lesbar.</p>
+      </div>
+
+      <div id="endingHeadline" class="ending-headline"></div>
+      <div id="endingStats" class="ending-stats"></div>
+
+      <div class="closing-grid">
+        <article class="closing-card">
+          <p class="mini-label">Generierte Anklage</p>
+          <div id="indictmentText" class="closing-text"></div>
+        </article>
+        <article class="closing-card">
+          <p class="mini-label">Generierte Verteidigung</p>
+          <div id="defenseText" class="closing-text"></div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
