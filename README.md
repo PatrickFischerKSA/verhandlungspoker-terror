@@ -9,6 +9,7 @@ Ein statisches Webspiel zu Ferdinand von Schirachs *Terror*.
 - Kleine, wechselnde Kartenhände pro Runde statt vollständiger Wunschwahl
 - Zwei Szenarien: `Originalfall` und `Früher Alarm`
 - Unterrichtsmodus mit Rollen-Presets und deaktivierbaren Rollen
+- Serverloser Mehrspieler-/Handy-Modus mit Host-Gerät plus privaten Rollenbildschirmen
 - Verdeckte Einzelziele pro Rolle
 - Reflexionsfragen und Notizfeld nach jeder Runde
 - Verantwortungsmatrix für `aktiv`, `unterlassen` und `rechtlich`
@@ -31,6 +32,18 @@ python3 -m http.server 8000
 
 Dann im Browser `http://localhost:8000` aufrufen.
 
+## Handy-Modus
+
+Der Companion-Modus funktioniert ohne Backend:
+
+1. Host aktiviert im Browser den `Handy-Modus`.
+2. Für eine Rolle wird ein Einladungslink erzeugt.
+3. Der Link wird auf dem Smartphone geöffnet.
+4. Das Handy erzeugt einen Antwortcode.
+5. Der Host fügt den Antwortcode ein und koppelt die Rolle.
+
+Hinweis: Die direkte Verbindung funktioniert am zuverlässigsten im selben WLAN.
+
 ## Tests
 
 Die zentrale Spiellogik ist in `game-core.js` gebündelt und kann mit einem kleinen Node-Test geprüft werden:
@@ -50,6 +63,6 @@ Nach dem Push auf `main` wird die Seite automatisch als GitHub Pages Site deploy
 - `index.html`: Oberfläche und Struktur
 - `styles.css`: Layout, Touch-Optimierung und visuelle Gestaltung
 - `game-core.js`: Spiellogik, Karten, Urteile, Ziele und Berichtsgenerierung
-- `app.js`: Browser-UI, Persistenz, Export und Rendering
+- `app.js`: Browser-UI, Persistenz, Export, Rendering und Handy-Kopplung
 - `assets/`: Favicon und Social-Preview
 - `tests/game-core.test.js`: kleine Logiktests für Kernfunktionen

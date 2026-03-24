@@ -1,4 +1,9 @@
-const STORAGE_KEY = 'verantwortungspoker-terror-state-v2';
+const STORAGE_KEY = 'verantwortungspoker-terror-state-v3';
+const COMPANION_STORAGE_KEY = 'verantwortungspoker-terror-companion-v1';
+const PEER_CONFIG = {};
+
+const hostApp = document.querySelector('#hostApp');
+const phoneApp = document.querySelector('#phoneApp');
 
 const statusStrip = document.querySelector('#statusStrip');
 const briefingCard = document.querySelector('#briefingCard');
@@ -34,17 +39,28 @@ const scenarioDescription = document.querySelector('#scenarioDescription');
 const modeDescription = document.querySelector('#modeDescription');
 const presetButtons = document.querySelector('#presetButtons');
 const roleToggles = document.querySelector('#roleToggles');
+const companionToggle = document.querySelector('#companionToggle');
+const companionPanel = document.querySelector('#companionPanel');
+const companionGrid = document.querySelector('#companionGrid');
+
+const phonePairPanel = document.querySelector('#phonePairPanel');
+const phoneGamePanel = document.querySelector('#phoneGamePanel');
+const phonePairStatus = document.querySelector('#phonePairStatus');
+const phoneAnswerOutput = document.querySelector('#phoneAnswerOutput');
+const copyPhoneAnswerBtn = document.querySelector('#copyPhoneAnswerBtn');
+const phoneRoleTitle = document.querySelector('#phoneRoleTitle');
+const phoneRoundTitle = document.querySelector('#phoneRoundTitle');
+const phoneStatusStrip = document.querySelector('#phoneStatusStrip');
+const phoneGoalBox = document.querySelector('#phoneGoalBox');
+const phoneCards = document.querySelector('#phoneCards');
+const phonePublicState = document.querySelector('#phonePublicState');
 
 function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+function loadJson(key) {
+  const raw = localStorage.getItem(key);
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -53,13 +69,75 @@ function loadState() {
   }
 }
 
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
 function sanitizeLoadedState(loaded) {
   if (!loaded || typeof loaded !== 'object' || !loaded.config) {
     return GameCore.createInitialState();
   }
-  const state = loaded;
-  GameCore.updateStatuses(state);
-  return state;
+  const nextState = loaded;
+  GameCore.updateStatuses(nextState);
+  return nextState;
+}
+
+function createDefaultCompanionSettings() {
+  return {
+    enabled: false,
+    sessionId: `session-${Math.random().toString(36).slice(2, 10)}`
+  };
+}
+
+function saveCompanionSettings() {
+  localStorage.setItem(COMPANION_STORAGE_KEY, JSON.stringify(companionSettings));
+}
+
+function encodeSignal(payload) {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+
+function decodeSignal(token) {
+  return JSON.parse(decodeURIComponent(escape(atob(token))));
+}
+
+function waitForIceComplete(peer) {
+  if (peer.iceGatheringState === 'complete') {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    function handleChange() {
+      if (peer.iceGatheringState === 'complete') {
+        peer.removeEventListener('icegatheringstatechange', handleChange);
+        resolve();
+      }
+    }
+    peer.addEventListener('icegatheringstatechange', handleChange);
+  });
+}
+
+function ensureSessionId() {
+  if (!companionSettings.sessionId) {
+    companionSettings.sessionId = `session-${Math.random().toString(36).slice(2, 10)}`;
+    saveCompanionSettings();
+  }
+}
+
+function makeInviteLink(roleId, offerToken) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('phone', '1');
+  url.searchParams.set('role', roleId);
+  url.searchParams.set('signal', offerToken);
+  return url.toString();
+}
+
+function getPhoneParams() {
+  const url = new URL(window.location.href);
+  return {
+    isPhone: url.searchParams.get('phone') === '1' || Boolean(url.searchParams.get('signal')),
+    roleId: url.searchParams.get('role') || '',
+    signal: url.searchParams.get('signal') || ''
+  };
 }
 
 function getScenario() {
@@ -101,11 +179,31 @@ function toggleDraftRole(roleId) {
   renderConfig();
 }
 
+function resetAllHostPeerConnections() {
+  Object.values(hostConnections).forEach((entry) => {
+    if (entry.channel) {
+      try {
+        entry.channel.close();
+      } catch {}
+    }
+    if (entry.peer) {
+      try {
+        entry.peer.close();
+      } catch {}
+    }
+  });
+  hostConnections = {};
+}
+
 function startNewGame() {
   state = GameCore.createInitialState(draftConfig);
   roundFeedback.textContent = 'Neue Partie gestartet. Die neue Konfiguration ist jetzt aktiv.';
   roundFeedback.className = 'round-feedback tone-safe';
+  if (!companionSettings.enabled) {
+    resetAllHostPeerConnections();
+  }
   saveState();
+  broadcastStateToPhones();
   render();
 }
 
@@ -113,16 +211,26 @@ function resetState() {
   localStorage.removeItem(STORAGE_KEY);
   state = GameCore.createInitialState();
   syncDraftConfigFromState();
+  resetAllHostPeerConnections();
+  companionSettings = createDefaultCompanionSettings();
+  saveCompanionSettings();
   roundFeedback.textContent = 'Speicher gelöscht. Eine frische Standardpartie wurde geladen.';
   roundFeedback.className = 'round-feedback tone-safe';
   saveState();
   render();
 }
 
+function isRoleConnected(roleId) {
+  const entry = hostConnections[roleId];
+  return Boolean(entry && entry.channel && entry.channel.readyState === 'open');
+}
+
 function selectCard(roleId, cardId) {
   if (state.finished) return;
+  if (companionSettings.enabled && isRoleConnected(roleId)) return;
   state.selections[roleId] = cardId;
   saveState();
+  broadcastStateToPhones();
   renderRoles();
 }
 
@@ -146,16 +254,13 @@ function renderConfig() {
 
   scenarioDescription.textContent = getScenario().description;
   modeDescription.textContent = getMode().description;
+  companionToggle.checked = companionSettings.enabled;
 
   presetButtons.innerHTML = Object.values(GameCore.TEACHING_PRESETS)
     .map((preset) => {
       const selected = draftConfig.presetId === preset.id && draftConfig.modeId === 'unterricht';
       return `
-        <button
-          class="preset-btn ${selected ? 'selected' : ''}"
-          type="button"
-          data-preset="${preset.id}"
-        >
+        <button class="preset-btn ${selected ? 'selected' : ''}" type="button" data-preset="${preset.id}">
           ${preset.label}
         </button>
       `;
@@ -183,6 +288,17 @@ function renderConfig() {
     setDraftMode(modeSelect.value);
   };
 
+  companionToggle.onchange = () => {
+    companionSettings.enabled = companionToggle.checked;
+    ensureSessionId();
+    if (!companionSettings.enabled) {
+      resetAllHostPeerConnections();
+    }
+    saveCompanionSettings();
+    renderCompanionPanel();
+    renderRoles();
+  };
+
   presetButtons.querySelectorAll('[data-preset]').forEach((button) => {
     button.addEventListener('click', () => setDraftPreset(button.dataset.preset));
   });
@@ -195,6 +311,7 @@ function renderConfig() {
 function renderStatusStrip() {
   const round = GameCore.ROUNDS[Math.min(state.roundIndex, GameCore.ROUNDS.length - 1)];
   const verdict = state.finished ? state.verdict : GameCore.getVerdict(state);
+  const connectedPhones = GameCore.getActiveRoleIds(state).filter((roleId) => isRoleConnected(roleId)).length;
   const statusCards = [
     {
       label: 'Runde',
@@ -212,9 +329,9 @@ function renderStatusStrip() {
       detail: state.statuses.communicationStatus
     },
     {
-      label: 'Stadion',
-      value: state.statuses.stadiumStatus,
-      detail: `${state.resources.evacuation}% geräumt`
+      label: 'Handys',
+      value: companionSettings.enabled ? `${connectedPhones} verbunden` : 'aus',
+      detail: companionSettings.enabled ? 'private Rollenbildschirme' : 'Host-only'
     },
     {
       label: 'Urteilstendenz',
@@ -271,10 +388,11 @@ function renderResolutionOrder() {
   resolutionOrder.innerHTML = activeRoles
     .map((roleId, index) => {
       const role = GameCore.ROLE_META[roleId];
+      const connected = companionSettings.enabled && isRoleConnected(roleId);
       return `
         <div class="order-chip">
           <em>${index + 1}</em>
-          <span>${role.short}</span>
+          <span>${role.short}${connected ? ' · Handy' : ''}</span>
         </div>
       `;
     })
@@ -313,32 +431,43 @@ function renderRoles() {
     const handCards = GameCore.getHandCardsForRole(state, roleId);
     const selectedCardId = state.selections[roleId];
     const goalStatus = state.finished ? GameCore.getGoalStatuses(state).find((entry) => entry.roleId === roleId) : null;
+    const connected = companionSettings.enabled && isRoleConnected(roleId);
 
-    const cardsMarkup = handCards.map((card) => {
-      const selected = selectedCardId === card.id;
-      return `
-        <button
-          class="choice-btn ${selected ? 'selected' : ''}"
-          type="button"
-          data-role="${roleId}"
-          data-card="${card.id}"
-          style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
-        >
-          <h4>${card.title}</h4>
-          <p>${card.description}</p>
-          <div class="choice-tags">
-            ${card.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')}
-          </div>
-        </button>
-      `;
-    }).join('');
+    const cardsMarkup = connected
+      ? `
+        <div class="companion-lock">
+          <strong>Privater Handy-Bildschirm aktiv</strong>
+          <p>Die Hand dieser Rolle bleibt auf dem gekoppelte Smartphone verborgen.</p>
+          <p>Aktuelle Auswahl: ${selectedCardId ? handCards.find((card) => card.id === selectedCardId)?.title || 'gewählt' : 'noch keine'}</p>
+        </div>
+      `
+      : handCards
+          .map((card) => {
+            const selected = selectedCardId === card.id;
+            return `
+              <button
+                class="choice-btn ${selected ? 'selected' : ''}"
+                type="button"
+                data-role="${roleId}"
+                data-card="${card.id}"
+                style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
+              >
+                <h4>${card.title}</h4>
+                <p>${card.description}</p>
+                <div class="choice-tags">
+                  ${card.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+              </button>
+            `;
+          })
+          .join('');
 
     return `
       <article class="role-card">
         <div class="role-card-header">
           <div>
             <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
-            <p>${role.subtitle}</p>
+            <p>${role.subtitle}${connected ? ' · Handy-Modus' : ''}</p>
           </div>
           <div class="role-scoreline">
             <span class="score-badge">aktiv ${row.active}</span>
@@ -631,6 +760,223 @@ function printReportPdf() {
   printWindow.print();
 }
 
+function buildPhonePayload(roleId) {
+  const role = GameCore.ROLE_META[roleId];
+  const handCards = GameCore.getHandCardsForRole(state, roleId).map((card) => ({
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    tags: card.tags
+  }));
+  const round = GameCore.ROUNDS[Math.min(state.roundIndex, GameCore.ROUNDS.length - 1)];
+  return {
+    type: 'state',
+    payload: {
+      roleId,
+      roleLabel: role.label,
+      roleShort: role.short,
+      roleSubtitle: role.subtitle,
+      roleGoal: state.secretGoals[roleId],
+      roundTitle: `${round.title} · T - ${round.minute}`,
+      selectedCardId: state.selections[roleId] || '',
+      handCards,
+      finished: state.finished,
+      publicState: {
+        planeStatus: state.statuses.planeStatus,
+        stadiumStatus: state.statuses.stadiumStatus,
+        rulesStatus: state.statuses.rulesStatus,
+        communicationStatus: state.statuses.communicationStatus
+      },
+      prompt: state.reflection.question
+    }
+  };
+}
+
+function broadcastStateToPhones() {
+  if (!companionSettings.enabled) return;
+  GameCore.getActiveRoleIds(state).forEach((roleId) => {
+    const entry = hostConnections[roleId];
+    if (entry && entry.channel && entry.channel.readyState === 'open') {
+      entry.channel.send(JSON.stringify(buildPhonePayload(roleId)));
+    }
+  });
+}
+
+function handlePhoneMessage(roleId, raw) {
+  let message;
+  try {
+    message = JSON.parse(raw);
+  } catch {
+    return;
+  }
+
+  if (message.type === 'select_card') {
+    const handIds = GameCore.getHandCardsForRole(state, roleId).map((card) => card.id);
+    if (!handIds.includes(message.cardId)) return;
+    state.selections[roleId] = message.cardId;
+    saveState();
+    render();
+    broadcastStateToPhones();
+  }
+}
+
+function bindHostPeer(roleId, peer, channel) {
+  hostConnections[roleId] = hostConnections[roleId] || {};
+  hostConnections[roleId].peer = peer;
+  hostConnections[roleId].channel = channel;
+  hostConnections[roleId].status = 'verbunden';
+  channel.addEventListener('open', () => {
+    hostConnections[roleId].status = 'verbunden';
+    broadcastStateToPhones();
+    render();
+  });
+  channel.addEventListener('close', () => {
+    if (hostConnections[roleId]) {
+      hostConnections[roleId].status = 'getrennt';
+    }
+    render();
+  });
+  channel.addEventListener('message', (event) => handlePhoneMessage(roleId, event.data));
+}
+
+async function createOfferForRole(roleId) {
+  ensureSessionId();
+  if (hostConnections[roleId] && hostConnections[roleId].peer) {
+    try {
+      hostConnections[roleId].peer.close();
+    } catch {}
+  }
+
+  const peer = new RTCPeerConnection(PEER_CONFIG);
+  const channel = peer.createDataChannel(`terror-${roleId}`);
+  bindHostPeer(roleId, peer, channel);
+  hostConnections[roleId].status = 'angebot';
+  await peer.setLocalDescription(await peer.createOffer());
+  await waitForIceComplete(peer);
+  const token = encodeSignal({
+    kind: 'offer',
+    sessionId: companionSettings.sessionId,
+    roleId,
+    sdp: peer.localDescription.sdp
+  });
+  hostConnections[roleId].offerToken = token;
+  hostConnections[roleId].inviteLink = makeInviteLink(roleId, token);
+  renderCompanionPanel();
+}
+
+async function applyAnswerForRole(roleId, answerToken) {
+  try {
+    const payload = decodeSignal(answerToken.trim());
+    const entry = hostConnections[roleId];
+    if (!entry || !entry.peer || payload.kind !== 'answer' || payload.roleId !== roleId) {
+      throw new Error('Antwortcode passt nicht zur Rolle.');
+    }
+    await entry.peer.setRemoteDescription({ type: 'answer', sdp: payload.sdp });
+    entry.status = 'verbunden';
+    renderCompanionPanel();
+  } catch (error) {
+    roundFeedback.textContent = `Kopplung fehlgeschlagen: ${error.message}`;
+    roundFeedback.className = 'round-feedback tone-danger';
+  }
+}
+
+function disconnectRole(roleId) {
+  const entry = hostConnections[roleId];
+  if (!entry) return;
+  if (entry.channel) {
+    try {
+      entry.channel.close();
+    } catch {}
+  }
+  if (entry.peer) {
+    try {
+      entry.peer.close();
+    } catch {}
+  }
+  delete hostConnections[roleId];
+  renderCompanionPanel();
+  renderRoles();
+}
+
+function renderCompanionPanel() {
+  companionPanel.classList.toggle('hidden', !companionSettings.enabled);
+  if (!companionSettings.enabled) return;
+
+  const activeRoles = GameCore.getActiveRoleIds(state);
+  companionGrid.innerHTML = activeRoles
+    .map((roleId) => {
+      const role = GameCore.ROLE_META[roleId];
+      const entry = hostConnections[roleId] || {};
+      return `
+        <article class="role-card companion-card">
+          <div class="role-card-header">
+            <div>
+              <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
+              <p>Status: ${entry.status || 'lokal'}</p>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="ghost-btn" type="button" data-offer-role="${roleId}">Einladungslink erzeugen</button>
+            ${entry.peer ? `<button class="ghost-btn" type="button" data-disconnect-role="${roleId}">Trennen</button>` : ''}
+          </div>
+          <label class="config-label" for="invite-${roleId}">Einladungslink</label>
+          <textarea id="invite-${roleId}" class="reflection-note small-note" rows="4" readonly>${entry.inviteLink || ''}</textarea>
+          <div class="button-row">
+            <button class="ghost-btn" type="button" data-copy-link="${roleId}">Link kopieren</button>
+          </div>
+          <label class="config-label" for="answer-${roleId}">Antwortcode vom Handy</label>
+          <textarea id="answer-${roleId}" class="reflection-note small-note" rows="4" placeholder="Antwortcode hier einfügen"></textarea>
+          <div class="button-row">
+            <button class="primary-btn" type="button" data-apply-answer="${roleId}">Handy koppeln</button>
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+
+  companionGrid.querySelectorAll('[data-offer-role]').forEach((button) => {
+    button.addEventListener('click', () => createOfferForRole(button.dataset.offerRole));
+  });
+  companionGrid.querySelectorAll('[data-disconnect-role]').forEach((button) => {
+    button.addEventListener('click', () => disconnectRole(button.dataset.disconnectRole));
+  });
+  companionGrid.querySelectorAll('[data-copy-link]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const roleId = button.dataset.copyLink;
+      const entry = hostConnections[roleId];
+      if (!entry || !entry.inviteLink) return;
+      await navigator.clipboard.writeText(entry.inviteLink);
+      roundFeedback.textContent = `Einladungslink für ${GameCore.ROLE_META[roleId].short} kopiert.`;
+      roundFeedback.className = 'round-feedback tone-safe';
+    });
+  });
+  companionGrid.querySelectorAll('[data-apply-answer]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const roleId = button.dataset.applyAnswer;
+      const textarea = document.querySelector(`#answer-${roleId}`);
+      applyAnswerForRole(roleId, textarea.value);
+    });
+  });
+}
+
+function render() {
+  GameCore.updateStatuses(state);
+  renderConfig();
+  renderCompanionPanel();
+  renderRestoreBanner();
+  renderStatusStrip();
+  renderBriefing();
+  renderResolutionOrder();
+  renderReflection();
+  renderRoles();
+  renderResources();
+  renderMatrix();
+  renderMetaSummary();
+  renderLog();
+  renderEndScreen();
+  resolveBtn.disabled = state.finished;
+}
+
 function resolveRound() {
   const result = GameCore.resolveRound(state);
   if (!result.ok) {
@@ -653,43 +999,157 @@ function resolveRound() {
   }
 
   saveState();
+  broadcastStateToPhones();
   render();
 }
 
-function render() {
-  GameCore.updateStatuses(state);
-  renderConfig();
-  renderRestoreBanner();
-  renderStatusStrip();
-  renderBriefing();
-  renderResolutionOrder();
-  renderReflection();
-  renderRoles();
-  renderResources();
-  renderMatrix();
-  renderMetaSummary();
-  renderLog();
-  renderEndScreen();
-  resolveBtn.disabled = state.finished;
+async function initPhoneMode() {
+  hostApp.classList.add('hidden');
+  phoneApp.classList.remove('hidden');
+
+  copyPhoneAnswerBtn.addEventListener('click', async () => {
+    if (!phoneAnswerOutput.value) return;
+    await navigator.clipboard.writeText(phoneAnswerOutput.value);
+    phonePairStatus.textContent = 'Antwortcode kopiert. Jetzt am Host einfügen.';
+    phonePairStatus.className = 'round-feedback tone-safe';
+  });
+
+  const params = getPhoneParams();
+  if (!params.signal || !params.roleId) {
+    phonePairStatus.textContent = 'Dieser Handy-Bildschirm braucht einen gültigen Einladungslink vom Host.';
+    phonePairStatus.className = 'round-feedback tone-danger';
+    return;
+  }
+
+  try {
+    const offer = decodeSignal(params.signal);
+    const peer = new RTCPeerConnection(PEER_CONFIG);
+    phonePeerConnection = peer;
+    await peer.setRemoteDescription({ type: 'offer', sdp: offer.sdp });
+    peer.addEventListener('datachannel', (event) => {
+      phoneChannel = event.channel;
+      phoneChannel.addEventListener('open', () => {
+        phonePairStatus.textContent = 'Verbindung steht. Dein privater Rollenbildschirm ist aktiv.';
+        phonePairStatus.className = 'round-feedback tone-safe';
+        phonePairPanel.classList.add('hidden');
+        phoneGamePanel.classList.remove('hidden');
+      });
+      phoneChannel.addEventListener('message', (messageEvent) => {
+        const message = JSON.parse(messageEvent.data);
+        if (message.type === 'state') {
+          phoneState = message.payload;
+          renderPhoneState();
+        }
+      });
+    });
+    await peer.setLocalDescription(await peer.createAnswer());
+    await waitForIceComplete(peer);
+    const answerToken = encodeSignal({
+      kind: 'answer',
+      roleId: params.roleId,
+      sessionId: offer.sessionId,
+      sdp: peer.localDescription.sdp
+    });
+    phoneAnswerOutput.value = answerToken;
+    phonePairStatus.textContent = 'Antwortcode erzeugt. Bitte am Host einfügen.';
+    phonePairStatus.className = 'round-feedback tone-safe';
+  } catch (error) {
+    phonePairStatus.textContent = `Kopplung fehlgeschlagen: ${error.message}`;
+    phonePairStatus.className = 'round-feedback tone-danger';
+  }
 }
 
-let state = sanitizeLoadedState(loadState() || GameCore.createInitialState());
+function renderPhoneState() {
+  if (!phoneState) return;
+  phoneRoleTitle.textContent = `${phoneState.roleLabel} · ${phoneState.roleSubtitle}`;
+  phoneRoundTitle.textContent = phoneState.roundTitle;
+  phoneGoalBox.innerHTML = `
+    <p class="reflection-round">Verdecktes Ziel</p>
+    <p>${phoneState.roleGoal}</p>
+  `;
+  phoneStatusStrip.innerHTML = [
+    {
+      label: 'Flugzeug',
+      value: phoneState.publicState.planeStatus,
+      detail: phoneState.publicState.communicationStatus
+    },
+    {
+      label: 'Stadion',
+      value: phoneState.publicState.stadiumStatus,
+      detail: phoneState.publicState.rulesStatus
+    }
+  ]
+    .map(
+      (card) => `
+        <article class="status-card">
+          <span>${card.label}</span>
+          <strong>${card.value}</strong>
+          <span>${card.detail}</span>
+        </article>
+      `
+    )
+    .join('');
+
+  phoneCards.innerHTML = phoneState.handCards
+    .map((card) => {
+      const selected = phoneState.selectedCardId === card.id;
+      return `
+        <button class="choice-btn ${selected ? 'selected' : ''}" type="button" data-phone-card="${card.id}">
+          <h4>${card.title}</h4>
+          <p>${card.description}</p>
+          <div class="choice-tags">${card.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')}</div>
+        </button>
+      `;
+    })
+    .join('');
+
+  phonePublicState.innerHTML = `
+    <div class="briefing-frame">
+      <div class="timeline-chip">${phoneState.roundTitle}</div>
+      <p>${phoneState.prompt}</p>
+    </div>
+  `;
+
+  phoneCards.querySelectorAll('[data-phone-card]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!phoneChannel || phoneChannel.readyState !== 'open') return;
+      phoneChannel.send(
+        JSON.stringify({
+          type: 'select_card',
+          roleId: phoneState.roleId,
+          cardId: button.dataset.phoneCard
+        })
+      );
+    });
+  });
+}
+
+let state = sanitizeLoadedState(loadJson(STORAGE_KEY) || GameCore.createInitialState());
 if (localStorage.getItem(STORAGE_KEY)) {
   state.restored = true;
 }
 let draftConfig = deepClone(state.config);
+let companionSettings = loadJson(COMPANION_STORAGE_KEY) || createDefaultCompanionSettings();
+let hostConnections = {};
+let phonePeerConnection = null;
+let phoneChannel = null;
+let phoneState = null;
 
-newGameBtn.addEventListener('click', startNewGame);
-resetBtn.addEventListener('click', resetState);
-resolveBtn.addEventListener('click', resolveRound);
-saveReflectionBtn.addEventListener('click', () => {
-  GameCore.saveReflectionNote(state, reflectionNote.value.trim());
-  saveState();
-  roundFeedback.textContent = 'Reflexionsnotiz gespeichert.';
-  roundFeedback.className = 'round-feedback tone-safe';
-  renderReflection();
-});
-exportTxtBtn.addEventListener('click', downloadReport);
-exportPdfBtn.addEventListener('click', printReportPdf);
-
-render();
+if (getPhoneParams().isPhone) {
+  initPhoneMode();
+} else {
+  newGameBtn.addEventListener('click', startNewGame);
+  resetBtn.addEventListener('click', resetState);
+  resolveBtn.addEventListener('click', resolveRound);
+  saveReflectionBtn.addEventListener('click', () => {
+    GameCore.saveReflectionNote(state, reflectionNote.value.trim());
+    saveState();
+    roundFeedback.textContent = 'Reflexionsnotiz gespeichert.';
+    roundFeedback.className = 'round-feedback tone-safe';
+    renderReflection();
+  });
+  exportTxtBtn.addEventListener('click', downloadReport);
+  exportPdfBtn.addEventListener('click', printReportPdf);
+  ensureSessionId();
+  render();
+}

@@ -17,7 +17,67 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="page-shell">
+  <section id="phoneApp" class="phone-app hidden" aria-live="polite">
+    <div class="page-shell phone-shell">
+      <header class="hero phone-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Handy-Modus</p>
+          <h1>Privater <span>Rollenbildschirm</span></h1>
+          <p class="lead">
+            Diese Ansicht zeigt genau eine Rolle. Die Kopplung läuft ohne Server direkt zwischen Host und Handy.
+          </p>
+        </div>
+        <aside class="hero-note">
+          <p class="note-kicker">Kopplung</p>
+          <p>
+            1. Host-Link auf dem Handy öffnen. 2. Antwortcode kopieren. 3. Antwortcode am Host einfügen.
+          </p>
+        </aside>
+      </header>
+
+      <section id="phonePairPanel" class="panel">
+        <div class="panel-head">
+          <h2>Antwortcode</h2>
+          <p>Den erzeugten Code wieder am Host einfügen, damit die direkte Verbindung geöffnet wird.</p>
+        </div>
+        <div id="phonePairStatus" class="round-feedback">Öffne einen gültigen Einladungslink vom Host.</div>
+        <label class="config-label" for="phoneAnswerOutput">Antwortcode</label>
+        <textarea id="phoneAnswerOutput" class="reflection-note" rows="8" readonly></textarea>
+        <div class="button-row">
+          <button id="copyPhoneAnswerBtn" class="primary-btn" type="button">Antwortcode kopieren</button>
+        </div>
+      </section>
+
+      <section id="phoneGamePanel" class="hidden">
+        <section class="panel">
+          <div class="panel-head compact">
+            <h2 id="phoneRoleTitle">Rolle</h2>
+            <p id="phoneRoundTitle">Warte auf die erste Host-Synchronisation.</p>
+          </div>
+          <div id="phoneStatusStrip" class="status-strip phone-status-strip"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <h2>Deine Karten</h2>
+            <p>Nur diese Rolle sieht diese Hand. Auswahl wird sofort an den Host gesendet.</p>
+          </div>
+          <div id="phoneGoalBox" class="reflection-prompt"></div>
+          <div id="phoneCards" class="roles-grid phone-cards"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head compact">
+            <h2>Öffentliche Lage</h2>
+            <p>Nur gemeinsame Informationen, keine privaten Karten anderer Rollen.</p>
+          </div>
+          <div id="phonePublicState" class="briefing-card"></div>
+        </section>
+      </section>
+    </div>
+  </section>
+
+  <div id="hostApp" class="page-shell">
     <header class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Digitales Unterrichts- und Diskussionsspiel</p>
@@ -59,7 +119,7 @@
     <section class="panel config-panel">
       <div class="panel-head">
         <h2>Konfiguration</h2>
-        <p>Hier steuerst du Szenario, Unterrichtsmodus und aktive Rollen für die nächste Runde oder die nächste neue Partie.</p>
+        <p>Hier steuerst du Szenario, Unterrichtsmodus, aktive Rollen und den Handy-Modus für die nächste Runde oder die nächste neue Partie.</p>
       </div>
 
       <div class="config-grid">
@@ -86,6 +146,26 @@
         <span class="config-label">Aktive Rollen</span>
         <div id="roleToggles" class="role-toggles"></div>
       </div>
+
+      <div class="config-box">
+        <label class="role-toggle active">
+          <input id="companionToggle" type="checkbox" />
+          <span class="role-toggle-dot" style="background:#425f8f"></span>
+          <span>Handy-Modus aktivieren</span>
+        </label>
+        <p class="config-help">
+          Serverloser Companion-Modus: Host-Gerät plus einzelne private Rollenbildschirme auf Handys.
+          Die Verbindung funktioniert per Einladungslink und Antwortcode am besten im selben WLAN.
+        </p>
+      </div>
+    </section>
+
+    <section id="companionPanel" class="panel hidden">
+      <div class="panel-head">
+        <h2>Handy-Kopplung</h2>
+        <p>Für jede aktive Rolle kann ein privater Handy-Bildschirm gekoppelt werden. Nicht gekoppelte Rollen bleiben lokal auf dem Host spielbar.</p>
+      </div>
+      <div id="companionGrid" class="roles-grid companion-grid"></div>
     </section>
 
     <main class="dashboard">

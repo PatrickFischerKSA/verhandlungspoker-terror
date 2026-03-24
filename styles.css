@@ -34,6 +34,11 @@ body {
     linear-gradient(180deg, #e5e0d6 0%, #d7d4cd 100%);
 }
 
+.phone-app.hidden,
+#hostApp.hidden {
+  display: none !important;
+}
+
 button,
 input,
 textarea,
@@ -51,12 +56,20 @@ button {
   padding: 28px 28px 48px;
 }
 
+.phone-shell {
+  max-width: 980px;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
   gap: 24px;
   align-items: stretch;
   margin-bottom: 22px;
+}
+
+.phone-hero {
+  grid-template-columns: 1fr;
 }
 
 .hero-copy,
@@ -444,10 +457,18 @@ h1 span {
   resize: vertical;
 }
 
+.small-note {
+  min-height: 108px;
+}
+
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+
+.phone-cards {
+  grid-template-columns: 1fr;
 }
 
 .role-card {
@@ -457,6 +478,28 @@ h1 span {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 244, 236, 0.84));
   display: grid;
   gap: 14px;
+}
+
+.companion-card {
+  align-content: start;
+}
+
+.companion-lock {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(66, 95, 143, 0.08);
+  border: 1px solid rgba(66, 95, 143, 0.18);
+}
+
+.companion-lock strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.companion-lock p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .role-card.disabled {
@@ -854,6 +897,10 @@ h1 span {
   justify-content: flex-end;
 }
 
+.phone-status-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .tone-danger {
   color: var(--danger);
 }
@@ -925,6 +972,10 @@ h1 span {
 
   .role-card-header {
     flex-direction: column;
+  }
+
+  .phone-status-strip {
+    grid-template-columns: 1fr;
   }
 }
 
