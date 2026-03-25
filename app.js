@@ -166,8 +166,11 @@ function makeInviteLink(roleId, offerToken) {
   return url.toString();
 }
 
-function buildQrImageUrl(text) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&format=svg&data=${encodeURIComponent(text)}`;
+function buildQrMarkup(text, label) {
+  const qr = qrcode(0, 'L');
+  qr.addData(text, 'Byte');
+  qr.make();
+  return qr.createSvgTag(4, 2, label, label);
 }
 
 function getPhoneParams() {
@@ -961,7 +964,7 @@ function renderCompanionPanel() {
           <div class="qr-box">
             ${
               entry.inviteLink
-                ? `<img src="${buildQrImageUrl(entry.inviteLink)}" alt="QR-Code für ${role.short}" class="qr-image" />`
+                ? `<div class="qr-image" aria-label="QR-Code für ${role.short}">${buildQrMarkup(entry.inviteLink, `QR-Code für ${role.short}`)}</div>`
                 : '<p class="config-help qr-empty">Noch kein QR-Code erzeugt.</p>'
             }
           </div>

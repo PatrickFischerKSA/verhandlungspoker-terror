@@ -42,7 +42,7 @@ Der Companion-Modus funktioniert ohne Backend:
 4. Das Handy erzeugt einen Antwortcode.
 5. Der Host fügt den Antwortcode ein und koppelt die Rolle.
 
-Hinweis: Die direkte Verbindung funktioniert am zuverlässigsten im selben WLAN. Falls das Scannen einmal nicht klappt, bleibt der QR-Link weiterhin als Kopier-Fallback vorhanden.
+Hinweis: Die direkte Verbindung funktioniert am zuverlässigsten im selben WLAN. Die QR-Codes werden jetzt lokal in der App erzeugt; der QR-Link bleibt nur als Kopier-Fallback vorhanden.
 
 ## Tests
 
@@ -64,5 +64,6 @@ Nach dem Push auf `main` wird die Seite automatisch als GitHub Pages Site deploy
 - `styles.css`: Layout, Touch-Optimierung und visuelle Gestaltung
 - `game-core.js`: Spiellogik, Karten, Urteile, Ziele und Berichtsgenerierung
 - `app.js`: Browser-UI, Persistenz, Export, Rendering und Handy-Kopplung
+- `vendor/qrcode.js`: lokal vendorte QR-Erzeugung für den Handy-Login
 - `assets/`: Favicon und Social-Preview
 - `tests/game-core.test.js`: kleine Logiktests für Kernfunktionen
