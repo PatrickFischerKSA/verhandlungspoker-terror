@@ -93,12 +93,47 @@ function saveCompanionSettings() {
   localStorage.setItem(COMPANION_STORAGE_KEY, JSON.stringify(companionSettings));
 }
 
-function encodeSignal(payload) {
-  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+function bytesToBase64Url(bytes) {
+  let binary = '';
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-function decodeSignal(token) {
-  return JSON.parse(decodeURIComponent(escape(atob(token))));
+function base64UrlToBytes(base64Url) {
+  const normalized = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4 || 4)) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+async function streamToUint8Array(stream) {
+  const response = new Response(stream);
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+async function encodeSignal(payload) {
+  const json = JSON.stringify(payload);
+  if ('CompressionStream' in window) {
+    const compressed = await streamToUint8Array(
+      new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+    );
+    return `c.${bytesToBase64Url(compressed)}`;
+  }
+  return `p.${btoa(unescape(encodeURIComponent(json)))}`;
+}
+
+async function decodeSignal(token) {
+  if (token.startsWith('c.') && 'DecompressionStream' in window) {
+    const bytes = base64UrlToBytes(token.slice(2));
+    const decompressed = await streamToUint8Array(
+      new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
+    );
+    return JSON.parse(new TextDecoder().decode(decompressed));
+  }
+  const raw = token.startsWith('p.') ? token.slice(2) : token;
+  return JSON.parse(decodeURIComponent(escape(atob(raw))));
 }
 
 function waitForIceComplete(peer) {
@@ -129,6 +164,10 @@ function makeInviteLink(roleId, offerToken) {
   url.searchParams.set('role', roleId);
   url.searchParams.set('signal', offerToken);
   return url.toString();
+}
+
+function buildQrImageUrl(text) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&format=svg&data=${encodeURIComponent(text)}`;
 }
 
 function getPhoneParams() {
@@ -853,7 +892,7 @@ async function createOfferForRole(roleId) {
   hostConnections[roleId].status = 'angebot';
   await peer.setLocalDescription(await peer.createOffer());
   await waitForIceComplete(peer);
-  const token = encodeSignal({
+  const token = await encodeSignal({
     kind: 'offer',
     sessionId: companionSettings.sessionId,
     roleId,
@@ -866,7 +905,7 @@ async function createOfferForRole(roleId) {
 
 async function applyAnswerForRole(roleId, answerToken) {
   try {
-    const payload = decodeSignal(answerToken.trim());
+    const payload = await decodeSignal(answerToken.trim());
     const entry = hostConnections[roleId];
     if (!entry || !entry.peer || payload.kind !== 'answer' || payload.roleId !== roleId) {
       throw new Error('Antwortcode passt nicht zur Rolle.');
@@ -919,10 +958,15 @@ function renderCompanionPanel() {
             <button class="ghost-btn" type="button" data-offer-role="${roleId}">Einladungslink erzeugen</button>
             ${entry.peer ? `<button class="ghost-btn" type="button" data-disconnect-role="${roleId}">Trennen</button>` : ''}
           </div>
-          <label class="config-label" for="invite-${roleId}">Einladungslink</label>
-          <textarea id="invite-${roleId}" class="reflection-note small-note" rows="4" readonly>${entry.inviteLink || ''}</textarea>
+          <div class="qr-box">
+            ${
+              entry.inviteLink
+                ? `<img src="${buildQrImageUrl(entry.inviteLink)}" alt="QR-Code für ${role.short}" class="qr-image" />`
+                : '<p class="config-help qr-empty">Noch kein QR-Code erzeugt.</p>'
+            }
+          </div>
           <div class="button-row">
-            <button class="ghost-btn" type="button" data-copy-link="${roleId}">Link kopieren</button>
+            <button class="ghost-btn" type="button" data-copy-link="${roleId}">QR-Link kopieren</button>
           </div>
           <label class="config-label" for="answer-${roleId}">Antwortcode vom Handy</label>
           <textarea id="answer-${roleId}" class="reflection-note small-note" rows="4" placeholder="Antwortcode hier einfügen"></textarea>
@@ -1022,7 +1066,7 @@ async function initPhoneMode() {
   }
 
   try {
-    const offer = decodeSignal(params.signal);
+    const offer = await decodeSignal(params.signal);
     const peer = new RTCPeerConnection(PEER_CONFIG);
     phonePeerConnection = peer;
     await peer.setRemoteDescription({ type: 'offer', sdp: offer.sdp });
@@ -1044,7 +1088,7 @@ async function initPhoneMode() {
     });
     await peer.setLocalDescription(await peer.createAnswer());
     await waitForIceComplete(peer);
-    const answerToken = encodeSignal({
+    const answerToken = await encodeSignal({
       kind: 'answer',
       roleId: params.roleId,
       sessionId: offer.sessionId,

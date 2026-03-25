@@ -37,12 +37,12 @@ Dann im Browser `http://localhost:8000` aufrufen.
 Der Companion-Modus funktioniert ohne Backend:
 
 1. Host aktiviert im Browser den `Handy-Modus`.
-2. Für eine Rolle wird ein Einladungslink erzeugt.
-3. Der Link wird auf dem Smartphone geöffnet.
+2. Für eine Rolle wird ein kleiner QR-Code erzeugt.
+3. Der QR-Code wird mit dem Smartphone gescannt.
 4. Das Handy erzeugt einen Antwortcode.
 5. Der Host fügt den Antwortcode ein und koppelt die Rolle.
 
-Hinweis: Die direkte Verbindung funktioniert am zuverlässigsten im selben WLAN.
+Hinweis: Die direkte Verbindung funktioniert am zuverlässigsten im selben WLAN. Falls das Scannen einmal nicht klappt, bleibt der QR-Link weiterhin als Kopier-Fallback vorhanden.
 
 ## Tests
 

@@ -484,6 +484,26 @@ h1 span {
   align-content: start;
 }
 
+.qr-box {
+  display: grid;
+  place-items: center;
+  min-height: 196px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.qr-image {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+}
+
+.qr-empty {
+  margin: 0;
+}
+
 .companion-lock {
   padding: 14px;
   border-radius: 16px;
