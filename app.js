@@ -1370,21 +1370,26 @@ function getBaseAppUrl() {
   return url;
 }
 
-function buildCompanionInvite(roleId) {
+function buildCompanionInvite(roleId, phoneMode = '1') {
   return {
     v: 1,
     s: state.sessionId,
     r: state.roundIndex,
     o: roleId,
+    pm: String(phoneMode),
+    pl: getRolePlayerLabel(roleId),
+    sm: getSelectedSharedMeasureId(),
+    vw: ROLE_VOTE_WEIGHTS[roleId].weight,
+    vr: ROLE_VOTE_WEIGHTS[roleId].reason,
     rs: RESOURCE_KEYS.map((key) => state.resources[key]),
     f: FLAG_KEYS.map((key) => (state.flags[key] ? 1 : 0))
   };
 }
 
-function buildInviteUrl(roleId) {
+function buildInviteUrl(roleId, phoneMode = '1') {
   const url = getBaseAppUrl();
-  url.searchParams.set('phone', '1');
-  url.searchParams.set('payload', encodePayload(buildCompanionInvite(roleId)));
+  url.searchParams.set('phone', String(phoneMode));
+  url.searchParams.set('payload', encodePayload(buildCompanionInvite(roleId, phoneMode)));
   return url.toString();
 }
 
@@ -1400,6 +1405,11 @@ function buildCompanionSnapshot(invite) {
   FLAG_KEYS.forEach((key, index) => {
     snapshot.flags[key] = Boolean(invite.f && invite.f[index]);
   });
+  snapshot.phoneMode = invite.pm || '1';
+  snapshot.phonePlayerLabel = invite.pl || '';
+  snapshot.selectedMeasureId = invite.sm || '';
+  snapshot.phoneVoteWeight = typeof invite.vw === 'number' ? invite.vw : 1;
+  snapshot.phoneVoteWeightReason = invite.vr || '';
   updateStatuses(snapshot);
   return snapshot;
 }
@@ -1421,6 +1431,18 @@ function buildAnswerCode(sessionId, roundIndex, roleId, cardIndex) {
   return `${sessionId}-${roundNumber}-${ROLE_SHORT_CODES[roleId]}-${cardIndex + 1}`;
 }
 
+function buildDetailedAnswerPackage(invite, payload) {
+  return `VP2-${encodePayload({
+    v: 2,
+    s: invite.s,
+    r: invite.r,
+    o: invite.o,
+    vc: payload.voteChoiceIndex,
+    vr: payload.voteReason,
+    cid: payload.cardId
+  })}`;
+}
+
 function parseAnswerCode(rawCode) {
   const normalized = String(rawCode || '')
     .toUpperCase()
@@ -1438,6 +1460,21 @@ function parseAnswerCode(rawCode) {
     roleId,
     roundIndex: Number(roundNumber) - 1,
     cardIndex: Number(cardNumber) - 1
+  };
+}
+
+function parseDetailedAnswerPackage(rawValue) {
+  const normalized = String(rawValue || '').trim();
+  if (!normalized.startsWith('VP2-')) return null;
+  const payload = decodePayload(normalized.slice(4));
+  if (!payload || payload.v !== 2 || !ROLE_META[payload.o]) return null;
+  return {
+    sessionId: payload.s,
+    roundIndex: payload.r,
+    roleId: payload.o,
+    voteChoiceIndex: Number.isInteger(payload.vc) ? payload.vc : null,
+    voteReason: typeof payload.vr === 'string' ? payload.vr : '',
+    cardId: typeof payload.cid === 'string' ? payload.cid : ''
   };
 }
 
@@ -2394,9 +2431,63 @@ function toggleCompanionRole(roleId, enabled) {
 function applyCompanionAnswer(roleId, rawCode) {
   if (state.finished) return;
 
+  const detailedPackage = parseDetailedAnswerPackage(rawCode);
+  if (detailedPackage) {
+    if (detailedPackage.sessionId !== state.sessionId) {
+      roundFeedback.textContent = 'Das Rollenpaket gehört zu einer anderen Partie.';
+      roundFeedback.className = 'round-feedback tone-danger';
+      return;
+    }
+
+    if (detailedPackage.roundIndex !== state.roundIndex) {
+      roundFeedback.textContent = 'Das Rollenpaket gehört nicht zur aktuellen Runde. Für jede Runde braucht es einen frischen QR-Code.';
+      roundFeedback.className = 'round-feedback tone-danger';
+      return;
+    }
+
+    if (detailedPackage.roleId !== roleId) {
+      roundFeedback.textContent = `Das Rollenpaket gehört zu ${ROLE_META[detailedPackage.roleId].label}, nicht zu ${ROLE_META[roleId].label}.`;
+      roundFeedback.className = 'round-feedback tone-danger';
+      return;
+    }
+
+    if (!Number.isInteger(detailedPackage.voteChoiceIndex) || detailedPackage.voteChoiceIndex < 0 || detailedPackage.voteChoiceIndex > 2) {
+      roundFeedback.textContent = 'Im Rollenpaket fehlt eine gültige Abstimmungsentscheidung.';
+      roundFeedback.className = 'round-feedback tone-danger';
+      return;
+    }
+
+    if (!isVoteReasonValid(detailedPackage.voteReason)) {
+      roundFeedback.textContent = 'Im Rollenpaket fehlt ein aussagekräftiges Kurzvotum dieser Rolle.';
+      roundFeedback.className = 'round-feedback tone-danger';
+      return;
+    }
+
+    const availableCards = getAvailableCards(roleId, state);
+    const selectedCard = availableCards.find((card) => card.id === detailedPackage.cardId)
+      || CARD_LIBRARY[roleId].find((card) => card.id === detailedPackage.cardId);
+    if (!selectedCard) {
+      roundFeedback.textContent = 'Die Kartenwahl aus dem Rollenpaket passt nicht mehr zur aktuellen Kartenhand dieser Rolle.';
+      roundFeedback.className = 'round-feedback tone-danger';
+      return;
+    }
+
+    const votes = ensureRoundVotes();
+    votes[roleId] = {
+      choiceIndex: detailedPackage.voteChoiceIndex,
+      reason: detailedPackage.voteReason.trim()
+    };
+    state.selections[roleId] = selectedCard.id;
+    roundFeedback.textContent = `Handy-Paket übernommen: ${ROLE_META[roleId].label} stimmt für Weg ${detailedPackage.voteChoiceIndex + 1} und legt „${selectedCard.title}“.`;
+    roundFeedback.className = 'round-feedback tone-safe';
+    saveState(state);
+    render();
+    return;
+  }
+
   const parsed = parseAnswerCode(rawCode);
   if (!parsed) {
-    roundFeedback.textContent = 'Der Antwortcode ist nicht lesbar. Nutzt das Format aus dem Handy direkt unverändert.';
+    roundFeedback.textContent = 'Der Antwortcode ist nicht lesbar. Nutzt entweder den kurzen Karten-Code oder das ausführliche Rollenpaket direkt unverändert.';
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
@@ -3269,11 +3360,14 @@ function renderCompanionPanel() {
 
   companionPanel.innerHTML = activeRoles.map((roleId) => {
     const role = ROLE_META[roleId];
-    const inviteUrl = buildInviteUrl(roleId);
-    const qrMarkup = buildQrMarkup(inviteUrl);
+    const quickInviteUrl = buildInviteUrl(roleId, '1');
+    const detailedInviteUrl = buildInviteUrl(roleId, '2');
+    const quickQrMarkup = buildQrMarkup(quickInviteUrl);
+    const detailedQrMarkup = buildQrMarkup(detailedInviteUrl);
     const selectedCardId = state.selections[roleId];
     const selectedCard = getAvailableCards(roleId, state).find((card) => card.id === selectedCardId)
       || CARD_LIBRARY[roleId].find((card) => card.id === selectedCardId);
+    const roleVote = getRoleVote(roleId);
     const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
 
     return `
@@ -3281,34 +3375,44 @@ function renderCompanionPanel() {
         <div class="companion-card-head">
           <div>
             <h3>${role.label}</h3>
-            <p>Runde ${state.roundIndex + 1}, T - ${round.minute} Minuten. Der QR-Code gilt nur für diese Runde.</p>
+            <p>Runde ${state.roundIndex + 1}, T - ${round.minute} Minuten. Beide QR-Codes gelten nur für diese Runde.</p>
           </div>
-          <span class="companion-status">${selectedCard ? 'Auswahl liegt vor' : 'Warte auf Handy'}</span>
+          <span class="companion-status">${selectedCard ? 'Rollenpaket oder Auswahl liegt vor' : 'Warte auf Handy'}</span>
         </div>
 
         <div class="companion-body">
-          <div class="companion-qr">
-            <div class="qr-image">${qrMarkup || '<p class="small-note">QR-Code konnte lokal nicht erzeugt werden.</p>'}</div>
-            <p class="small-note">Das Handy sieht nur diese Rolle und erzeugt danach einen kurzen Antwortcode.</p>
+          <div class="companion-mode-grid">
+            <div class="companion-qr mode-detailed">
+              <strong>Handy-Modus 2 · Ausführlich und stabil</strong>
+              <div class="qr-image">${detailedQrMarkup || '<p class="small-note">QR-Code konnte lokal nicht erzeugt werden.</p>'}</div>
+              <p class="small-note">Empfohlen: Das Handy sieht die ausführliche Rollenansicht, stimmt über den Weg ab, schreibt ein Kurzvotum und wählt die Rollenkarte. Danach entsteht ein vollständiges Rollenpaket zum Einfügen.</p>
+              <button class="copy-btn" type="button" data-copy-url="${roleId}" data-copy-mode="2">QR-Link Modus 2 kopieren</button>
+            </div>
+
+            <div class="companion-qr">
+              <strong>Handy-Modus 1 · Nur Kartenwahl</strong>
+              <div class="qr-image">${quickQrMarkup || '<p class="small-note">QR-Code konnte lokal nicht erzeugt werden.</p>'}</div>
+              <p class="small-note">Fallback: Das Handy sieht nur diese Rolle und erzeugt danach einen kurzen Karten-Code.</p>
+              <button class="copy-btn" type="button" data-copy-url="${roleId}" data-copy-mode="1">QR-Link Modus 1 kopieren</button>
+            </div>
           </div>
 
           <div class="companion-controls">
             <div class="choice-tags">
               <span class="tag">Sitzung ${state.sessionId}</span>
               <span class="tag">${role.short}</span>
+              <span class="tag">${Number.isInteger(roleVote.choiceIndex) ? `Stimme: Weg ${roleVote.choiceIndex + 1}` : 'Noch kein Votum'}</span>
               <span class="tag">${selectedCard ? `Gewählt: ${selectedCard.title}` : 'Noch keine Auswahl'}</span>
-            </div>
-            <div class="qr-actions">
-              <button class="copy-btn" type="button" data-copy-url="${roleId}">QR-Link kopieren</button>
             </div>
             <textarea
               class="code-field"
               id="answer-${roleId}"
-              placeholder="Antwortcode vom Handy hier einfügen, z. B. ${state.sessionId}-${String(state.roundIndex + 1).padStart(2, '0')}-${ROLE_SHORT_CODES[roleId]}-1"
+              placeholder="Hier entweder den kurzen Karten-Code oder das ausführliche Rollenpaket aus dem Handy einfügen."
             ></textarea>
             <div class="code-row">
               <button class="primary-btn" type="button" data-apply-answer="${roleId}">Antwort übernehmen</button>
             </div>
+            <p class="small-note">Im ausführlichen Modus 2 übernimmt die App mit einem einzigen Paket die Abstimmung der Rolle, das Kurzvotum und die Kartenwahl.</p>
           </div>
         </div>
       </article>
@@ -3317,9 +3421,9 @@ function renderCompanionPanel() {
 
   companionPanel.querySelectorAll('[data-copy-url]').forEach((button) => {
     button.addEventListener('click', () => {
-      copyText(buildInviteUrl(button.dataset.copyUrl))
+      copyText(buildInviteUrl(button.dataset.copyUrl, button.dataset.copyMode || '1'))
         .then(() => {
-          roundFeedback.textContent = `Der Rollenlink für ${ROLE_META[button.dataset.copyUrl].label} wurde in die Zwischenablage kopiert.`;
+          roundFeedback.textContent = `Der Rollenlink für ${ROLE_META[button.dataset.copyUrl].label} im Handy-Modus ${button.dataset.copyMode || '1'} wurde in die Zwischenablage kopiert.`;
           roundFeedback.className = 'round-feedback tone-safe';
         })
         .catch(() => {
@@ -3375,21 +3479,266 @@ function renderRestoreBanner() {
 
 function getPhoneInviteFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('phone') !== '1') return null;
+  const phoneMode = params.get('phone');
+  if (!['1', '2'].includes(phoneMode)) return null;
 
   const payload = decodePayload(params.get('payload'));
   if (!payload || !ROLE_META[payload.o] || typeof payload.r !== 'number') return { invalid: true };
-  return payload;
+  return {
+    ...payload,
+    pm: phoneMode
+  };
 }
 
-function renderPhoneScreen(invite, selectedIndex = null) {
+function getPhoneDraftKey(invite) {
+  return `${invite.s}:${invite.r}:${invite.o}:${invite.pm || '1'}`;
+}
+
+function ensurePhoneDraft(invite) {
+  const nextKey = getPhoneDraftKey(invite);
+  if (phoneDraftState.key === nextKey) return;
+  phoneDraftState = {
+    key: nextKey,
+    simpleSelectedIndex: null,
+    voteChoiceIndex: null,
+    voteReason: '',
+    cardId: ''
+  };
+}
+
+function renderDetailedPhoneActionPanel(invite, snapshot, role, availableCards) {
+  const selectedCard = availableCards.find((card) => card.id === phoneDraftState.cardId) || null;
+  const hasVoteChoice = Number.isInteger(phoneDraftState.voteChoiceIndex) && phoneDraftState.voteChoiceIndex >= 0;
+  const hasReason = isVoteReasonValid(phoneDraftState.voteReason);
+  const ready = hasVoteChoice && hasReason && selectedCard;
+  const packageCode = ready
+    ? buildDetailedAnswerPackage(invite, {
+      voteChoiceIndex: phoneDraftState.voteChoiceIndex,
+      voteReason: phoneDraftState.voteReason.trim(),
+      cardId: selectedCard.id
+    })
+    : '';
+
+  phoneActionPanel.innerHTML = ready
+    ? `
+      <div class="panel-head compact">
+        <h2>Rollenpaket für den Desktop</h2>
+        <p>Dieses Paket übernimmt auf dem Desktop die Abstimmung dieser Rolle, das Kurzvotum und die Kartenwahl in einem Schritt.</p>
+      </div>
+      <div class="phone-package-box">${escapeHtml(packageCode)}</div>
+      <div class="phone-package-summary">
+        <strong>${role.label}</strong>
+        <span>Stimme: Weg ${phoneDraftState.voteChoiceIndex + 1}</span>
+        <span>Karte: ${selectedCard.title}</span>
+      </div>
+      <div class="button-row">
+        <button id="copyPhonePackageBtn" class="primary-btn" type="button">Rollenpaket kopieren</button>
+      </div>
+    `
+    : `
+      <div class="panel-head compact">
+        <h2>Noch nicht vollständig</h2>
+        <p>Für das ausführliche Rollenpaket braucht ihr drei Dinge: einen gewählten Weg, ein kurzes Votum und eine Rollenkarte.</p>
+      </div>
+      <div class="phone-checklist">
+        <span class="${hasVoteChoice ? 'ready' : ''}">Weg ${hasVoteChoice ? 'gewählt' : 'fehlt noch'}</span>
+        <span class="${hasReason ? 'ready' : ''}">Kurzvotum ${hasReason ? 'vollständig' : 'fehlt noch'}</span>
+        <span class="${selectedCard ? 'ready' : ''}">Rollenkarte ${selectedCard ? 'gewählt' : 'fehlt noch'}</span>
+      </div>
+      <p class="phone-summary">Diese Ansicht bleibt komplett stabil ohne Live-Verbindung. Wenn sich die Runde ändert, scannt ihr einfach den frischen QR-Code erneut.</p>
+    `;
+
+  const copyButton = document.querySelector('#copyPhonePackageBtn');
+  if (copyButton && packageCode) {
+    copyButton.addEventListener('click', () => {
+      copyText(packageCode)
+        .then(() => {
+          copyButton.textContent = 'Rollenpaket kopiert';
+        })
+        .catch(() => {
+          copyButton.textContent = 'Bitte manuell kopieren';
+        });
+    });
+  }
+}
+
+function renderDetailedPhoneScreen(invite) {
+  ensurePhoneDraft(invite);
   const role = ROLE_META[invite.o];
   const snapshot = buildCompanionSnapshot(invite);
   const round = ROUNDS[Math.min(snapshot.roundIndex, ROUNDS.length - 1)];
+  const guide = getRoundGuide(snapshot.roundIndex);
+  const teaching = getTeacherBriefing(snapshot.roundIndex);
+  const facts = getRoundFacts(snapshot.roundIndex);
+  const measures = getRoundSharedMeasures(snapshot.roundIndex);
   const availableCards = getAvailableCards(invite.o, snapshot);
-  const selectedCard = selectedIndex !== null ? availableCards[selectedIndex] : null;
+  const selectedCard = availableCards.find((card) => card.id === phoneDraftState.cardId) || null;
+  const selectedMeasure = measures.find((measure) => measure.id === snapshot.selectedMeasureId) || null;
+
+  desktopApp.classList.add('hidden');
+  phoneApp.classList.remove('hidden');
+  phoneLead.textContent = `Du spielst ${role.label} in Runde ${snapshot.roundIndex + 1} im ausführlichen Handy-Modus. Diese Ansicht zeigt dir dieselbe Lage wie am Desktop, aber nur für deine Rolle.`;
+
+  phoneStatusPanel.innerHTML = `
+    <div class="panel-head compact">
+      <h2>Rollenstatus</h2>
+      <p>Das ist die ausführliche, stabile Handy-Variante ohne Live-Synchronisierung.</p>
+    </div>
+    <div class="phone-status-grid">
+      <article class="phone-status-card">
+        <span>Rolle</span>
+        <strong>${role.label}</strong>
+      </article>
+      <article class="phone-status-card">
+        <span>Spielende Person</span>
+        <strong>${snapshot.phonePlayerLabel || 'nicht hinterlegt'}</strong>
+      </article>
+      <article class="phone-status-card">
+        <span>Zeitleiste</span>
+        <strong>Runde ${snapshot.roundIndex + 1} · T - ${round.minute}</strong>
+      </article>
+      <article class="phone-status-card">
+        <span>Stimmgewicht</span>
+        <strong>${snapshot.phoneVoteWeight} Punkte</strong>
+      </article>
+    </div>
+  `;
+
+  phoneRolePanel.innerHTML = `
+    <div class="panel-head">
+      <h2>${round.title}</h2>
+      <p>${teaching.happened}</p>
+    </div>
+
+    <div class="briefing-fact-grid">
+      ${facts.map((fact) => `
+        <article class="briefing-fact-card">
+          <strong>${fact.label}</strong>
+          <span>${fact.value}</span>
+        </article>
+      `).join('')}
+    </div>
+
+    <article class="prompt-card">
+      <h3>Deine Rolle in dieser Runde</h3>
+      <p>${role.goal}</p>
+      <p><strong>Warum deine Stimme ${snapshot.phoneVoteWeight} Punkte zählt:</strong> ${snapshot.phoneVoteWeightReason}</p>
+      <p><strong>Leitfrage:</strong> ${teaching.conflict}</p>
+      <p><strong>Was am Ende entschieden werden soll:</strong> ${teaching.decisionTask}</p>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Die drei Wege dieser Runde</h3>
+      <div class="briefing-action-grid">
+        ${teaching.paths.map((path, index) => `
+          <button
+            class="vote-choice-btn ${phoneDraftState.voteChoiceIndex === index ? 'selected' : ''}"
+            type="button"
+            data-phone-vote-choice="${index}"
+          >
+            <strong>Weg ${index + 1}</strong>
+            <span>${path}</span>
+          </button>
+        `).join('')}
+      </div>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Dein kurzes Votum</h3>
+      <p>Schreibe in einem klaren Satz, warum deine Rolle genau diesen Weg unterstützt. Dieses Votum wird zusammen mit deiner Stimme in das Rollenpaket übernommen.</p>
+      <textarea
+        id="phoneVoteReason"
+        class="vote-reason-field"
+        placeholder="Beispiel: Ich stimme für Weg 2, weil meine Rolle jetzt vor allem Zeit für eine echte Stadionräumung gewinnen muss."
+      >${escapeHtml(phoneDraftState.voteReason)}</textarea>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Gemeinsamer Krisenbeschluss der Klasse</h3>
+      <p>Dieser Beschluss wird von der Gesamtgruppe auf dem Desktop gewählt. Du siehst hier aber dieselben Optionen, damit deine Rolle die Lage vollständig versteht.</p>
+      <div class="measure-grid">
+        ${measures.map((measure) => `
+          <article class="measure-btn ${selectedMeasure?.id === measure.id ? 'selected' : ''}">
+            <strong>${measure.title}</strong>
+            <span>${measure.summary}</span>
+            <em>Folge: ${measure.impact}</em>
+          </article>
+        `).join('')}
+      </div>
+      <div class="measure-result-card ${selectedMeasure ? 'is-ready' : ''}">
+        ${selectedMeasure
+          ? `<p><strong>Bereits gewählt am Desktop:</strong> ${selectedMeasure.title}</p><p>${selectedMeasure.summary}</p>`
+          : '<p><strong>Noch nicht gewählt:</strong> Der gemeinsame Krisenbeschluss wird später mit der ganzen Klasse auf dem Desktop festgelegt.</p>'}
+      </div>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Deine Rollenkarte</h3>
+      <p>Wähle jetzt die konkrete Auswahlkarte, mit der deine Rolle den Rundenentscheid praktisch umsetzt.</p>
+      <div class="phone-choice-grid">
+        ${availableCards.map((card) => `
+          <button
+            class="choice-btn ${selectedCard?.id === card.id ? 'selected' : ''}"
+            type="button"
+            data-phone-detailed-card="${card.id}"
+            style="${selectedCard?.id === card.id ? `background:${role.soft};border-color:${role.color};` : ''}"
+          >
+            <span class="choice-kicker">Auswahlkarte für ${role.short}</span>
+            <h4>${card.title}</h4>
+            <p>${card.description}</p>
+            <div class="choice-tags">
+              ${card.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')}
+            </div>
+          </button>
+        `).join('')}
+      </div>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Darauf soll deine Rolle achten</h3>
+      <ol class="discussion-list">
+        ${guide.prompts.map((prompt) => `<li>${prompt}</li>`).join('')}
+      </ol>
+    </article>
+  `;
+
+  renderDetailedPhoneActionPanel(invite, snapshot, role, availableCards);
+
+  phoneRolePanel.querySelectorAll('[data-phone-vote-choice]').forEach((button) => {
+    button.addEventListener('click', () => {
+      phoneDraftState.voteChoiceIndex = Number(button.dataset.phoneVoteChoice);
+      renderDetailedPhoneScreen(invite);
+    });
+  });
+
+  const voteReasonField = document.querySelector('#phoneVoteReason');
+  if (voteReasonField) {
+    voteReasonField.addEventListener('input', () => {
+      phoneDraftState.voteReason = voteReasonField.value;
+      renderDetailedPhoneActionPanel(invite, snapshot, role, availableCards);
+    });
+  }
+
+  phoneRolePanel.querySelectorAll('[data-phone-detailed-card]').forEach((button) => {
+    button.addEventListener('click', () => {
+      phoneDraftState.cardId = button.dataset.phoneDetailedCard;
+      renderDetailedPhoneScreen(invite);
+    });
+  });
+}
+
+function renderPhoneScreen(invite, selectedIndex = null) {
+  ensurePhoneDraft(invite);
+  const role = ROLE_META[invite.o];
+  const snapshot = buildCompanionSnapshot(invite);
+  const round = ROUNDS[Math.min(snapshot.roundIndex, ROUNDS.length - 1)];
+  if (selectedIndex !== null) {
+    phoneDraftState.simpleSelectedIndex = selectedIndex;
+  }
+  const availableCards = getAvailableCards(invite.o, snapshot);
+  const selectedCard = phoneDraftState.simpleSelectedIndex !== null ? availableCards[phoneDraftState.simpleSelectedIndex] : null;
   const answerCode = selectedCard
-    ? buildAnswerCode(invite.s, snapshot.roundIndex, invite.o, selectedIndex)
+    ? buildAnswerCode(invite.s, snapshot.roundIndex, invite.o, phoneDraftState.simpleSelectedIndex)
     : '';
 
   desktopApp.classList.add('hidden');
@@ -3491,7 +3840,7 @@ function renderPhoneScreen(invite, selectedIndex = null) {
 function renderInvalidPhoneScreen() {
   desktopApp.classList.add('hidden');
   phoneApp.classList.remove('hidden');
-  phoneLead.textContent = 'Der QR-Code ist ungültig oder veraltet. Bitte scannt den frischen Code direkt von der aktuellen Desktop-Runde.';
+  phoneLead.textContent = 'Der QR-Code ist ungültig oder veraltet. Bitte scannt den frischen Code direkt von der aktuellen Desktop-Runde erneut.';
   phoneStatusPanel.innerHTML = '';
   phoneRolePanel.innerHTML = `
     <div class="panel-head">
@@ -3608,6 +3957,13 @@ const gameOverlayBackdrop = document.querySelector('.game-overlay-backdrop');
 
 let state = loadState() || createInitialState();
 let gameOverlayOpen = state.setupComplete;
+let phoneDraftState = {
+  key: '',
+  simpleSelectedIndex: null,
+  voteChoiceIndex: null,
+  voteReason: '',
+  cardId: ''
+};
 if (localStorage.getItem(STORAGE_KEY)) {
   state.restored = true;
 }
@@ -3638,7 +3994,11 @@ document.addEventListener('keydown', (event) => {
 const phoneInvite = getPhoneInviteFromUrl();
 
 if (phoneInvite && !phoneInvite.invalid) {
-  renderPhoneScreen(phoneInvite);
+  if ((phoneInvite.pm || '1') === '2') {
+    renderDetailedPhoneScreen(phoneInvite);
+  } else {
+    renderPhoneScreen(phoneInvite);
+  }
 } else if (phoneInvite && phoneInvite.invalid) {
   renderInvalidPhoneScreen();
 } else {

@@ -1452,15 +1452,35 @@ h1 span {
 
 .companion-body {
   display: grid;
-  grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: start;
+}
+
+.companion-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .companion-qr {
   display: grid;
   gap: 8px;
   justify-items: center;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.companion-qr strong {
+  display: block;
+  text-align: center;
+}
+
+.companion-qr.mode-detailed {
+  border-color: rgba(47, 111, 89, 0.24);
+  background: rgba(47, 111, 89, 0.06);
 }
 
 .qr-image {
@@ -1584,6 +1604,38 @@ h1 span {
   margin: 0;
   color: var(--muted);
   line-height: 1.65;
+}
+
+.phone-package-box {
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(29, 45, 68, 0.96), rgba(141, 94, 41, 0.92));
+  color: #fffaf1;
+  line-height: 1.55;
+  word-break: break-word;
+  font-weight: 700;
+}
+
+.phone-package-summary,
+.phone-checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.phone-package-summary strong,
+.phone-package-summary span,
+.phone-checklist span {
+  display: block;
+}
+
+.phone-package-summary span,
+.phone-checklist span {
+  color: var(--muted);
+}
+
+.phone-checklist span.ready {
+  color: var(--safe);
+  font-weight: 800;
 }
 
 .log-list {
@@ -1777,6 +1829,7 @@ h1 span {
   }
 
   .page-nav-buttons,
+  .companion-mode-grid,
   .companion-body,
   .code-row,
   .qr-actions {
