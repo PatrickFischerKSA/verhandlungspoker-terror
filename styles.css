@@ -523,6 +523,93 @@ h1 span {
   background: rgba(47, 111, 89, 0.08);
 }
 
+.authority-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.authority-card,
+.authority-result-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.authority-card {
+  display: grid;
+  gap: 12px;
+}
+
+.authority-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.authority-card-head strong,
+.authority-card-head span,
+.authority-note,
+.authority-result-card p {
+  display: block;
+}
+
+.authority-note,
+.authority-result-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.authority-choice-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.authority-choice-btn {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(250, 246, 240, 0.92);
+  padding: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.authority-choice-btn.selected {
+  border-color: rgba(66, 95, 143, 0.42);
+  background: rgba(66, 95, 143, 0.1);
+  box-shadow: 0 14px 24px rgba(66, 95, 143, 0.12);
+}
+
+.authority-choice-btn.is-block,
+.authority-choice-btn.is-block.selected {
+  border-color: rgba(143, 47, 47, 0.34);
+  background: rgba(143, 47, 47, 0.1);
+  color: var(--danger);
+  box-shadow: 0 14px 24px rgba(143, 47, 47, 0.12);
+}
+
+.authority-result-card {
+  display: grid;
+  gap: 8px;
+}
+
+.authority-result-card.is-ready {
+  border-color: rgba(47, 111, 89, 0.28);
+  background: rgba(47, 111, 89, 0.08);
+}
+
+.authority-result-card.is-blocked {
+  border-color: rgba(143, 47, 47, 0.28);
+  background: rgba(143, 47, 47, 0.08);
+}
+
 .vote-tally-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1754,6 +1841,7 @@ h1 span {
   .briefing-action-grid,
   .briefing-fact-grid,
   .measure-grid,
+  .authority-grid,
   .vote-grid,
   .vote-tally-grid {
     grid-template-columns: 1fr;
@@ -1819,7 +1907,8 @@ h1 span {
   }
 
   .vote-card-head,
-  .vote-choice-row {
+  .vote-choice-row,
+  .authority-choice-row {
     grid-template-columns: 1fr;
     display: grid;
   }

@@ -1197,6 +1197,61 @@ const ROUND_SHARED_MEASURES = [
   ]
 ];
 
+const ROUND_VETO_RULES = [
+  [
+    { roleId: 'fuehrungszentrum', reason: 'darf den Mehrheitsweg in dieser Runde operativ prüfen, weil die Luftlage noch sehr unsicher ist.' },
+    { roleId: 'katastrophenschutz', reason: 'darf warnen oder bremsen, wenn der Weg am Boden zu früh Chaos auslösen würde.' }
+  ],
+  [
+    { roleId: 'fuehrungszentrum', reason: 'muss prüfen, ob der Mehrheitsweg zur aktuellen Luftlage überhaupt passt.' },
+    { roleId: 'katastrophenschutz', reason: 'darf bremsen, wenn der Weg im Stadion zu früh Panik erzeugen könnte.' }
+  ],
+  [
+    { roleId: 'fuehrungszentrum', reason: 'muss entscheiden, ob der Weg operativ tragfähig oder zu spät ist.' },
+    { roleId: 'ministerium', reason: 'darf jetzt stärker mitreden, weil aus Beobachtung bereits Staatsverantwortung wird.' }
+  ],
+  [
+    { roleId: 'ministerium', reason: 'darf blockieren, wenn der Mehrheitsweg politisch oder rechtlich nicht offen getragen wird.' },
+    { roleId: 'fuehrungszentrum', reason: 'muss freigeben, ob der Weg überhaupt praktisch umgesetzt werden kann.' }
+  ],
+  [
+    { roleId: 'ministerium', reason: 'trägt jetzt die stärkste rechtlich-politische Sonderverantwortung.' },
+    { roleId: 'katastrophenschutz', reason: 'darf widersprechen, wenn der Weg die Menschen im Stadion real nicht schützt.' }
+  ],
+  [
+    { roleId: 'ministerium', reason: 'hat jetzt ein echtes Sonderrecht, weil die Rechtsgrenze selbst Thema der Runde ist.' },
+    { roleId: 'fuehrungszentrum', reason: 'muss sagen, ob der Weg mehr Klarheit oder nur neue Unordnung schafft.' }
+  ],
+  [
+    { roleId: 'katastrophenschutz', reason: 'hat Sonderrecht, weil die praktische Räumung jetzt über Leben und Tod mitentscheidet.' },
+    { roleId: 'fuehrungszentrum', reason: 'darf blockieren, wenn der Weg operativ zu unkoordiniert wäre.' }
+  ],
+  [
+    { roleId: 'fuehrungszentrum', reason: 'muss die Befehlskette jetzt verbindlich prüfen.' },
+    { roleId: 'ministerium', reason: 'darf verlangen, dass Verantwortung nicht heimlich nach unten verschoben wird.' }
+  ],
+  [
+    { roleId: 'koch', reason: 'bekommt jetzt ein echtes Sonderrecht, weil die operative Letztlast spürbar auf ihm liegt.' },
+    { roleId: 'ministerium', reason: 'muss sagen, ob der Weg offen gedeckt, nur bedingt getragen oder blockiert wird.' }
+  ],
+  [
+    { roleId: 'koch', reason: 'darf blockieren, wenn der Mehrheitsweg seine Rolle in eine unklare Letztentscheidung zwingt.' },
+    { roleId: 'ministerium', reason: 'hat Sonderrecht, weil Freigabe oder Verbot jetzt nicht mehr versteckt bleiben dürfen.' }
+  ],
+  [
+    { roleId: 'katastrophenschutz', reason: 'muss jetzt prüfen, ob der Weg am Boden noch wirklich Leben retten kann.' },
+    { roleId: 'koch', reason: 'darf widersprechen, wenn der Weg in der Luft praktisch nicht mehr tragfähig ist.' }
+  ],
+  [
+    { roleId: 'ministerium', reason: 'muss jetzt offen sagen, ob eine Grenze gehalten oder überschritten werden soll.' },
+    { roleId: 'koch', reason: 'trägt die operative Letztlast und bekommt deshalb ein echtes Vetorecht.' }
+  ],
+  [
+    { roleId: 'ministerium', reason: 'hat in der Schlussminute das stärkste Sonderrecht für die rechtliche Gesamtlinie.' },
+    { roleId: 'koch', reason: 'darf den letzten Mehrheitsweg blockieren, wenn er ihn operativ nicht mehr verantworten kann.' }
+  ]
+];
+
 function getPhase(roundIndex) {
   if (roundIndex <= 3) return 'early';
   if (roundIndex <= 8) return 'middle';
@@ -1248,6 +1303,7 @@ function createInitialState() {
     notesByRound: {},
     votesByRound: {},
     measuresByRound: {},
+    vetoesByRound: {},
     selections: {},
     lastResolution: [],
     resources: {
@@ -1309,6 +1365,7 @@ function hydrateState(input) {
     notesByRound: input.notesByRound && typeof input.notesByRound === 'object' ? input.notesByRound : {},
     votesByRound: input.votesByRound && typeof input.votesByRound === 'object' ? input.votesByRound : {},
     measuresByRound: input.measuresByRound && typeof input.measuresByRound === 'object' ? input.measuresByRound : {},
+    vetoesByRound: input.vetoesByRound && typeof input.vetoesByRound === 'object' ? input.vetoesByRound : {},
     selections: input.selections && typeof input.selections === 'object' ? input.selections : {},
     lastResolution: Array.isArray(input.lastResolution) ? input.lastResolution : [],
     resources: {
@@ -1510,6 +1567,10 @@ function getRoundSharedMeasures(roundIndex = state.roundIndex) {
   return ROUND_SHARED_MEASURES[Math.min(roundIndex, ROUND_SHARED_MEASURES.length - 1)];
 }
 
+function getRoundVetoRules(roundIndex = state.roundIndex) {
+  return ROUND_VETO_RULES[Math.min(roundIndex, ROUND_VETO_RULES.length - 1)];
+}
+
 function getRoundNoteKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
@@ -1524,6 +1585,10 @@ function getRoundVoteKey(roundIndex = state.roundIndex) {
 }
 
 function getRoundMeasureKey(roundIndex = state.roundIndex) {
+  return String(roundIndex);
+}
+
+function getRoundVetoKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
 
@@ -1549,11 +1614,15 @@ function getRoleVote(roleId, roundIndex = state.roundIndex) {
 
 function setRoleVoteChoice(roleId, choiceIndex) {
   if (!ROLE_META[roleId]) return;
+  const previousVote = getRoleVote(roleId);
+  if (previousVote.choiceIndex === choiceIndex) return;
   const votes = ensureRoundVotes();
   votes[roleId] = {
-    ...getRoleVote(roleId),
+    ...previousVote,
     choiceIndex
   };
+  resetCurrentRoundAuthority();
+  clearCurrentRoundSelections();
   saveState(state);
 }
 
@@ -1661,8 +1730,146 @@ function getSelectedSharedMeasure(roundIndex = state.roundIndex) {
 function setSelectedSharedMeasure(measureId) {
   const available = getRoundSharedMeasures();
   if (!available.some((measure) => measure.id === measureId)) return;
+  if (getSelectedSharedMeasureId() === measureId) return;
   state.measuresByRound[getRoundMeasureKey()] = measureId;
+  resetCurrentRoundAuthority();
+  clearCurrentRoundSelections();
   saveState(state);
+}
+
+function ensureRoundVetoes(roundIndex = state.roundIndex) {
+  const key = getRoundVetoKey(roundIndex);
+  if (!state.vetoesByRound[key] || typeof state.vetoesByRound[key] !== 'object') {
+    state.vetoesByRound[key] = {};
+  }
+  return state.vetoesByRound[key];
+}
+
+function getRoleVeto(roleId, roundIndex = state.roundIndex) {
+  const vetoes = state.vetoesByRound[getRoundVetoKey(roundIndex)];
+  if (!vetoes || typeof vetoes !== 'object') {
+    return { decision: '', reason: '' };
+  }
+  const veto = vetoes[roleId];
+  return {
+    decision: typeof veto?.decision === 'string' ? veto.decision : '',
+    reason: typeof veto?.reason === 'string' ? veto.reason : ''
+  };
+}
+
+function setRoleVetoDecision(roleId, decision) {
+  const allowed = ['approve', 'conditional', 'block'];
+  if (!ROLE_META[roleId] || !allowed.includes(decision)) return;
+  const previousVeto = getRoleVeto(roleId);
+  if (previousVeto.decision === decision) return;
+  const vetoes = ensureRoundVetoes();
+  vetoes[roleId] = {
+    ...previousVeto,
+    decision
+  };
+  clearCurrentRoundSelections();
+  saveState(state);
+}
+
+function setRoleVetoReason(roleId, value) {
+  if (!ROLE_META[roleId]) return;
+  const previousVeto = getRoleVeto(roleId);
+  if (previousVeto.reason === value.trimStart()) return;
+  const vetoes = ensureRoundVetoes();
+  vetoes[roleId] = {
+    ...previousVeto,
+    reason: value.trimStart()
+  };
+  clearCurrentRoundSelections();
+  saveState(state);
+}
+
+function resetCurrentRoundAuthority(roundIndex = state.roundIndex) {
+  delete state.vetoesByRound[getRoundVetoKey(roundIndex)];
+}
+
+function clearCurrentRoundSelections() {
+  state.selections = {};
+}
+
+function getRoundAuthorityOutcome(roundIndex = state.roundIndex) {
+  const voteOutcome = getRoundVoteOutcome(roundIndex);
+  if (!voteOutcome.complete || !voteOutcome.winner) {
+    return {
+      ready: false,
+      allowed: false,
+      pendingVote: true,
+      missingRoles: [],
+      blockedBy: [],
+      conditionalBy: [],
+      approvedBy: [],
+      winner: voteOutcome.winner || null
+    };
+  }
+
+  const rules = getRoundVetoRules(roundIndex);
+  const missingRoles = [];
+  const blockedBy = [];
+  const conditionalBy = [];
+  const approvedBy = [];
+
+  rules.forEach((rule) => {
+    const veto = getRoleVeto(rule.roleId, roundIndex);
+    if (!['approve', 'conditional', 'block'].includes(veto.decision)) {
+      missingRoles.push(rule.roleId);
+      return;
+    }
+    if (veto.decision !== 'approve' && !isVoteReasonValid(veto.reason)) {
+      missingRoles.push(rule.roleId);
+      return;
+    }
+    if (veto.decision === 'block') {
+      blockedBy.push({ roleId: rule.roleId, reason: veto.reason.trim() });
+    } else if (veto.decision === 'conditional') {
+      conditionalBy.push({ roleId: rule.roleId, reason: veto.reason.trim() });
+    } else {
+      approvedBy.push({ roleId: rule.roleId });
+    }
+  });
+
+  if (missingRoles.length) {
+    return {
+      ready: false,
+      allowed: false,
+      pendingVote: false,
+      missingRoles,
+      blockedBy,
+      conditionalBy,
+      approvedBy,
+      winner: voteOutcome.winner
+    };
+  }
+
+  if (blockedBy.length) {
+    return {
+      ready: true,
+      allowed: false,
+      status: 'blocked',
+      pendingVote: false,
+      missingRoles: [],
+      blockedBy,
+      conditionalBy,
+      approvedBy,
+      winner: voteOutcome.winner
+    };
+  }
+
+  return {
+    ready: true,
+    allowed: true,
+    status: conditionalBy.length ? 'conditional' : 'approved',
+    pendingVote: false,
+    missingRoles: [],
+    blockedBy,
+    conditionalBy,
+    approvedBy,
+    winner: voteOutcome.winner
+  };
 }
 
 function setPlayerName(roleId, value) {
@@ -2416,6 +2623,17 @@ function selectCard(roleId, cardId) {
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
+  const authorityOutcome = getRoundAuthorityOutcome();
+  if (!authorityOutcome.ready) {
+    roundFeedback.textContent = 'Kärtchenlegen geht erst weiter, wenn die Rollen mit Sonderrecht den Mehrheitsweg geprüft haben.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
+  if (!authorityOutcome.allowed) {
+    roundFeedback.textContent = 'Der Mehrheitsweg ist aktuell blockiert. Solange das Veto steht, bleiben die Auswahlkarten gesperrt.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
   state.selections[roleId] = cardId;
   saveState(state);
   render();
@@ -2541,10 +2759,22 @@ function resolveRound() {
     return;
   }
 
+  const authorityOutcome = getRoundAuthorityOutcome();
+  if (!authorityOutcome.ready) {
+    roundFeedback.textContent = 'Vor der Auswertung müssen die Rollen mit Sonderrecht den Mehrheitsweg noch prüfen.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
+  if (!authorityOutcome.allowed) {
+    roundFeedback.textContent = 'Vor der Auswertung muss zuerst das blockierende Veto aufgehoben oder die Abstimmung geändert werden.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
+
   const missingRoles = ROLE_ORDER.filter((roleId) => !state.selections[roleId]);
   if (missingRoles.length > 0) {
     const names = missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
-    roundFeedback.textContent = `Vor „6. Runde auswerten“ fehlen noch Karten für: ${names}.`;
+    roundFeedback.textContent = `Vor „7. Runde auswerten“ fehlen noch Karten für: ${names}.`;
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
@@ -2553,6 +2783,19 @@ function resolveRound() {
 
   selectedMeasure.effect(state);
   resolutionLines.push(`Gemeinsamer Krisenbeschluss: ${selectedMeasure.title}`);
+  resolutionLines.push(
+    authorityOutcome.status === 'conditional'
+      ? 'Sonderrechte: Mehrheitsweg nur unter Bedingungen freigegeben'
+      : 'Sonderrechte: Mehrheitsweg freigegeben'
+  );
+
+  if (authorityOutcome.status === 'conditional') {
+    adjustResource(state, 'legalRisk', 1);
+    adjustResource(state, 'commandConsensus', 1);
+    authorityOutcome.conditionalBy.forEach((entry) => {
+      addLogEntry(state, `${ROLE_META[entry.roleId].label} gibt den Mehrheitsweg nur unter Bedingungen frei: ${entry.reason}`);
+    });
+  }
 
   for (const roleId of ROLE_ORDER) {
     const selectedId = state.selections[roleId];
@@ -2815,8 +3058,10 @@ function renderCurrentTaskPanel() {
   const missingRoles = getMissingRoleIds();
   const voteOutcome = getRoundVoteOutcome();
   const selectedMeasure = getSelectedSharedMeasure();
+  const authorityOutcome = getRoundAuthorityOutcome();
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
-  const readyToResolve = state.setupComplete && voteOutcome.complete && selectedMeasure && missingRoles.length === 0;
+  const missingAuthorityText = authorityOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
+  const readyToResolve = state.setupComplete && voteOutcome.complete && selectedMeasure && authorityOutcome.allowed && missingRoles.length === 0;
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const nextRolesText = missingRoles.length
@@ -2860,6 +3105,23 @@ function renderCurrentTaskPanel() {
       status: !state.setupComplete || !voteOutcome.complete ? 'pending' : selectedMeasure ? 'done' : 'active'
     },
     {
+      label: 'Prüf- und Vetorechte klären',
+      detail: !state.setupComplete
+        ? 'Die Sonderrechte werden erst freigeschaltet, wenn die Partie gestartet wurde.'
+        : !voteOutcome.complete
+        ? 'Erst nach der Rollenabstimmung kann der Mehrheitsweg geprüft werden.'
+        : !selectedMeasure
+        ? 'Erst nach dem gemeinsamen Krisenbeschluss geht es zu den Sonderrechten.'
+        : !authorityOutcome.ready
+        ? `In Schritt 5 fehlen noch Entscheidungen bei: ${missingAuthorityText}. Diese Rollen müssen den Mehrheitsweg freigeben, nur unter Bedingungen zulassen oder blockieren.`
+        : authorityOutcome.allowed
+        ? authorityOutcome.status === 'conditional'
+          ? 'Der Mehrheitsweg ist freigegeben, aber nur unter Bedingungen. Lest die Bedingungen genau.'
+          : 'Der Mehrheitsweg wurde freigegeben. Die Rollen dürfen jetzt ihre Auswahlkarten legen.'
+        : 'Der Mehrheitsweg ist blockiert. Die Gruppe muss die Abstimmung oder das Veto ändern, bevor es weitergeht.',
+      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure ? 'pending' : authorityOutcome.allowed ? 'done' : authorityOutcome.ready ? 'active' : 'active'
+    },
+    {
       label: 'Auswahlkarten in den Rollenfeldern anklicken',
       detail: !state.setupComplete
         ? 'Die Auswahlkarten bleiben gesperrt, bis die Partie oben im Unterrichtsstart-Modus gestartet wurde.'
@@ -2867,10 +3129,14 @@ function renderCurrentTaskPanel() {
         ? 'Die Auswahlkarten bleiben gesperrt, bis alle sechs Kurzvoten abgegeben wurden und der Rundenentscheid automatisch erzeugt ist.'
         : !selectedMeasure
         ? 'Die Auswahlkarten bleiben gesperrt, bis zusätzlich ein gemeinsamer Krisenbeschluss ausgewählt wurde.'
+        : !authorityOutcome.ready
+        ? 'Die Auswahlkarten bleiben gesperrt, bis die Rollen mit Sonderrecht den Mehrheitsweg geprüft haben.'
+        : !authorityOutcome.allowed
+        ? 'Die Auswahlkarten bleiben gesperrt, weil der Mehrheitsweg aktuell blockiert ist.'
         : missingRoles.length
-        ? `Es fehlen noch Auswahlkarten für: ${nextRolesText}. Geht zu „5. Auswahlkarten pro Rolle anklicken“. Dort seht ihr sechs große Rollenfelder. In jedem offenen Rollenfeld klickt ihr genau eine rechteckige Auswahlkarte mit Titel und Kurzbeschreibung an.`
-        : 'Alle sechs Rollen haben unten im Abschnitt „5. Auswahlkarten pro Rolle anklicken“ bereits genau eine Auswahlkarte.',
-      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure ? 'pending' : readyToResolve ? 'done' : 'active'
+        ? `Es fehlen noch Auswahlkarten für: ${nextRolesText}. Geht zu „6. Auswahlkarten pro Rolle anklicken“. Dort seht ihr sechs große Rollenfelder. In jedem offenen Rollenfeld klickt ihr genau eine rechteckige Auswahlkarte mit Titel und Kurzbeschreibung an.`
+        : 'Alle sechs Rollen haben unten im Abschnitt „6. Auswahlkarten pro Rolle anklicken“ bereits genau eine Auswahlkarte.',
+      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure || !authorityOutcome.allowed ? 'pending' : readyToResolve ? 'done' : 'active'
     },
     {
       label: 'Button drücken',
@@ -2880,10 +3146,14 @@ function renderCurrentTaskPanel() {
         ? 'Auch die Auswertung bleibt gesperrt, bis die sechs Kurzvoten abgegeben und die Auswahlkarten gewählt wurden.'
         : !selectedMeasure
         ? 'Auch die Auswertung bleibt gesperrt, bis ein gemeinsamer Krisenbeschluss ausgewählt wurde.'
+        : !authorityOutcome.ready
+        ? 'Auch die Auswertung bleibt gesperrt, bis die Sonderrechte entschieden sind.'
+        : !authorityOutcome.allowed
+        ? 'Auch die Auswertung bleibt gesperrt, weil der Mehrheitsweg aktuell blockiert ist.'
         : readyToResolve
-        ? 'Drückt jetzt „6. Runde auswerten“. Lest danach rechts Protokoll, Matrix und Meta-System.'
+        ? 'Drückt jetzt „7. Runde auswerten“. Lest danach rechts Protokoll, Matrix und Meta-System.'
         : 'Diesen Button drückt ihr erst, wenn wirklich alle Rollen eine Karte haben.',
-      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure ? 'pending' : readyToResolve ? 'active' : 'pending'
+      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure || !authorityOutcome.allowed ? 'pending' : readyToResolve ? 'active' : 'pending'
     }
   ];
 
@@ -2906,6 +3176,10 @@ function renderCurrentTaskPanel() {
         ? `Gebt jetzt die fehlenden Kurzvoten ab für ${missingVoteText}.`
         : !selectedMeasure
         ? 'Wählt jetzt den gemeinsamen Krisenbeschluss für diese Runde.'
+        : !authorityOutcome.ready
+        ? `Kläre jetzt die Sonderrechte bei ${missingAuthorityText}.`
+        : !authorityOutcome.allowed
+        ? 'Der Mehrheitsweg ist blockiert. Ändert jetzt die Abstimmung oder das Veto.'
         : readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
         : `Diskutiert kurz und klickt danach die fehlenden Auswahlkarten für ${nextRolesText} an.`}
@@ -2922,7 +3196,7 @@ function renderCurrentTaskPanel() {
       `).join('')}
     </ol>
     <p class="guide-note">
-      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Danach wählt die Klasse zusätzlich einen gemeinsamen Krisenbeschluss mit Folgen für die Lage. Erst dann geht ihr zu „5. Auswahlkarten pro Rolle anklicken“.
+      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Danach wählt die Klasse zusätzlich einen gemeinsamen Krisenbeschluss mit Folgen für die Lage. In Schritt 5 prüfen einzelne Rollen mit Sonderrecht den Mehrheitsweg. Erst wenn der Weg freigegeben ist, geht ihr zu „6. Auswahlkarten pro Rolle anklicken“.
     </p>
   `;
 }
@@ -3131,6 +3405,138 @@ function renderDiscussionPanel() {
   });
 }
 
+function renderAuthorityPanel() {
+  const voteOutcome = getRoundVoteOutcome();
+  const authorityOutcome = getRoundAuthorityOutcome();
+  const rules = getRoundVetoRules();
+  const winner = voteOutcome.winner;
+
+  if (!voteOutcome.complete || !winner) {
+    authorityPanel.innerHTML = `
+      <article class="prompt-card">
+        <h3>Erst kommt die Abstimmung</h3>
+        <p>Die Prüf- und Vetorechte werden erst freigeschaltet, wenn in Schritt 4 alle sechs Rollen abgestimmt haben und der Mehrheitsweg feststeht.</p>
+      </article>
+    `;
+    return;
+  }
+
+  authorityPanel.innerHTML = `
+    <article class="prompt-card">
+      <h3>Was bedeutet diese Ebene?</h3>
+      <p>Jetzt kommt ein echter Rollenkonflikt: Die Gruppe hat schon einen Mehrheitsweg gewählt, aber einzelne Rollen mit Sonderrecht dürfen prüfen, ob dieser Weg freigegeben, nur unter Bedingungen erlaubt oder blockiert wird.</p>
+      <p><strong>Aktueller Mehrheitsweg:</strong> Weg ${winner.index + 1} - ${winner.path}</p>
+      <p class="small-note">Für 15-Jährige ganz einfach gesagt: Das ist ein zweites Schloss nach der Abstimmung. Erst gewinnt ein Weg. Danach sagen die Rollen mit Sonderrecht offen: „Ja, dieser Weg darf weitergehen“, „Ja, aber nur wenn ...“ oder „Nein, so geht es nicht weiter“.</p>
+      <p class="small-note"><strong>Freigeben</strong> heißt: Der Weg darf gespielt werden. <strong>Nur unter Bedingung</strong> heißt: Der Weg darf nur weiterlaufen, wenn die Bedingung offen genannt wird. <strong>Blockieren</strong> heißt: Der Weg ist gestoppt, bis die Gruppe die Abstimmung oder das Veto ändert.</p>
+    </article>
+
+    <div class="authority-grid">
+      ${rules.map((rule) => {
+        const role = ROLE_META[rule.roleId];
+        const veto = getRoleVeto(rule.roleId);
+        return `
+          <article class="authority-card">
+            <div class="authority-card-head">
+              <div>
+                <strong>${ROLE_ASSIGNMENTS[rule.roleId].slot}: ${role.label}</strong>
+                <span>${getRolePlayerLabel(rule.roleId)}</span>
+              </div>
+              <span class="vote-weight-badge">Sonderrecht</span>
+            </div>
+            <p class="authority-note">Warum diese Rolle jetzt ein Sonderrecht hat: ${rule.reason}</p>
+            <div class="authority-choice-row">
+              <button
+                class="authority-choice-btn ${veto.decision === 'approve' ? 'selected' : ''}"
+                type="button"
+                data-veto-role="${rule.roleId}"
+                data-veto-decision="approve"
+              >Freigeben</button>
+              <button
+                class="authority-choice-btn ${veto.decision === 'conditional' ? 'selected' : ''}"
+                type="button"
+                data-veto-role="${rule.roleId}"
+                data-veto-decision="conditional"
+              >Nur unter Bedingung</button>
+              <button
+                class="authority-choice-btn ${veto.decision === 'block' ? 'selected is-block' : ''}"
+                type="button"
+                data-veto-role="${rule.roleId}"
+                data-veto-decision="block"
+              >Blockieren</button>
+            </div>
+            <label class="vote-label" for="vetoReason-${rule.roleId}">
+              ${veto.decision === 'approve'
+                ? 'Optional: kurze Begründung'
+                : 'Pflicht: erkläre die Bedingung oder das Veto in einem klaren Satz'}
+            </label>
+            <textarea
+              id="vetoReason-${rule.roleId}"
+              class="vote-reason-field"
+              data-veto-reason="${rule.roleId}"
+              placeholder="${veto.decision === 'approve'
+                ? 'Optional: Warum gibt diese Rolle den Mehrheitsweg frei?'
+                : 'Beispiel: Ich blockiere, weil dieser Weg rechtlich nicht offen getragen wird.'}"
+            >${escapeHtml(veto.reason)}</textarea>
+          </article>
+        `;
+      }).join('')}
+    </div>
+
+    <article class="prompt-card">
+      <h3>Automatisch erzeugte Prüfung</h3>
+      ${!authorityOutcome.ready ? `
+        <div class="authority-result-card">
+          <p><strong>Noch offen:</strong> Nicht alle Rollen mit Sonderrecht haben ihre Entscheidung vollständig abgegeben.</p>
+          <p>Erst danach ist klar, ob der Mehrheitsweg freigegeben, nur unter Bedingungen erlaubt oder blockiert ist.</p>
+        </div>
+      ` : authorityOutcome.allowed ? `
+        <div class="authority-result-card is-ready">
+          <p><strong>Ergebnis:</strong> Der Mehrheitsweg ist ${authorityOutcome.status === 'conditional' ? 'nur unter Bedingungen freigegeben' : 'freigegeben'}.</p>
+          ${authorityOutcome.conditionalBy.length ? `
+            <div class="vote-reason-list">
+              ${authorityOutcome.conditionalBy.map((entry) => `
+                <article class="vote-reason-card">
+                  <strong>${ROLE_META[entry.roleId].label}</strong>
+                  <span>${entry.reason}</span>
+                </article>
+              `).join('')}
+            </div>
+          ` : '<p>Es gibt keine Zusatzbedingungen. Die Rollen dürfen jetzt ihre Auswahlkarten legen.</p>'}
+        </div>
+      ` : `
+        <div class="authority-result-card is-blocked">
+          <p><strong>Ergebnis:</strong> Der Mehrheitsweg ist aktuell blockiert.</p>
+          <div class="vote-reason-list">
+            ${authorityOutcome.blockedBy.map((entry) => `
+              <article class="vote-reason-card">
+                <strong>${ROLE_META[entry.roleId].label}</strong>
+                <span>${entry.reason}</span>
+              </article>
+            `).join('')}
+          </div>
+          <p>Solange dieses Veto steht, bleibt die Kartenphase gesperrt. Die Gruppe muss also entweder ihre Abstimmung ändern oder das Veto neu setzen.</p>
+        </div>
+      `}
+    </article>
+  `;
+
+  authorityPanel.querySelectorAll('[data-veto-role]').forEach((button) => {
+    button.addEventListener('click', () => {
+      setRoleVetoDecision(button.dataset.vetoRole, button.dataset.vetoDecision);
+      render();
+    });
+  });
+
+  authorityPanel.querySelectorAll('[data-veto-reason]').forEach((field) => {
+    field.addEventListener('input', () => {
+      setRoleVetoReason(field.dataset.vetoReason, field.value);
+    });
+    field.addEventListener('blur', () => {
+      render();
+    });
+  });
+}
+
 function renderSelectionSummary() {
   selectionSummary.innerHTML = ROLE_ORDER.map((roleId) => {
     const role = ROLE_META[roleId];
@@ -3152,6 +3558,7 @@ function renderRoles() {
   const namesReady = getMissingPlayerNameRoleIds().length === 0;
   const voteOutcome = getRoundVoteOutcome();
   const selectedMeasure = getSelectedSharedMeasure();
+  const authorityOutcome = getRoundAuthorityOutcome();
   rolesGrid.innerHTML = Object.keys(ROLE_META).map((roleId) => {
     const role = ROLE_META[roleId];
     const assignment = ROLE_ASSIGNMENTS[roleId];
@@ -3182,7 +3589,7 @@ function renderRoles() {
         <p class="small-note">Entscheidung dieser Person in dieser Runde: Welche Karte passt jetzt am besten zur Lage?</p>
         <div class="guide-note">
             Diese Rolle wird in dieser Runde über ein Handy gespielt. Scannt den QR-Code im Seitenbereich,
-            wählt dort eine Karte und übernehmt anschließend den Antwortcode auf dem Desktop.
+            arbeitet dort die Rollenansicht ab und übernehmt anschließend den Antwortcode oder das Rollenpaket auf dem Desktop. Die Prüf- und Vetorechte aus Schritt 5 bleiben trotzdem sichtbar und verlässlich am Desktop.
           </div>
           <div class="choice-tags">
             <span class="tag">${availableCards.length} Karten in dieser Runde</span>
@@ -3200,7 +3607,7 @@ function renderRoles() {
           type="button"
           data-role="${roleId}"
           data-card="${card.id}"
-          ${namesReady && voteOutcome.complete && selectedMeasure ? '' : 'disabled'}
+          ${namesReady && voteOutcome.complete && selectedMeasure && authorityOutcome.allowed ? '' : 'disabled'}
           style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
         >
           <span class="choice-kicker">Auswahlkarte für ${role.short}</span>
@@ -3235,6 +3642,10 @@ function renderRoles() {
           ? 'Diese Auswahlkarten werden erst freigeschaltet, wenn in Schritt 4 alle sechs Rollen ihren Weg gewählt und ihr Kurzvotum geschrieben haben.'
           : !selectedMeasure
           ? 'Diese Auswahlkarten werden erst freigeschaltet, wenn die Klasse zusätzlich einen gemeinsamen Krisenbeschluss gewählt hat.'
+          : !authorityOutcome.ready
+          ? 'Diese Auswahlkarten bleiben noch gesperrt. Geht zuerst zu Schritt 5: Dort müssen die Rollen mit Sonderrecht den Mehrheitsweg freigeben, nur unter Bedingungen zulassen oder blockieren.'
+          : !authorityOutcome.allowed
+          ? 'Diese Auswahlkarten bleiben gesperrt, weil der Mehrheitsweg aktuell blockiert ist. Erst wenn die Gruppe das Veto oder die Abstimmung ändert, darf hier wieder geklickt werden.'
           : `Unter diesem Rollenfeld liegen die anklickbaren Auswahlkarten für ${role.label}. ${getRolePlayerLabel(roleId)} klickt jetzt genau eine rechteckige Auswahlkarte an, um den erzeugten Rundenentscheid für diese Rolle umzusetzen.`}</p>
         <div class="card-choice-grid">${cardsMarkup}</div>
       </article>
@@ -3865,6 +4276,7 @@ function render() {
   renderBriefing();
   renderCurrentTaskPanel();
   renderDiscussionPanel();
+  renderAuthorityPanel();
   renderResolutionOrder();
   renderSelectionSummary();
   renderRoles();
@@ -3879,6 +4291,7 @@ function render() {
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const voteOutcome = getRoundVoteOutcome();
   const selectedMeasure = getSelectedSharedMeasure();
+  const authorityOutcome = getRoundAuthorityOutcome();
   document.body.classList.toggle('overlay-active', state.setupComplete && gameOverlayOpen);
   gameOverlay.classList.toggle('hidden', !(state.setupComplete && gameOverlayOpen));
   gameOverlay.setAttribute('aria-hidden', state.setupComplete && gameOverlayOpen ? 'false' : 'true');
@@ -3887,7 +4300,7 @@ function render() {
   resumeGameBtn.textContent = gameOverlayOpen ? 'Spielfenster ist geöffnet' : 'Laufende Partie öffnen';
   navOpenGameBtn.disabled = !state.setupComplete;
   navOpenGameBtn.textContent = state.setupComplete ? 'Direkt zur Partie' : 'Partie noch nicht gestartet';
-  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete || !selectedMeasure;
+  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete || !selectedMeasure || !authorityOutcome.allowed;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
     roundFeedback.className = 'round-feedback tone-neutral';
@@ -3904,14 +4317,22 @@ function render() {
   } else if (!selectedMeasure) {
     roundFeedback.textContent = 'Der Rundenentscheid steht fest. Wählt jetzt zusätzlich den gemeinsamen Krisenbeschluss dieser Runde. Erst danach werden die Auswahlkarten freigeschaltet.';
     roundFeedback.className = 'round-feedback tone-legal';
+  } else if (!authorityOutcome.ready) {
+    const names = authorityOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
+    roundFeedback.textContent = `Der Mehrheitsweg steht und der Krisenbeschluss ist gewählt. Jetzt müssen in Schritt 5 noch die Rollen mit Sonderrecht entscheiden: ${names}. Erst danach werden die Auswahlkarten freigeschaltet.`;
+    roundFeedback.className = 'round-feedback tone-legal';
+  } else if (!authorityOutcome.allowed) {
+    const blockers = authorityOutcome.blockedBy.map((entry) => ROLE_META[entry.roleId].short).join(', ');
+    roundFeedback.textContent = `Der Mehrheitsweg ist aktuell blockiert durch: ${blockers}. Ändert jetzt die Abstimmung oder das Veto, bevor ihr zu den Auswahlkarten weitergeht.`;
+    roundFeedback.className = 'round-feedback tone-danger';
   } else {
     const missingRoles = getMissingRoleIds();
     if (missingRoles.length) {
       const names = missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
-      roundFeedback.textContent = `Der Rundenentscheid steht fest: Weg ${voteOutcome.winner.index + 1}. Wählt jetzt noch eine Auswahlkarte für ${names}. Erst danach drückt ihr „6. Runde auswerten“.`;
+      roundFeedback.textContent = `Der Rundenentscheid steht fest: Weg ${voteOutcome.winner.index + 1}. Die Sonderrechte sind geklärt. Wählt jetzt noch eine Auswahlkarte für ${names}. Erst danach drückt ihr „7. Runde auswerten“.`;
       roundFeedback.className = 'round-feedback tone-legal';
     } else {
-      roundFeedback.textContent = 'Alle sechs Rollen haben gewählt. Drückt jetzt „6. Runde auswerten“ und lest danach unten Protokoll, Matrix und Meta-System.';
+      roundFeedback.textContent = 'Alle sechs Rollen haben gewählt. Drückt jetzt „7. Runde auswerten“ und lest danach unten Protokoll, Matrix und Meta-System.';
       roundFeedback.className = 'round-feedback tone-safe';
     }
   }
@@ -3931,6 +4352,7 @@ const statusStrip = document.querySelector('#statusStrip');
 const briefingCard = document.querySelector('#briefingCard');
 const currentTaskPanel = document.querySelector('#currentTaskPanel');
 const discussionPanel = document.querySelector('#discussionPanel');
+const authorityPanel = document.querySelector('#authorityPanel');
 const resolutionOrder = document.querySelector('#resolutionOrder');
 const selectionSummary = document.querySelector('#selectionSummary');
 const roundFeedback = document.querySelector('#roundFeedback');

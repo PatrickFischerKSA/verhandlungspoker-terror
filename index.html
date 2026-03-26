@@ -96,6 +96,7 @@
           <li><strong>Spiel öffnen:</strong> Nach „Spiel starten“ erscheint die Partie als eigenes Spielfenster.</li>
           <li><strong>Runde lesen:</strong> Schaut zuerst auf <strong>1. Lageüberblick</strong> und direkt darunter auf <strong>2. Lagefenster</strong>.</li>
           <li><strong>Abstimmen:</strong> In Schritt 4 wählt jede Rolle einen Weg und schreibt ein kurzes Votum. Daraus entsteht automatisch der Rundenentscheid.</li>
+          <li><strong>Sonderrechte prüfen:</strong> In Schritt 5 entscheiden einzelne Rollen mit Sonderrecht, ob der Mehrheitsweg freigegeben, nur unter Bedingungen erlaubt oder blockiert wird.</li>
           <li><strong>Pro Rolle eine Auswahlkarte anklicken:</strong> Erst danach klickt ihr in jedem Rollenfeld genau eine rechteckige Auswahlkarte an.</li>
           <li><strong>Auflösen:</strong> Mit „Runde auswerten“ wird die feste Reihenfolge abgearbeitet.</li>
           <li><strong>Folgen lesen:</strong> Matrix, Meta-System und Protokoll zeigen sofort, wie Verantwortung verschoben wurde.</li>
@@ -115,6 +116,7 @@
           <li><strong>Lage einschätzen:</strong> Ist das größere Problem gerade Zeitverlust, Rechtsbruch, unklare Information oder Panik?</li>
           <li><strong>Drei Wege vergleichen:</strong> Soll die Gruppe in dieser Runde eher Weg 1, Weg 2 oder Weg 3 folgen?</li>
           <li><strong>Rollen gewichtet abstimmen lassen:</strong> Jede Rolle gibt ihr Kurzvotum ab. Nicht alle Stimmen haben gleich viel Gewicht, weil die Verantwortung unterschiedlich groß ist.</li>
+          <li><strong>Sonderrechte ernst nehmen:</strong> Einige Rollen dürfen den Mehrheitsweg jetzt noch stoppen oder nur unter Bedingungen zulassen. Das ist kein Fehler, sondern Teil des Spiels.</li>
           <li><strong>Auswahlkarten begründen:</strong> Erst nach dem erzeugten Rundenentscheid klickt jede Rolle die passende Auswahlkarte an.</li>
           <li><strong>Entscheid lesen:</strong> Unter der Abstimmung seht ihr offen, welcher Weg gewonnen hat und warum.</li>
         </ol>
@@ -187,9 +189,17 @@
               <div id="discussionPanel" class="discussion-panel-body"></div>
             </section>
 
+            <section class="panel authority-panel">
+              <div class="panel-head">
+                <h2>5. Prüf- und Vetorechte</h2>
+                <p>Jetzt prüfen einzelne Rollen mit Sonderrecht den Mehrheitsweg. Sie dürfen ihn freigeben, nur unter Bedingungen zulassen oder blockieren.</p>
+              </div>
+              <div id="authorityPanel" class="discussion-panel-body"></div>
+            </section>
+
             <section class="panel roles-panel">
               <div class="panel-head">
-                <h2>5. Auswahlkarten pro Rolle anklicken</h2>
+                <h2>6. Auswahlkarten pro Rolle anklicken</h2>
                 <p>
                   Unter diesem Abschnitt seht ihr sechs große Rollenfelder. Hier setzt jede Rolle den zuvor
                   erzeugten Rundenentscheid in ihr eigenes Handeln um. In jedem Rollenfeld klickt ihr genau
@@ -202,7 +212,7 @@
 
             <section class="panel sequence-panel">
               <div class="panel-head compact">
-                <h2>6. Runde auswerten</h2>
+                <h2>7. Runde auswerten</h2>
                 <p>Drückt erst jetzt den Button. Danach lest ihr unten Protokoll, Matrix und Meta-System.</p>
               </div>
               <div id="resolutionOrder" class="resolution-order"></div>
@@ -211,7 +221,7 @@
                 Wählt für jede Rolle genau eine Auswahlkarte und löst dann die Runde aus.
               </div>
               <div class="button-row">
-                <button id="resolveBtn" class="primary-btn wide" type="button">6. Runde auswerten</button>
+                <button id="resolveBtn" class="primary-btn wide" type="button">7. Runde auswerten</button>
               </div>
             </section>
           </section>
