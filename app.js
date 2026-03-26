@@ -1533,6 +1533,7 @@ function createInitialState() {
     restored: false,
     ending: null,
     setupComplete: false,
+    playMode: 'desktop',
     politicalClimateId: pickPoliticalClimateId(),
     playerNames: createEmptyPlayerNames(),
     roleModes: createEmptyRoleModes(),
@@ -1593,6 +1594,7 @@ function hydrateState(input) {
     ...input,
     sessionId: typeof input.sessionId === 'string' ? input.sessionId : initial.sessionId,
     setupComplete: Boolean(input.setupComplete),
+    playMode: input.playMode === 'hybrid' ? 'hybrid' : 'desktop',
     politicalClimateId: normalizePoliticalClimateId(input.politicalClimateId),
     playerNames: {
       ...initial.playerNames,
@@ -2346,6 +2348,18 @@ function getRoleMode(roleId) {
   return state.roleModes[roleId] === 'group' ? 'group' : 'player';
 }
 
+function getPlayMode() {
+  return state.playMode === 'hybrid' ? 'hybrid' : 'desktop';
+}
+
+function setPlayMode(mode) {
+  state.playMode = mode === 'hybrid' ? 'hybrid' : 'desktop';
+  if (state.playMode === 'desktop') {
+    state.companionRoles = normalizeCompanionRoles();
+  }
+  saveState(state);
+}
+
 function getRolePlayerLabel(roleId) {
   return getRoleMode(roleId) === 'group'
     ? 'gemeinsam in der Gruppe'
@@ -2375,6 +2389,20 @@ function openGameOverlay() {
   if (!state.setupComplete) return;
   gameOverlayOpen = true;
   render();
+}
+
+function openCompanionSetup() {
+  if (!state.setupComplete) {
+    roundFeedback.textContent = 'Startet zuerst die Partie. Danach könnt ihr die Handy-Version direkt aus dem Unterrichtsstart öffnen.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    render();
+    return;
+  }
+  gameOverlayOpen = true;
+  render();
+  if (companionSectionAnchor) {
+    companionSectionAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function closeGameOverlay() {
@@ -3591,8 +3619,53 @@ function renderSetupPanel() {
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const ready = canStartGame();
   const politicalClimate = getPoliticalClimate();
+  const playMode = getPlayMode();
+  const hybridSelected = playMode === 'hybrid';
+  const setupStatusText = state.setupComplete
+    ? hybridSelected
+      ? `Die Partie läuft bereits in Runde ${state.roundIndex + 1}. Ihr habt „Desktop + Handys“ gewählt. Öffnet jetzt entweder das Spielfenster oder springt mit „Handy-Version starten“ direkt in den QR-Bereich.`
+      : `Die Partie läuft bereits in Runde ${state.roundIndex + 1}. Ihr habt „Nur auf diesem Bildschirm“ gewählt. Öffnet jetzt das Spielfenster und spielt dort ohne Handys weiter.`
+    : ready
+    ? hybridSelected
+      ? 'Alles ist eingerichtet. Drückt jetzt „Spiel starten“. Direkt danach erscheint hier auch der Knopf „Handy-Version starten“ für den QR-Bereich.'
+      : 'Alles ist eingerichtet. Ihr könnt jetzt mit Runde 1 starten und komplett auf diesem Bildschirm spielen.'
+    : `Noch unvollständig: ${missingPlayerNames.map((roleId) => ROLE_ASSIGNMENTS[roleId].slot).join(', ')} brauchen noch einen Namen oder den Modus „gemeinsam in der Gruppe“.`;
 
   setupPanel.innerHTML = `
+    <article class="setup-card">
+      <h3>0. Spielmodus ganz am Anfang klären</h3>
+      <p>
+        Entscheidet zuerst gemeinsam, <strong>wie</strong> ihr spielen wollt. So ist von Beginn an klar,
+        ob alles nur am Desktop läuft oder ob einzelne Rollen zusätzlich auf Handys arbeiten.
+      </p>
+      <div class="mode-choice-grid">
+        <button
+          class="mode-choice-btn ${!hybridSelected ? 'selected' : ''}"
+          type="button"
+          data-play-mode="desktop"
+        >
+          <strong>Nur auf diesem Bildschirm</strong>
+          <span>Empfohlen für einen klaren Klassenstart: Alle lesen, diskutieren, stimmen und wählen die Karten direkt im Spielfenster am Desktop.</span>
+          <em>Dann braucht ihr später keinen QR-Code und keinen Handy-Knopf.</em>
+        </button>
+        <button
+          class="mode-choice-btn ${hybridSelected ? 'selected' : ''}"
+          type="button"
+          data-play-mode="hybrid"
+        >
+          <strong>Desktop + Handys</strong>
+          <span>Der Desktop steuert die Runde. Ausgewählte Rollen arbeiten zusätzlich auf einzelnen Handys und scannen dafür später QR-Codes.</span>
+          <em>Wichtig: Der QR-Bereich startet erst nach „Spiel starten“ mit dem Knopf „Handy-Version starten“.</em>
+        </button>
+      </div>
+      <p class="small-note">
+        ${hybridSelected
+          ? state.setupComplete
+            ? 'Der Handy-Weg ist aktiviert. Der Knopf „Handy-Version starten“ steht jetzt direkt unten im Unterrichtsstart bereit.'
+            : 'Der Handy-Weg ist vorgemerkt. Nach „Spiel starten“ erscheint hier der echte Knopf „Handy-Version starten“.'
+          : 'Die Partie ist aktuell auf einen stabilen Desktop-Ablauf ohne Handys eingestellt.'}
+      </p>
+    </article>
     <article class="setup-card">
       <h3>Unterrichtsstart</h3>
       <p>
@@ -3608,16 +3681,22 @@ function renderSetupPanel() {
         `).join('')}
       </div>
       <p class="small-note">
-        ${state.setupComplete
-          ? `Die Partie läuft bereits in Runde ${state.roundIndex + 1}. Öffnet jetzt das Spielfenster und arbeitet dort weiter.`
-          : ready
-          ? 'Alles ist eingerichtet. Ihr könnt jetzt mit Runde 1 starten.'
-          : `Noch unvollständig: ${missingPlayerNames.map((roleId) => ROLE_ASSIGNMENTS[roleId].slot).join(', ')} brauchen noch einen Namen oder den Modus „gemeinsam in der Gruppe“.`}
+        ${setupStatusText}
       </p>
       <div class="button-row">
         ${state.setupComplete
-          ? '<button id="openGameBtn" class="primary-btn" type="button">Spielfenster öffnen</button>'
-          : `<button id="startGameBtn" class="primary-btn" type="button" ${ready ? '' : 'disabled'}>Spiel starten</button>`}
+          ? `
+            <button id="openGameBtn" class="primary-btn" type="button">Spielfenster öffnen</button>
+            ${hybridSelected
+              ? '<button id="startCompanionBtn" class="ghost-btn" type="button">Handy-Version starten</button>'
+              : ''}
+          `
+          : `
+            <button id="startGameBtn" class="primary-btn" type="button" ${ready ? '' : 'disabled'}>Spiel starten</button>
+            ${hybridSelected
+              ? '<button class="ghost-btn" type="button" disabled>Handy-Version startet nach Spielstart</button>'
+              : ''}
+          `}
       </div>
     </article>
     <article class="setup-card">
@@ -3643,6 +3722,16 @@ function renderSetupPanel() {
   if (openButton) {
     openButton.addEventListener('click', openGameOverlay);
   }
+  const companionButton = document.querySelector('#startCompanionBtn');
+  if (companionButton) {
+    companionButton.addEventListener('click', openCompanionSetup);
+  }
+  setupPanel.querySelectorAll('[data-play-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      setPlayMode(button.dataset.playMode);
+      render();
+    });
+  });
 }
 
 function renderCurrentTaskPanel() {
@@ -3661,6 +3750,7 @@ function renderCurrentTaskPanel() {
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const courtPrompt = getDramaticCourtPrompt();
+  const playMode = getPlayMode();
   const nextRolesText = missingRoles.length
     ? missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ')
     : 'Alle Rollen haben eine Karte.';
@@ -3670,10 +3760,14 @@ function renderCurrentTaskPanel() {
     {
       label: 'Startmodus abschließen',
       detail: state.setupComplete
-        ? 'Die Rollen sind eingerichtet und die Partie wurde gestartet.'
+        ? playMode === 'hybrid'
+          ? 'Die Rollen sind eingerichtet und die Partie wurde gestartet. Wenn ihr mit Handys arbeitet, klickt im Unterrichtsstart jetzt auf „Handy-Version starten“ und springt direkt in den QR-Bereich.'
+          : 'Die Rollen sind eingerichtet und die Partie wurde gestartet. Die Klasse spielt stabil nur auf diesem Bildschirm weiter.'
         : namesReady
-        ? 'Alle Rollen sind eingerichtet. Drückt oben jetzt „Spiel starten“.'
-        : `Richtet erst alle Rollen ein. Es fehlen noch Namen bei: ${missingPlayerText}. Rollen können alternativ auf „gemeinsam in der Gruppe“ gestellt werden.`,
+        ? playMode === 'hybrid'
+          ? 'Alle Rollen sind eingerichtet. Drückt oben jetzt „Spiel starten“. Direkt danach könnt ihr dort auf „Handy-Version starten“ klicken.'
+          : 'Alle Rollen sind eingerichtet. Drückt oben jetzt „Spiel starten“ und arbeitet dann nur im Spielfenster weiter.'
+        : `Richtet erst alle Rollen ein. Es fehlen noch Namen bei: ${missingPlayerText}. Rollen können alternativ auf „gemeinsam in der Gruppe“ gestellt werden. Klärt außerdem oben zuerst, ob ihr nur am Desktop oder auch mit Handys spielen wollt.`,
       status: state.setupComplete ? 'done' : 'active'
     },
     {
@@ -4503,8 +4597,9 @@ function renderCompanionPanel() {
   if (!activeRoles.length) {
     companionPanel.innerHTML = `
       <p class="companion-empty">
-        Aktuell ist keine Rolle für den Handy-Modus aktiviert. Die Partie läuft damit komplett
-        und eindeutig auf dem Desktop: eine Karte pro Rolle, dann „Runde auswerten“.
+        ${getPlayMode() === 'hybrid'
+          ? 'Ihr seid jetzt im Handy-Bereich. Setzt zuerst oben Häkchen bei den Rollen, die per Handy spielen sollen. Danach scannt jede dieser Personen den QR-Code ihrer Rolle.'
+          : 'Aktuell ist keine Rolle für den Handy-Modus aktiviert. Die Partie läuft damit komplett und eindeutig auf dem Desktop: eine Karte pro Rolle, dann „Runde auswerten“. Wenn ihr doch mit Handys arbeiten wollt, stellt das ganz oben im Unterrichtsstart auf „Desktop + Handys“ um.'}
       </p>
     `;
     return;
@@ -5137,6 +5232,7 @@ const metaSummary = document.querySelector('#metaSummary');
 const referencePanel = document.querySelector('#referencePanel');
 const companionModePicker = document.querySelector('#companionModePicker');
 const companionPanel = document.querySelector('#companionPanel');
+const companionSectionAnchor = document.querySelector('#companionSectionAnchor');
 const logList = document.querySelector('#logList');
 const endScreen = document.querySelector('#endScreen');
 const endingHeadline = document.querySelector('#endingHeadline');

@@ -357,6 +357,47 @@ h1 span {
   flex-wrap: wrap;
 }
 
+.mode-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mode-choice-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(250, 246, 240, 0.94);
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mode-choice-btn strong,
+.mode-choice-btn span,
+.mode-choice-btn em {
+  display: block;
+}
+
+.mode-choice-btn span,
+.mode-choice-btn em {
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.mode-choice-btn em {
+  margin-top: 8px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.mode-choice-btn.selected {
+  border-color: rgba(66, 95, 143, 0.42);
+  background: rgba(66, 95, 143, 0.1);
+  box-shadow: 0 14px 24px rgba(66, 95, 143, 0.12);
+}
+
 .setup-pill {
   display: inline-flex;
   align-items: center;
@@ -1840,6 +1881,7 @@ h1 span {
   .decision-grid,
   .briefing-action-grid,
   .briefing-fact-grid,
+  .mode-choice-grid,
   .measure-grid,
   .authority-grid,
   .vote-grid,
