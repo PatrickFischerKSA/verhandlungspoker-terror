@@ -99,23 +99,69 @@ const ROLE_VOTE_WEIGHTS = {
 
 const TOTAL_VOTE_WEIGHT = ROLE_ORDER.reduce((sum, roleId) => sum + ROLE_VOTE_WEIGHTS[roleId].weight, 0);
 
+const EXTRAORDINARY_EMERGENCY_EXPLAINER = 'Mit dem übergesetzlichen Notstand ist hier keine normale Vorschrift gemeint. Gemeint ist die Behauptung: Eigentlich ist ein Abschuss mit Unschuldigen an Bord rechtlich nicht erlaubt, aber in einer extremen Terrorlage könnte die Regierung trotzdem handeln und das später als Ausnahme rechtfertigen.';
+
 const POLITICAL_CLIMATES = {
-  strict: {
-    id: 'strict',
-    label: 'Verfassungsstrenge Regierung',
-    short: 'Regierung lehnt den übergesetzlichen Notstand ab',
-    note: 'Diese Regierung sagt öffentlich: Auch im Extremfall darf der Staat die Verfassungsgrenze nicht politisch aufweichen.',
+  falkenstein: {
+    id: 'falkenstein',
+    label: 'Bundesregierung Falkenstein',
+    coalition: 'konservativ-sicherheitsorientierte Koalition',
+    short: 'Diese Regierung ist bereit, im Extremfall über Ausnahmelogik nachzudenken.',
+    note: 'Die Regierung Falkenstein sagt öffentlich: Der Staat muss im Terrorfall handlungsfähig bleiben, auch wenn die Rechtslage an ihre Grenze kommt.',
+    studentMeaning: 'Für eure Runde heißt das: Das Ministerium sucht eher nach Handlungsspielraum als nach einem strikten Verbot.',
+    ministryLine: 'Das Ministerium fragt schneller, ob eine Ausnahme politisch gedeckt werden kann.',
+    recognizesEmergency: true,
+    activationChance: 0.75
+  },
+  grundlinie: {
+    id: 'grundlinie',
+    label: 'Bundesregierung Grundlinie',
+    coalition: 'sozialdemokratisch-rechtsstaatliche Koalition',
+    short: 'Diese Regierung lehnt den übergesetzlichen Notstand klar ab.',
+    note: 'Die Regierung Grundlinie sagt öffentlich: Auch im Extremfall darf der Staat die Verfassungsgrenze nicht politisch aufweichen.',
+    studentMeaning: 'Für eure Runde heißt das: Das Ministerium wird eher verbieten, bremsen und auf die Menschenwürde verweisen.',
+    ministryLine: 'Das Ministerium hält die Grenze und verweigert politische Ausnahmefreigaben.',
     recognizesEmergency: false,
     activationChance: 0
   },
-  emergency: {
-    id: 'emergency',
-    label: 'Sicherheitsorientierte Regierung',
-    short: 'Regierung erkennt den übergesetzlichen Notstand grundsätzlich an',
-    note: 'Diese Regierung sagt öffentlich: Im absoluten Ausnahmefall kann ein übergesetzlicher Notstand politisch mitgedacht werden.',
+  brueckenkurs: {
+    id: 'brueckenkurs',
+    label: 'Bundesregierung Brückenkurs',
+    coalition: 'große Koalition mit offenem Streit',
+    short: 'Diese Regierung ist innerlich gespalten und in der Notstandsfrage uneinig.',
+    note: 'Die Regierung Brückenkurs streitet öffentlich: Ein Teil will Härte und Handlungsspielraum, ein anderer Teil will die Verfassungsgrenze strikt halten.',
+    studentMeaning: 'Für eure Runde heißt das: Das Ministerium schwankt, Vetos werden wahrscheinlicher und politische Deckung bleibt unsicher.',
+    ministryLine: 'Das Ministerium sendet gemischte Signale und sucht eher Absicherung als klare Führung.',
     recognizesEmergency: true,
-    activationChance: 0.65
+    activationChance: 0.4
+  },
+  sicherungsbund: {
+    id: 'sicherungsbund',
+    label: 'Bundesregierung Sicherungsbund',
+    coalition: 'national-konservative Sicherheitskoalition',
+    short: 'Diese Regierung stellt Schutz und Durchgriffsfähigkeit klar vor Zurückhaltung.',
+    note: 'Die Regierung Sicherungsbund sagt öffentlich: Wenn ein Massenmord droht, darf die Exekutive nicht an langsamen Rechtsdebatten scheitern.',
+    studentMeaning: 'Für eure Runde heißt das: Das Ministerium ist besonders offen für Freigaben und harte Linien.',
+    ministryLine: 'Das Ministerium will schnell entscheiden und erwartet Gehorsam in der Befehlskette.',
+    recognizesEmergency: true,
+    activationChance: 0.9
+  },
+  verfassungshof: {
+    id: 'verfassungshof',
+    label: 'Bundesregierung Verfassungshof',
+    coalition: 'links-grün-sozialliberale Koalition',
+    short: 'Diese Regierung stellt Menschenwürde und Verfassungsbindung absolut in den Vordergrund.',
+    note: 'Die Regierung Verfassungshof sagt öffentlich: Auch in der Terrorlage darf der Staat nicht behaupten, jetzt gälten einfach andere Regeln.',
+    studentMeaning: 'Für eure Runde heißt das: Das Ministerium wird Ausnahmelogik besonders scharf zurückweisen.',
+    ministryLine: 'Das Ministerium argumentiert mit Grundgesetz, Menschenwürde und dem Verbot, Leben gegen Leben aufzurechnen.',
+    recognizesEmergency: false,
+    activationChance: 0
   }
+};
+
+const LEGACY_POLITICAL_CLIMATE_IDS = {
+  strict: 'grundlinie',
+  emergency: 'falkenstein'
 };
 
 const EMERGENCY_TRIGGER_CARD_IDS = new Set([
@@ -1303,7 +1349,13 @@ function createEmptyMatrix() {
 }
 
 function pickPoliticalClimateId() {
-  return Math.random() < 0.5 ? 'strict' : 'emergency';
+  const ids = Object.keys(POLITICAL_CLIMATES);
+  return ids[Math.floor(Math.random() * ids.length)];
+}
+
+function normalizePoliticalClimateId(inputId) {
+  const normalizedId = LEGACY_POLITICAL_CLIMATE_IDS[inputId] || inputId;
+  return POLITICAL_CLIMATES[normalizedId] ? normalizedId : 'grundlinie';
 }
 
 function createSessionId() {
@@ -1391,7 +1443,7 @@ function hydrateState(input) {
     ...input,
     sessionId: typeof input.sessionId === 'string' ? input.sessionId : initial.sessionId,
     setupComplete: Boolean(input.setupComplete),
-    politicalClimateId: POLITICAL_CLIMATES[input.politicalClimateId] ? input.politicalClimateId : initial.politicalClimateId,
+    politicalClimateId: normalizePoliticalClimateId(input.politicalClimateId),
     playerNames: {
       ...initial.playerNames,
       ...((input.playerNames && typeof input.playerNames === 'object') ? input.playerNames : {})
@@ -1508,7 +1560,7 @@ function buildCompanionSnapshot(invite) {
   snapshot.phoneMode = invite.pm || '1';
   snapshot.phonePlayerLabel = invite.pl || '';
   snapshot.selectedMeasureId = invite.sm || '';
-  snapshot.politicalClimateId = POLITICAL_CLIMATES[invite.pc] ? invite.pc : snapshot.politicalClimateId;
+  snapshot.politicalClimateId = normalizePoliticalClimateId(invite.pc || snapshot.politicalClimateId);
   snapshot.phoneVoteWeight = typeof invite.vw === 'number' ? invite.vw : 1;
   snapshot.phoneVoteWeightReason = invite.vr || '';
   updateStatuses(snapshot);
@@ -1604,7 +1656,14 @@ function getTeacherBriefing(roundIndex = state.roundIndex) {
 }
 
 function getPoliticalClimate(inputState = state) {
-  return POLITICAL_CLIMATES[inputState.politicalClimateId] || POLITICAL_CLIMATES.strict;
+  return POLITICAL_CLIMATES[normalizePoliticalClimateId(inputState.politicalClimateId)] || POLITICAL_CLIMATES.grundlinie;
+}
+
+function getPoliticalDecisionContext(inputState = state) {
+  const climate = getPoliticalClimate(inputState);
+  return climate.recognizesEmergency
+    ? `In dieser Partie ist die Regierung grundsätzlich offen für Ausnahmelogik. Das heißt nicht automatisch, dass ein Abschuss rechtmäßig ist. Es heißt nur: Die politische Spitze könnte versuchen, ihn als Ausnahme zu rechtfertigen.`
+    : `In dieser Partie ist die Regierung grundsätzlich gegen Ausnahmelogik. Das heißt: Selbst unter massivem Druck soll die Verfassungsgrenze nicht politisch aufgeweicht werden.`;
 }
 
 function getRoundFacts(roundIndex = state.roundIndex) {
@@ -2097,9 +2156,7 @@ function updateStatuses(state) {
     state.statuses.communicationStatus = 'Funkkontakt brüchig';
   }
 
-  state.statuses.governmentStatus = politicalClimate.recognizesEmergency
-    ? 'Regierung erkennt Notstandsklausel grundsätzlich an'
-    : 'Regierung lehnt Notstandsklausel ab';
+  state.statuses.governmentStatus = `${politicalClimate.label} · ${politicalClimate.coalition}`;
 }
 
 function getVerdictDelta(state) {
@@ -2915,20 +2972,20 @@ function resolveRound() {
     if (emergencyClauseResult.activated) {
       setFlag(state, 'ministryRelease', true);
       adjustResource(state, 'commandConsensus', 1);
-      resolutionLines.push('Notstandsklausel: politisch wirksam geworden');
+      resolutionLines.push(`Notstandsklausel: ${climate.label} lässt die Ausnahme politisch greifen`);
       addLogEntry(
         state,
-        `Die Regierungslinie lässt den übergesetzlichen Notstand in dieser Runde politisch greifen. Zufallswurf ${Math.round((emergencyClauseResult.roll || 0) * 100)} gegen Schwelle ${Math.round(emergencyClauseResult.threshold * 100)}.`
+        `${climate.label} lässt den übergesetzlichen Notstand in dieser Runde politisch greifen. Zufallswurf ${Math.round((emergencyClauseResult.roll || 0) * 100)} gegen Schwelle ${Math.round(emergencyClauseResult.threshold * 100)}.`
       );
     } else {
       setFlag(state, 'ministryRelease', false);
       adjustResource(state, 'legalRisk', 1);
-      resolutionLines.push('Notstandsklausel: politisch nicht wirksam geworden');
+      resolutionLines.push(`Notstandsklausel: ${climate.label} lässt die Ausnahme nicht greifen`);
       addLogEntry(
         state,
         climate.recognizesEmergency
-          ? `Die Regierung erkennt den übergesetzlichen Notstand zwar grundsätzlich an, aber in dieser Runde greift die Klausel politisch nicht. Zufallswurf ${Math.round((emergencyClauseResult.roll || 0) * 100)} gegen Schwelle ${Math.round(emergencyClauseResult.threshold * 100)}.`
-          : 'Die Regierung lehnt den übergesetzlichen Notstand politisch ab. Deshalb greift die Klausel in dieser Runde nicht.'
+          ? `${climate.label} erkennt den übergesetzlichen Notstand zwar grundsätzlich an, aber in dieser Runde greift die Klausel politisch nicht. Zufallswurf ${Math.round((emergencyClauseResult.roll || 0) * 100)} gegen Schwelle ${Math.round(emergencyClauseResult.threshold * 100)}.`
+          : `${climate.label} lehnt den übergesetzlichen Notstand politisch ab. Deshalb greift die Klausel in dieser Runde nicht.`
       );
     }
   }
@@ -2983,8 +3040,8 @@ function renderStatusStrip() {
     },
     {
       label: 'Regierung',
-      value: politicalClimate.recognizesEmergency ? 'Notstand denkbar' : 'Notstand abgelehnt',
-      detail: state.statuses.governmentStatus
+      value: politicalClimate.label.replace('Bundesregierung ', ''),
+      detail: politicalClimate.short
     },
     {
       label: 'Urteilstendenz',
@@ -3060,14 +3117,22 @@ function renderBriefing() {
           <span>${teaching.firstSpeaker}</span>
         </div>
         <div class="briefing-pod">
-          <strong>Welche politische Stimmung herrscht im Land?</strong>
-          <span>${politicalClimate.note}</span>
+          <strong>Welche fiktive Bundesregierung regiert in dieser Partie?</strong>
+          <span>${politicalClimate.label} - ${politicalClimate.coalition}. ${politicalClimate.note}</span>
         </div>
         <div class="briefing-pod">
-          <strong>Wie läuft die Notstandsklausel in diesem Spiel?</strong>
-          <span>${politicalClimate.recognizesEmergency
-            ? `Diese Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Wenn eure Gruppe später wirklich auf Ausnahmefreigabe oder Abschuss zusteuert, prüft die App einmal per Zufall, ob diese Klausel in genau dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-            : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Wenn eure Gruppe später trotzdem auf Ausnahmefreigabe oder Abschuss zusteuert, greift diese Klausel politisch nicht.'}</span>
+          <strong>Was ist mit dem übergesetzlichen Notstand gemeint?</strong>
+          <span>${EXTRAORDINARY_EMERGENCY_EXPLAINER}</span>
+        </div>
+        <div class="briefing-pod">
+          <strong>Was bedeutet diese Regierungslinie für eure Entscheidungen?</strong>
+          <span>${politicalClimate.studentMeaning} ${getPoliticalDecisionContext()}</span>
+        </div>
+        <div class="briefing-pod">
+          <strong>Was heißt das konkret für das Ministerium?</strong>
+          <span>${politicalClimate.ministryLine} ${politicalClimate.recognizesEmergency
+            ? `Wenn eure Gruppe später wirklich auf Ausnahmefreigabe oder Abschuss zusteuert, prüft die App einmal per Zufall, ob diese Regierung die Klausel in genau dieser Runde politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+            : 'Auch wenn einzelne Rollen später auf Ausnahmefreigabe drängen, bleibt diese Regierung politisch bei der Verfassungsgrenze.'}</span>
         </div>
         ${emergencyCheck ? `
           <div class="briefing-pod">
@@ -3164,6 +3229,7 @@ function renderRoleAssignmentPanel() {
 function renderSetupPanel() {
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const ready = canStartGame();
+  const politicalClimate = getPoliticalClimate();
 
   setupPanel.innerHTML = `
     <article class="setup-card">
@@ -3192,6 +3258,19 @@ function renderSetupPanel() {
           ? '<button id="openGameBtn" class="primary-btn" type="button">Spielfenster öffnen</button>'
           : `<button id="startGameBtn" class="primary-btn" type="button" ${ready ? '' : 'disabled'}>Spiel starten</button>`}
       </div>
+    </article>
+    <article class="setup-card">
+      <h3>Politischer Kontext dieser Partie</h3>
+      <p><strong>${politicalClimate.label}</strong> - ${politicalClimate.coalition}</p>
+      <p>${politicalClimate.note}</p>
+      <p><strong>Was bedeutet „übergesetzlicher Notstand“ hier?</strong> ${EXTRAORDINARY_EMERGENCY_EXPLAINER}</p>
+      <p><strong>Was bedeutet das für eure Entscheidungen?</strong> ${politicalClimate.studentMeaning}</p>
+      <p><strong>Ministeriumslinie:</strong> ${politicalClimate.ministryLine}</p>
+      <p class="small-note">
+        ${politicalClimate.recognizesEmergency
+          ? `Diese Regierung ist grundsätzlich offen für die Behauptung eines übergesetzlichen Notstands. Das macht einen Abschuss aber nicht automatisch rechtmäßig. Es bedeutet nur: Die politische Spitze könnte versuchen, ihn als Ausnahme zu rechtfertigen. Ob das in eurer Partie wirklich greift, entscheidet die App erst in einer relevanten Runde per Zufall (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+          : 'Diese Regierung lehnt die Behauptung eines übergesetzlichen Notstands ab. Für eure Partie bedeutet das: Das Ministerium wird politische Ausnahmefreigaben eher blockieren und auf der Verfassungsgrenze bestehen.'}
+      </p>
     </article>
   `;
 
@@ -3319,7 +3398,7 @@ function renderCurrentTaskPanel() {
         <span class="scenario-pill">T - ${round.minute} Minuten</span>
         <span class="scenario-pill">${state.statuses.stadiumStatus}</span>
         <span class="scenario-pill">${state.statuses.rulesStatus}</span>
-        <span class="scenario-pill">${politicalClimate.recognizesEmergency ? 'Regierung: Notstand denkbar' : 'Regierung: Notstand abgelehnt'}</span>
+        <span class="scenario-pill">${politicalClimate.label.replace('Bundesregierung ', '')}</span>
       </div>
     </article>
     <p class="task-intro">
@@ -3354,9 +3433,9 @@ function renderCurrentTaskPanel() {
       Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Danach wählt die Klasse zusätzlich einen gemeinsamen Krisenbeschluss mit Folgen für die Lage. In Schritt 5 prüfen einzelne Rollen mit Sonderrecht den Mehrheitsweg. Erst wenn der Weg freigegeben ist, geht ihr zu „6. Auswahlkarten pro Rolle anklicken“.
     </p>
     <p class="guide-note">
-      Politische Zusatzregel dieses Spiels: ${politicalClimate.recognizesEmergency
-        ? `Die aktuelle Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Wenn eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-        : 'Die aktuelle Regierung lehnt den übergesetzlichen Notstand ab. Wenn eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel in diesem Spiel nicht politisch wirksam.'}
+      Politische Zusatzregel dieses Spiels: In dieser Partie regiert <strong>${politicalClimate.label}</strong>. ${getPoliticalDecisionContext()} ${politicalClimate.recognizesEmergency
+        ? `Falls eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Regierung die Klausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        : 'Falls eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel politisch nicht wirksam.'}
     </p>
   `;
 }
@@ -3428,9 +3507,11 @@ function renderDiscussionPanel() {
         `).join('')}
       </div>
       <p class="small-note">Bei Stimmgleichheit entscheidet transparent die Rolle, die in dieser Runde zuerst sprechen muss.</p>
+      <p class="small-note">Regierungskontext dieser Partie: <strong>${politicalClimate.label}</strong>. ${politicalClimate.studentMeaning}</p>
+      <p class="small-note"><strong>Übergesetzlicher Notstand</strong> heißt hier: nicht „das Gesetz erlaubt es“, sondern „eine Regierung behauptet im Extremfall eine Ausnahme, obwohl die Rechtslage eigentlich blockiert ist“.</p>
       <p class="small-note">Politische Zusatzlage: ${politicalClimate.recognizesEmergency
-        ? `Diese Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Wenn eure Entscheidung später wirklich eine Ausnahmefreigabe oder einen Abschuss tragen soll, prüft die App einmal zufällig, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-        : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Wenn eure Entscheidung später auf Ausnahmefreigabe oder Abschuss zielt, scheitert diese politische Klausel.'}</p>
+        ? `Diese Regierung ist für solche Ausnahmelogik grundsätzlich offen. Wenn eure Entscheidung später wirklich eine Ausnahmefreigabe oder einen Abschuss tragen soll, prüft die App einmal zufällig, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        : 'Diese Regierung lehnt solche Ausnahmelogik ab. Wenn eure Entscheidung später auf Ausnahmefreigabe oder Abschuss zielt, scheitert diese politische Klausel.'}</p>
     </article>
 
     <article class="prompt-card">
@@ -3594,8 +3675,10 @@ function renderAuthorityPanel() {
       <p><strong>Aktueller Mehrheitsweg:</strong> Weg ${winner.index + 1} - ${winner.path}</p>
       <p class="small-note">Für 15-Jährige ganz einfach gesagt: Das ist ein zweites Schloss nach der Abstimmung. Erst gewinnt ein Weg. Danach sagen die Rollen mit Sonderrecht offen: „Ja, dieser Weg darf weitergehen“, „Ja, aber nur wenn ...“ oder „Nein, so geht es nicht weiter“.</p>
       <p class="small-note"><strong>Freigeben</strong> heißt: Der Weg darf gespielt werden. <strong>Nur unter Bedingung</strong> heißt: Der Weg darf nur weiterlaufen, wenn die Bedingung offen genannt wird. <strong>Blockieren</strong> heißt: Der Weg ist gestoppt, bis die Gruppe die Abstimmung oder das Veto ändert.</p>
+      <p class="small-note"><strong>${politicalClimate.label}</strong> bestimmt den politischen Rahmen dieser Prüfung. ${politicalClimate.ministryLine}</p>
+      <p class="small-note"><strong>Übergesetzlicher Notstand</strong> bedeutet hier nicht: „Das ist legal.“ Es bedeutet nur: Eine Regierung könnte versuchen, eine extreme Ausnahme politisch zu rechtfertigen.</p>
       <p class="small-note">Politische Zusatzregel: ${politicalClimate.recognizesEmergency
-        ? `Wenn eure Entscheidungen in dieser oder einer späteren Runde wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, würfelt die App genau einmal, ob die Regierung diese Notstandsklausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        ? `Wenn eure Entscheidungen in dieser oder einer späteren Runde wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, würfelt die App genau einmal, ob diese Regierung die Notstandsklausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
         : 'Diese Regierung lehnt die Notstandsklausel ab. Auch wenn einzelne Rollen später darauf hoffen, wird sie politisch nicht wirksam.'}</p>
       ${emergencyCheck ? `<p class="small-note"><strong>Letzter Klausel-Check:</strong> ${emergencyCheck.activated ? 'Die Klausel wurde politisch wirksam.' : 'Die Klausel wurde politisch nicht wirksam.'}</p>` : ''}
     </article>
@@ -4185,7 +4268,7 @@ function renderDetailedPhoneScreen(invite) {
       </article>
       <article class="phone-status-card">
         <span>Regierungslinie</span>
-        <strong>${politicalClimate.recognizesEmergency ? 'Notstand denkbar' : 'Notstand abgelehnt'}</strong>
+        <strong>${politicalClimate.label}</strong>
       </article>
     </div>
   `;
@@ -4211,8 +4294,10 @@ function renderDetailedPhoneScreen(invite) {
       <p><strong>Warum deine Stimme ${snapshot.phoneVoteWeight} Punkte zählt:</strong> ${snapshot.phoneVoteWeightReason}</p>
       <p><strong>Leitfrage:</strong> ${teaching.conflict}</p>
       <p><strong>Was am Ende entschieden werden soll:</strong> ${teaching.decisionTask}</p>
+      <p><strong>Regierungskontext:</strong> ${politicalClimate.label} - ${politicalClimate.coalition}. ${politicalClimate.studentMeaning}</p>
+      <p><strong>Was meint „übergesetzlicher Notstand“?</strong> ${EXTRAORDINARY_EMERGENCY_EXPLAINER}</p>
       <p><strong>Politische Zusatzlage:</strong> ${politicalClimate.recognizesEmergency
-        ? `Diese Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Falls eure Runde später wirklich auf Ausnahmefreigabe oder Abschuss hinausläuft, prüft die App einmal zufällig, ob diese Klausel politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        ? `Diese Regierung ist für solche Ausnahmelogik grundsätzlich offen. Falls eure Runde später wirklich auf Ausnahmefreigabe oder Abschuss hinausläuft, prüft die App einmal zufällig, ob diese Klausel politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
         : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Falls eure Runde später auf Ausnahmefreigabe oder Abschuss hinausläuft, greift diese Klausel politisch nicht.'}</p>
     </article>
 
