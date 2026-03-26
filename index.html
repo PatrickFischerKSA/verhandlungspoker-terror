@@ -59,6 +59,7 @@
         </p>
       </div>
       <div class="button-row">
+        <button id="resumeGameBtn" class="ghost-btn hidden" type="button">Laufende Partie öffnen</button>
         <button id="newGameBtn" class="primary-btn" type="button">Neue Partie</button>
         <button id="resetBtn" class="ghost-btn" type="button">Speicher löschen</button>
       </div>
@@ -79,7 +80,7 @@
       <div class="page-nav-buttons">
         <a href="#desktopGuide" class="ghost-link">Desktop erklärt</a>
         <a href="#discussionGuide" class="ghost-link">Diskussion</a>
-        <a href="#gameSection" class="ghost-link">Direkt zur Partie</a>
+        <button id="navOpenGameBtn" class="ghost-link ghost-button" type="button">Direkt zur Partie</button>
         <a href="#endScreen" class="ghost-link">Zum Ergebnis</a>
       </div>
     </nav>
@@ -132,132 +133,151 @@
       <div id="setupPanel" class="setup-panel"></div>
     </section>
 
-    <main id="gameSection" class="dashboard">
-      <section class="board-column">
-        <section class="panel status-panel">
-          <div class="panel-head compact">
-            <h2>1. Lageüberblick</h2>
-            <p>Hier seht ihr sofort Runde, Zeitdruck, Stadionlage und jurische Tendenz.</p>
-          </div>
-          <div id="statusStrip" class="status-strip"></div>
-        </section>
-
-        <section class="panel briefing-panel">
-          <div class="panel-head">
-            <h2>2. Lagefenster</h2>
-            <p>Hier steht die konkrete Situation dieser Runde. Lest dieses Lagefenster gemeinsam, bevor ihr diskutiert.</p>
-          </div>
-          <div id="briefingCard" class="briefing-card"></div>
-        </section>
-
-        <section class="panel workflow-panel">
-          <div class="panel-head">
-            <h2>3. Was ist jetzt zu tun?</h2>
-            <p>Dieser Bereich sagt euch Schritt für Schritt, was in der aktuellen Runde als Nächstes passiert.</p>
-          </div>
-          <div id="currentTaskPanel" class="task-panel"></div>
-        </section>
-
-        <section class="panel discussion-panel">
-          <div class="panel-head">
-            <h2>4. Diskussion und Gruppenantwort</h2>
-            <p>Hier steht die Leitfrage der Runde. Darunter schreibt ihr eure kurze gemeinsame Begründung auf.</p>
-          </div>
-          <div id="discussionPanel" class="discussion-panel-body"></div>
-        </section>
-
-        <section class="panel roles-panel">
-          <div class="panel-head">
-            <h2>5. Karten wählen</h2>
-            <p>
-              Klickt in jeder Rolle genau eine Karte an. Erst wenn alle sechs Rollen eine Karte
-              haben, ist die Runde bereit für die Auswertung.
+    <section id="gameOverlay" class="game-overlay hidden" aria-hidden="true">
+      <div class="game-overlay-backdrop"></div>
+      <div class="game-overlay-shell">
+        <header class="panel game-overlay-header">
+          <div>
+            <p class="eyebrow">Spielfenster</p>
+            <h2 id="gameOverlayTitle">Verantwortungspoker läuft</h2>
+            <p id="gameOverlayLead" class="lead compact-lead">
+              Nach dem Unterrichtsstart erscheint die Partie als eigenes Spielfenster. Lest hier Runde für Runde und arbeitet die Schritte nacheinander ab.
             </p>
-          </div>
-          <div id="rolesGrid" class="roles-grid"></div>
-        </section>
-
-        <section class="panel sequence-panel">
-          <div class="panel-head compact">
-            <h2>6. Runde auswerten</h2>
-            <p>Drückt erst jetzt den Button. Danach lest ihr unten Protokoll, Matrix und Meta-System.</p>
-          </div>
-          <div id="resolutionOrder" class="resolution-order"></div>
-          <div id="selectionSummary" class="selection-summary"></div>
-          <div id="roundFeedback" class="round-feedback">
-            Wählt für jede Rolle genau eine Karte und löst dann die Runde aus.
           </div>
           <div class="button-row">
-            <button id="resolveBtn" class="primary-btn wide" type="button">6. Runde auswerten</button>
+            <button id="closeGameBtn" class="ghost-btn" type="button">Spielfenster schließen</button>
+          </div>
+        </header>
+
+        <main id="gameSection" class="dashboard">
+          <section class="board-column">
+            <section class="panel status-panel">
+              <div class="panel-head compact">
+                <h2>1. Lageüberblick</h2>
+                <p>Hier seht ihr sofort Runde, Zeitdruck, Stadionlage und jurische Tendenz.</p>
+              </div>
+              <div id="statusStrip" class="status-strip"></div>
+            </section>
+
+            <section class="panel briefing-panel">
+              <div class="panel-head">
+                <h2>2. Lagefenster</h2>
+                <p>Hier steht die konkrete Situation dieser Runde. Lest dieses Lagefenster gemeinsam, bevor ihr diskutiert.</p>
+              </div>
+              <div id="briefingCard" class="briefing-card"></div>
+            </section>
+
+            <section class="panel workflow-panel">
+              <div class="panel-head">
+                <h2>3. Was ist jetzt zu tun?</h2>
+                <p>Dieser Bereich sagt euch Schritt für Schritt, was in der aktuellen Runde als Nächstes passiert.</p>
+              </div>
+              <div id="currentTaskPanel" class="task-panel"></div>
+            </section>
+
+            <section class="panel discussion-panel">
+              <div class="panel-head">
+                <h2>4. Diskussion und Gruppenantwort</h2>
+                <p>Hier steht die Leitfrage der Runde. Darunter schreibt ihr eure kurze gemeinsame Begründung auf.</p>
+              </div>
+              <div id="discussionPanel" class="discussion-panel-body"></div>
+            </section>
+
+            <section class="panel roles-panel">
+              <div class="panel-head">
+                <h2>5. Auswahlkarten pro Rolle anklicken</h2>
+                <p>
+                  Unter diesem Abschnitt seht ihr sechs große Rollenfelder. In jedem Rollenfeld klickt ihr genau
+                  eine rechteckige Auswahlkarte mit Titel und Beschreibung an. Erst wenn alle sechs Rollen eine
+                  Auswahlkarte haben, ist die Runde bereit für die Auswertung.
+                </p>
+              </div>
+              <div id="rolesGrid" class="roles-grid"></div>
+            </section>
+
+            <section class="panel sequence-panel">
+              <div class="panel-head compact">
+                <h2>6. Runde auswerten</h2>
+                <p>Drückt erst jetzt den Button. Danach lest ihr unten Protokoll, Matrix und Meta-System.</p>
+              </div>
+              <div id="resolutionOrder" class="resolution-order"></div>
+              <div id="selectionSummary" class="selection-summary"></div>
+              <div id="roundFeedback" class="round-feedback">
+                Wählt für jede Rolle genau eine Auswahlkarte und löst dann die Runde aus.
+              </div>
+              <div class="button-row">
+                <button id="resolveBtn" class="primary-btn wide" type="button">6. Runde auswerten</button>
+              </div>
+            </section>
+          </section>
+
+          <aside class="side-column">
+            <section class="panel meters-panel">
+              <div class="panel-head compact">
+                <h2>Statusanzeigen</h2>
+                <p>Evakuierung, Informationslage, Gefahr und Rechtsrisiko verschieben sich von Runde zu Runde.</p>
+              </div>
+              <div id="resourceMeters" class="resource-meters"></div>
+            </section>
+
+            <section class="panel matrix-panel">
+              <div class="panel-head compact">
+                <h2>Verantwortungsmatrix</h2>
+                <p>Die Matrix sammelt Spuren aus Kartenwahl und Folgenberechnung.</p>
+              </div>
+              <div id="matrixTable" class="matrix-table"></div>
+            </section>
+
+            <section class="panel meta-panel">
+              <div class="panel-head compact">
+                <h2>Meta-System</h2>
+                <p>Nelson sammelt Anklagepunkte, Biegler Verteidigungspunkte.</p>
+              </div>
+              <div id="metaSummary" class="meta-summary"></div>
+            </section>
+
+            <section class="panel companion-panel hidden">
+              <div class="panel-head compact">
+                <h2>Optionaler Handy-Modus</h2>
+                <p>
+                  Keine Live-Verbindung, keine fragile Kopplung: Pro Runde wird nur ein
+                  frischer QR-Code gescannt und danach ein Antwortcode übernommen.
+                </p>
+              </div>
+              <div id="companionModePicker" class="companion-mode-picker"></div>
+              <div id="companionPanel" class="companion-grid"></div>
+            </section>
+
+            <section class="panel protocol-panel">
+              <div class="panel-head compact">
+                <h2>Protokoll</h2>
+                <p>Keine Zufallsereignisse, nur nachvollziehbare Entscheidungen.</p>
+              </div>
+              <ol id="logList" class="log-list"></ol>
+            </section>
+          </aside>
+        </main>
+
+        <section id="endScreen" class="panel end-screen hidden">
+          <div class="panel-head">
+            <h2>Einsatzbilanz</h2>
+            <p>Die Runde ist beendet. Jetzt wird die Verantwortungsverteilung als Ergebnis lesbar.</p>
+          </div>
+
+          <div id="endingHeadline" class="ending-headline"></div>
+          <div id="endingStats" class="ending-stats"></div>
+
+          <div class="closing-grid">
+            <article class="closing-card">
+              <p class="mini-label">Generierte Anklage</p>
+              <div id="indictmentText" class="closing-text"></div>
+            </article>
+            <article class="closing-card">
+              <p class="mini-label">Generierte Verteidigung</p>
+              <div id="defenseText" class="closing-text"></div>
+            </article>
           </div>
         </section>
-      </section>
-
-      <aside class="side-column">
-        <section class="panel meters-panel">
-          <div class="panel-head compact">
-            <h2>Statusanzeigen</h2>
-            <p>Evakuierung, Informationslage, Gefahr und Rechtsrisiko verschieben sich von Runde zu Runde.</p>
-          </div>
-          <div id="resourceMeters" class="resource-meters"></div>
-        </section>
-
-        <section class="panel matrix-panel">
-          <div class="panel-head compact">
-            <h2>Verantwortungsmatrix</h2>
-            <p>Die Matrix sammelt Spuren aus Kartenwahl und Folgenberechnung.</p>
-          </div>
-          <div id="matrixTable" class="matrix-table"></div>
-        </section>
-
-        <section class="panel meta-panel">
-          <div class="panel-head compact">
-            <h2>Meta-System</h2>
-            <p>Nelson sammelt Anklagepunkte, Biegler Verteidigungspunkte.</p>
-          </div>
-          <div id="metaSummary" class="meta-summary"></div>
-        </section>
-
-        <section class="panel companion-panel hidden">
-          <div class="panel-head compact">
-            <h2>Optionaler Handy-Modus</h2>
-            <p>
-              Keine Live-Verbindung, keine fragile Kopplung: Pro Runde wird nur ein
-              frischer QR-Code gescannt und danach ein Antwortcode übernommen.
-            </p>
-          </div>
-          <div id="companionModePicker" class="companion-mode-picker"></div>
-          <div id="companionPanel" class="companion-grid"></div>
-        </section>
-
-        <section class="panel protocol-panel">
-          <div class="panel-head compact">
-            <h2>Protokoll</h2>
-            <p>Keine Zufallsereignisse, nur nachvollziehbare Entscheidungen.</p>
-          </div>
-          <ol id="logList" class="log-list"></ol>
-        </section>
-      </aside>
-    </main>
-
-    <section id="endScreen" class="panel end-screen hidden">
-      <div class="panel-head">
-        <h2>Einsatzbilanz</h2>
-        <p>Die Runde ist beendet. Jetzt wird die Verantwortungsverteilung als Ergebnis lesbar.</p>
-      </div>
-
-      <div id="endingHeadline" class="ending-headline"></div>
-      <div id="endingStats" class="ending-stats"></div>
-
-      <div class="closing-grid">
-        <article class="closing-card">
-          <p class="mini-label">Generierte Anklage</p>
-          <div id="indictmentText" class="closing-text"></div>
-        </article>
-        <article class="closing-card">
-          <p class="mini-label">Generierte Verteidigung</p>
-          <div id="defenseText" class="closing-text"></div>
-        </article>
       </div>
     </section>
   </div>

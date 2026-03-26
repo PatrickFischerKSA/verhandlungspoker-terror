@@ -941,7 +941,19 @@ function startGame() {
     return;
   }
   state.setupComplete = true;
+  gameOverlayOpen = true;
   saveState(state);
+  render();
+}
+
+function openGameOverlay() {
+  if (!state.setupComplete) return;
+  gameOverlayOpen = true;
+  render();
+}
+
+function closeGameOverlay() {
+  gameOverlayOpen = false;
   render();
 }
 
@@ -1617,6 +1629,7 @@ function loadState() {
 function resetState() {
   localStorage.removeItem(STORAGE_KEY);
   state = createInitialState();
+  gameOverlayOpen = false;
   render();
   saveState(state);
 }
@@ -1924,12 +1937,16 @@ function renderSetupPanel() {
         `).join('')}
       </div>
       <p class="small-note">
-        ${ready
+        ${state.setupComplete
+          ? `Die Partie läuft bereits in Runde ${state.roundIndex + 1}. Öffnet jetzt das Spielfenster und arbeitet dort weiter.`
+          : ready
           ? 'Alles ist eingerichtet. Ihr könnt jetzt mit Runde 1 starten.'
           : `Noch unvollständig: ${missingPlayerNames.map((roleId) => ROLE_ASSIGNMENTS[roleId].slot).join(', ')} brauchen noch einen Namen oder den Modus „gemeinsam in der Gruppe“.`}
       </p>
       <div class="button-row">
-        <button id="startGameBtn" class="primary-btn" type="button" ${ready ? '' : 'disabled'}>Spiel starten</button>
+        ${state.setupComplete
+          ? '<button id="openGameBtn" class="primary-btn" type="button">Spielfenster öffnen</button>'
+          : `<button id="startGameBtn" class="primary-btn" type="button" ${ready ? '' : 'disabled'}>Spiel starten</button>`}
       </div>
     </article>
   `;
@@ -1937,6 +1954,10 @@ function renderSetupPanel() {
   const startButton = document.querySelector('#startGameBtn');
   if (startButton) {
     startButton.addEventListener('click', startGame);
+  }
+  const openButton = document.querySelector('#openGameBtn');
+  if (openButton) {
+    openButton.addEventListener('click', openGameOverlay);
   }
 }
 
@@ -1973,12 +1994,12 @@ function renderCurrentTaskPanel() {
       status: state.setupComplete ? 'active' : 'pending'
     },
     {
-      label: 'Karten wählen',
+      label: 'Auswahlkarten in den Rollenfeldern anklicken',
       detail: !state.setupComplete
-        ? 'Die Kartenwahl bleibt gesperrt, bis die Partie oben im Unterrichtsstart-Modus gestartet wurde.'
+        ? 'Die Auswahlkarten bleiben gesperrt, bis die Partie oben im Unterrichtsstart-Modus gestartet wurde.'
         : missingRoles.length
-        ? `Es fehlen noch Karten für: ${nextRolesText}. Klickt in jeder offenen Rolle genau eine Karte an.`
-        : 'Alle sechs Rollen sind gewählt. Die Runde ist bereit für den nächsten Schritt.',
+        ? `Es fehlen noch Auswahlkarten für: ${nextRolesText}. Geht zu „5. Auswahlkarten pro Rolle anklicken“. Dort seht ihr sechs große Rollenfelder. In jedem offenen Rollenfeld klickt ihr genau eine rechteckige Auswahlkarte mit Titel und Kurzbeschreibung an.`
+        : 'Alle sechs Rollen haben unten im Abschnitt „5. Auswahlkarten pro Rolle anklicken“ bereits genau eine Auswahlkarte.',
       status: !state.setupComplete ? 'pending' : readyToResolve ? 'done' : 'active'
     },
     {
@@ -1986,7 +2007,7 @@ function renderCurrentTaskPanel() {
       detail: !state.setupComplete
         ? 'Auch die Auswertung bleibt gesperrt, bis die Partie gestartet wurde.'
         : readyToResolve
-        ? 'Drückt jetzt „6. Runde auswerten“. Lest danach unten Protokoll, Matrix und Meta-System.'
+        ? 'Drückt jetzt „6. Runde auswerten“. Lest danach rechts Protokoll, Matrix und Meta-System.'
         : 'Diesen Button drückt ihr erst, wenn wirklich alle Rollen eine Karte haben.',
       status: !state.setupComplete ? 'pending' : readyToResolve ? 'active' : 'pending'
     }
@@ -2009,7 +2030,7 @@ function renderCurrentTaskPanel() {
           : `Richtet zuerst die fehlenden Rollen ein: ${missingPlayerText}.`
         : readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
-        : `Diskutiert kurz und wählt danach die fehlenden Karten für ${nextRolesText}.`}
+        : `Diskutiert kurz und klickt danach die fehlenden Auswahlkarten für ${nextRolesText} an.`}
     </p>
     <ol class="task-steps">
       ${steps.map((step, index) => `
@@ -2023,7 +2044,7 @@ function renderCurrentTaskPanel() {
       `).join('')}
     </ol>
     <p class="guide-note">
-      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach sagt jede Person aus ihrer Rolle in einem Satz, was jetzt am wichtigsten ist. Erst dann wird pro Rolle genau eine Karte gewählt.
+      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach sagt jede Person aus ihrer Rolle in einem Satz, was jetzt am wichtigsten ist. Erst dann geht ihr zum Abschnitt „5. Auswahlkarten pro Rolle anklicken“. Dort klickt ihr in jedem großen Rollenfeld genau eine rechteckige Auswahlkarte an.
     </p>
   `;
 }
@@ -2185,6 +2206,7 @@ function renderRoles() {
           ${namesReady ? '' : 'disabled'}
           style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
         >
+          <span class="choice-kicker">Auswahlkarte für ${role.short}</span>
           <h4>${card.title}</h4>
           <p>${card.description}</p>
           <div class="choice-tags">
@@ -2211,7 +2233,7 @@ function renderRoles() {
         </div>
         <p class="role-goal">${role.goal}</p>
         <p class="small-note">${namesReady
-          ? `Diese Person entscheidet jetzt, welche Karte ihre Rolle in Runde ${state.roundIndex + 1} legt.`
+          ? `Unter diesem Rollenfeld liegen die anklickbaren Auswahlkarten für ${role.label}. ${getRolePlayerLabel(roleId)} klickt jetzt genau eine rechteckige Auswahlkarte an.`
           : 'Diese Rollenkarte wird erst freigeschaltet, wenn oben alle sechs Namen eingetragen sind.'}</p>
         <div class="card-choice-grid">${cardsMarkup}</div>
       </article>
@@ -2596,7 +2618,14 @@ function render() {
   renderEndScreen();
 
   const missingPlayerNames = getMissingPlayerNameRoleIds();
-  gameSection.classList.toggle('hidden', !state.setupComplete);
+  document.body.classList.toggle('overlay-active', state.setupComplete && gameOverlayOpen);
+  gameOverlay.classList.toggle('hidden', !(state.setupComplete && gameOverlayOpen));
+  gameOverlay.setAttribute('aria-hidden', state.setupComplete && gameOverlayOpen ? 'false' : 'true');
+  resumeGameBtn.classList.toggle('hidden', !state.setupComplete);
+  resumeGameBtn.disabled = gameOverlayOpen;
+  resumeGameBtn.textContent = gameOverlayOpen ? 'Spielfenster ist geöffnet' : 'Laufende Partie öffnen';
+  navOpenGameBtn.disabled = !state.setupComplete;
+  navOpenGameBtn.textContent = state.setupComplete ? 'Direkt zur Partie' : 'Partie noch nicht gestartet';
   resolveBtn.disabled = state.finished || !state.setupComplete;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
@@ -2628,6 +2657,7 @@ const phoneRolePanel = document.querySelector('#phoneRolePanel');
 const phoneActionPanel = document.querySelector('#phoneActionPanel');
 const roleAssignmentPanel = document.querySelector('#roleAssignmentPanel');
 const setupPanel = document.querySelector('#setupPanel');
+const gameOverlay = document.querySelector('#gameOverlay');
 const gameSection = document.querySelector('#gameSection');
 const statusStrip = document.querySelector('#statusStrip');
 const briefingCard = document.querySelector('#briefingCard');
@@ -2650,10 +2680,15 @@ const indictmentText = document.querySelector('#indictmentText');
 const defenseText = document.querySelector('#defenseText');
 const restoredBanner = document.querySelector('#restoredBanner');
 const newGameBtn = document.querySelector('#newGameBtn');
+const resumeGameBtn = document.querySelector('#resumeGameBtn');
+const navOpenGameBtn = document.querySelector('#navOpenGameBtn');
 const resetBtn = document.querySelector('#resetBtn');
 const resolveBtn = document.querySelector('#resolveBtn');
+const closeGameBtn = document.querySelector('#closeGameBtn');
+const gameOverlayBackdrop = document.querySelector('.game-overlay-backdrop');
 
 let state = loadState() || createInitialState();
+let gameOverlayOpen = state.setupComplete;
 if (localStorage.getItem(STORAGE_KEY)) {
   state.restored = true;
 }
@@ -2661,14 +2696,25 @@ updateStatuses(state);
 
 newGameBtn.addEventListener('click', () => {
   state = createInitialState();
+  gameOverlayOpen = false;
   roundFeedback.textContent = 'Neue Partie vorbereitet. Richtet jetzt oben im Unterrichtsstart-Modus die Rollen ein und drückt danach „Spiel starten“.';
   roundFeedback.className = 'round-feedback tone-safe';
   saveState(state);
   render();
 });
 
+resumeGameBtn.addEventListener('click', openGameOverlay);
+navOpenGameBtn.addEventListener('click', openGameOverlay);
+closeGameBtn.addEventListener('click', closeGameOverlay);
+gameOverlayBackdrop.addEventListener('click', closeGameOverlay);
 resetBtn.addEventListener('click', resetState);
 resolveBtn.addEventListener('click', resolveRound);
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && gameOverlayOpen) {
+    closeGameOverlay();
+  }
+});
 
 const phoneInvite = getPhoneInviteFromUrl();
 

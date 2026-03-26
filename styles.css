@@ -41,6 +41,10 @@ body {
     linear-gradient(180deg, #e5e0d6 0%, #d7d4cd 100%);
 }
 
+body.overlay-active {
+  overflow: hidden;
+}
+
 button,
 input,
 textarea,
@@ -188,6 +192,18 @@ h1 span {
   transition: transform 0.18s ease, border-color 0.18s ease;
 }
 
+.ghost-button {
+  cursor: pointer;
+}
+
+.ghost-button:disabled,
+.ghost-btn:disabled,
+.primary-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .ghost-link:hover {
   transform: translateY(-1px);
   border-color: var(--line-strong);
@@ -198,6 +214,44 @@ h1 span {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
   margin-bottom: 22px;
+}
+
+.game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.game-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 23, 34, 0.46);
+  backdrop-filter: blur(12px);
+}
+
+.game-overlay-shell {
+  position: relative;
+  z-index: 1;
+  width: min(1500px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  display: grid;
+  gap: 18px;
+  padding: 8px;
+}
+
+.game-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.compact-lead {
+  margin-bottom: 0;
 }
 
 .assignment-panel {
@@ -900,6 +954,18 @@ h1 span {
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.choice-kicker {
+  display: inline-flex;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(24, 32, 44, 0.06);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
 .choice-btn:hover {
   transform: translateY(-1px);
   border-color: rgba(24, 32, 44, 0.28);
@@ -1422,6 +1488,10 @@ h1 span {
     grid-template-columns: 1fr;
   }
 
+  .game-overlay-header {
+    flex-direction: column;
+  }
+
   .side-column {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1434,6 +1504,16 @@ h1 span {
 @media (max-width: 920px) {
   .page-shell {
     padding: 18px 18px 32px;
+  }
+
+  .game-overlay {
+    padding: 10px;
+  }
+
+  .game-overlay-shell {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    padding: 4px;
   }
 
   .hero,
