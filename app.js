@@ -1839,6 +1839,10 @@ function getPoliticalClimate(inputState = state) {
   return POLITICAL_CLIMATES[normalizePoliticalClimateId(inputState.politicalClimateId)] || POLITICAL_CLIMATES.grundlinie;
 }
 
+function isPoliticalContextVisible(inputState = state) {
+  return Math.min(inputState.roundIndex, ROUNDS.length - 1) >= 4;
+}
+
 function getPoliticalDecisionContext(inputState = state) {
   const climate = getPoliticalClimate(inputState);
   return climate.recognizesEmergency
@@ -2403,6 +2407,20 @@ function openCompanionSetup() {
   if (companionSectionAnchor) {
     companionSectionAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+}
+
+function scrollToPhoneGuide() {
+  if (phoneGuide) {
+    phoneGuide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function openCompanionEntry() {
+  if (state.setupComplete && getPlayMode() === 'hybrid') {
+    openCompanionSetup();
+    return;
+  }
+  scrollToPhoneGuide();
 }
 
 function closeGameOverlay() {
@@ -3388,6 +3406,7 @@ function resolveRound() {
 function renderStatusStrip() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const politicalClimate = getPoliticalClimate();
+  const politicalVisible = isPoliticalContextVisible();
   const statusCards = [
     {
       label: 'Runde',
@@ -3410,9 +3429,9 @@ function renderStatusStrip() {
       detail: `${state.resources.legalRisk}/20 Rechtsrisiko`
     },
     {
-      label: 'Regierung',
-      value: politicalClimate.label.replace('Bundesregierung ', ''),
-      detail: politicalClimate.short
+      label: politicalVisible ? 'Regierung' : 'Politik',
+      value: politicalVisible ? politicalClimate.label.replace('Bundesregierung ', '') : 'noch offen',
+      detail: politicalVisible ? politicalClimate.short : 'wird erst im Verlauf sichtbar'
     },
     {
       label: 'Urteilstendenz',
@@ -3439,6 +3458,7 @@ function renderBriefing() {
   const teaching = getTeacherBriefing();
   const facts = getRoundFacts();
   const politicalClimate = getPoliticalClimate();
+  const politicalVisible = isPoliticalContextVisible();
   const emergencyCheck = getEmergencyClauseCheck();
   const externalDecision = ensureRoundExternalDecision();
   const externalImpact = getRoundExternalDecisionImpact();
@@ -3489,24 +3509,31 @@ function renderBriefing() {
           <strong>Welche Rolle muss zuerst sprechen?</strong>
           <span>${teaching.firstSpeaker}</span>
         </div>
-        <div class="briefing-pod">
-          <strong>Welche fiktive Bundesregierung regiert in dieser Partie?</strong>
-          <span>${politicalClimate.label} - ${politicalClimate.coalition}. ${politicalClimate.note}</span>
-        </div>
-        <div class="briefing-pod">
-          <strong>Was ist mit dem übergesetzlichen Notstand gemeint?</strong>
-          <span>${EXTRAORDINARY_EMERGENCY_EXPLAINER}</span>
-        </div>
-        <div class="briefing-pod">
-          <strong>Was bedeutet diese Regierungslinie für eure Entscheidungen?</strong>
-          <span>${politicalClimate.studentMeaning} ${getPoliticalDecisionContext()}</span>
-        </div>
-        <div class="briefing-pod">
-          <strong>Was heißt das konkret für das Ministerium?</strong>
-          <span>${politicalClimate.ministryLine} ${politicalClimate.recognizesEmergency
-            ? `Wenn eure Gruppe später wirklich auf Ausnahmefreigabe oder Abschuss zusteuert, prüft die App einmal per Zufall, ob diese Regierung die Klausel in genau dieser Runde politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-            : 'Auch wenn einzelne Rollen später auf Ausnahmefreigabe drängen, bleibt diese Regierung politisch bei der Verfassungsgrenze.'}</span>
-        </div>
+        ${politicalVisible ? `
+          <div class="briefing-pod">
+            <strong>Welche fiktive Bundesregierung regiert in dieser Partie?</strong>
+            <span>${politicalClimate.label} - ${politicalClimate.coalition}. ${politicalClimate.note}</span>
+          </div>
+          <div class="briefing-pod">
+            <strong>Was ist mit dem übergesetzlichen Notstand gemeint?</strong>
+            <span>${EXTRAORDINARY_EMERGENCY_EXPLAINER}</span>
+          </div>
+          <div class="briefing-pod">
+            <strong>Was bedeutet diese Regierungslinie für eure Entscheidungen?</strong>
+            <span>${politicalClimate.studentMeaning} ${getPoliticalDecisionContext()}</span>
+          </div>
+          <div class="briefing-pod">
+            <strong>Was heißt das konkret für das Ministerium?</strong>
+            <span>${politicalClimate.ministryLine} ${politicalClimate.recognizesEmergency
+              ? `Wenn eure Gruppe später wirklich auf Ausnahmefreigabe oder Abschuss zusteuert, prüft die App einmal per Zufall, ob diese Regierung die Klausel in genau dieser Runde politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+              : 'Auch wenn einzelne Rollen später auf Ausnahmefreigabe drängen, bleibt diese Regierung politisch bei der Verfassungsgrenze.'}</span>
+          </div>
+        ` : `
+          <div class="briefing-pod">
+            <strong>Wie ist die politische Rückendeckung gerade?</strong>
+            <span>Das bleibt am Anfang bewusst noch im Hintergrund. In den ersten Runden arbeitet ihr nur mit Lage, Zeitdruck, Verantwortung und Befehlskette. Erst später wird sichtbar, welche Regierungslinie das Ministerium tatsächlich trägt.</span>
+          </div>
+        `}
         ${externalDecision ? `
           <div class="briefing-pod">
             <strong>Neue Einspielung ins Lagezentrum</strong>
@@ -3618,7 +3645,6 @@ function renderRoleAssignmentPanel() {
 function renderSetupPanel() {
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const ready = canStartGame();
-  const politicalClimate = getPoliticalClimate();
   const playMode = getPlayMode();
   const hybridSelected = playMode === 'hybrid';
   const setupStatusText = state.setupComplete
@@ -3665,6 +3691,9 @@ function renderSetupPanel() {
             : 'Der Handy-Weg ist vorgemerkt. Nach „Spiel starten“ erscheint hier der echte Knopf „Handy-Version starten“.'
           : 'Die Partie ist aktuell auf einen stabilen Desktop-Ablauf ohne Handys eingestellt.'}
       </p>
+      <div class="button-row">
+        <button id="previewCompanionBtn" class="ghost-btn" type="button">Handy-Weg jetzt ansehen</button>
+      </div>
     </article>
     <article class="setup-card">
       <h3>Unterrichtsstart</h3>
@@ -3700,16 +3729,17 @@ function renderSetupPanel() {
       </div>
     </article>
     <article class="setup-card">
-      <h3>Politischer Kontext dieser Partie</h3>
-      <p><strong>${politicalClimate.label}</strong> - ${politicalClimate.coalition}</p>
-      <p>${politicalClimate.note}</p>
-      <p><strong>Was bedeutet „übergesetzlicher Notstand“ hier?</strong> ${EXTRAORDINARY_EMERGENCY_EXPLAINER}</p>
-      <p><strong>Was bedeutet das für eure Entscheidungen?</strong> ${politicalClimate.studentMeaning}</p>
-      <p><strong>Ministeriumslinie:</strong> ${politicalClimate.ministryLine}</p>
+      <h3>Politische Lage entwickelt sich erst im Spiel</h3>
+      <p>
+        Die konkrete Regierungslinie wird am Anfang <strong>noch nicht offen verraten</strong>.
+        In den ersten Runden arbeitet ihr erst mit Lage, Zeitdruck, Verantwortung und
+        Befehlskette. Erst im Verlauf wird sichtbar, welche politische Rückendeckung oder
+        Begrenzung tatsächlich über eurer Runde liegt.
+      </p>
       <p class="small-note">
-        ${politicalClimate.recognizesEmergency
-          ? `Diese Regierung ist grundsätzlich offen für die Behauptung eines übergesetzlichen Notstands. Das macht einen Abschuss aber nicht automatisch rechtmäßig. Es bedeutet nur: Die politische Spitze könnte versuchen, ihn als Ausnahme zu rechtfertigen. Ob das in eurer Partie wirklich greift, entscheidet die App erst in einer relevanten Runde per Zufall (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-          : 'Diese Regierung lehnt die Behauptung eines übergesetzlichen Notstands ab. Für eure Partie bedeutet das: Das Ministerium wird politische Ausnahmefreigaben eher blockieren und auf der Verfassungsgrenze bestehen.'}
+        So nimmt euch die App die Spannung nicht schon vor Runde 1 weg. Der genaue politische
+        Rahmen taucht erst später im Spielfenster auf und wirkt dann in Vetos,
+        Ministeriumslinie und Ausnahmefragen hinein.
       </p>
     </article>
   `;
@@ -3725,6 +3755,10 @@ function renderSetupPanel() {
   const companionButton = document.querySelector('#startCompanionBtn');
   if (companionButton) {
     companionButton.addEventListener('click', openCompanionSetup);
+  }
+  const previewCompanionButton = document.querySelector('#previewCompanionBtn');
+  if (previewCompanionButton) {
+    previewCompanionButton.addEventListener('click', scrollToPhoneGuide);
   }
   setupPanel.querySelectorAll('[data-play-mode]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -3742,6 +3776,7 @@ function renderCurrentTaskPanel() {
   const selectedMeasure = getSelectedSharedMeasure();
   const authorityOutcome = getRoundAuthorityOutcome();
   const politicalClimate = getPoliticalClimate();
+  const politicalVisible = isPoliticalContextVisible();
   const externalDecision = ensureRoundExternalDecision();
   const externalImpact = getRoundExternalDecisionImpact();
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
@@ -3856,7 +3891,7 @@ function renderCurrentTaskPanel() {
         <span class="scenario-pill">T - ${round.minute} Minuten</span>
         <span class="scenario-pill">${state.statuses.stadiumStatus}</span>
         <span class="scenario-pill">${state.statuses.rulesStatus}</span>
-        <span class="scenario-pill">${politicalClimate.label.replace('Bundesregierung ', '')}</span>
+        <span class="scenario-pill">${politicalVisible ? politicalClimate.label.replace('Bundesregierung ', '') : 'Politische Rückendeckung noch offen'}</span>
       </div>
     </article>
     <p class="task-intro">
@@ -3894,9 +3929,11 @@ function renderCurrentTaskPanel() {
       Dramaturgischer Ablauf dieser Runde: ${courtPrompt.interruption} Erst danach eröffnet ${ROLE_META[getLeadRoleId()].label} die Aussprache, dann klingt die Koch-Perspektive an, dann Nelsons Gegenposition. Eure Abstimmung ist also Teil der Verhandlung und nicht nur eine isolierte Klassenaufgabe.
     </p>
     <p class="guide-note">
-      Politische Zusatzregel dieses Spiels: In dieser Partie regiert <strong>${politicalClimate.label}</strong>. ${getPoliticalDecisionContext()} ${politicalClimate.recognizesEmergency
-        ? `Falls eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Regierung die Klausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-        : 'Falls eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel politisch nicht wirksam.'}
+      ${politicalVisible
+        ? `Politische Zusatzregel dieses Spiels: In dieser Partie regiert <strong>${politicalClimate.label}</strong>. ${getPoliticalDecisionContext()} ${politicalClimate.recognizesEmergency
+          ? `Falls eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Regierung die Klausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+          : 'Falls eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel politisch nicht wirksam.'}`
+        : 'Politische Rückendeckung: In dieser frühen Phase ist noch nicht offen sichtbar, welche Regierungslinie hinter dem Ministerium steht. Spielt die Runde zunächst unter dieser Unsicherheit.'}
     </p>
     ${externalDecision ? `
       <p class="guide-note">
@@ -3919,6 +3956,7 @@ function renderDiscussionPanel() {
   const measures = getRoundSharedMeasures();
   const selectedMeasure = getSelectedSharedMeasure();
   const politicalClimate = getPoliticalClimate();
+  const politicalVisible = isPoliticalContextVisible();
 
   discussionPanel.innerHTML = `
     <article class="prompt-card">
@@ -3977,11 +4015,17 @@ function renderDiscussionPanel() {
         `).join('')}
       </div>
       <p class="small-note">Bei Stimmgleichheit entscheidet transparent die Rolle, die in dieser Runde zuerst sprechen muss.</p>
-      <p class="small-note">Regierungskontext dieser Partie: <strong>${politicalClimate.label}</strong>. ${politicalClimate.studentMeaning}</p>
-      <p class="small-note"><strong>Übergesetzlicher Notstand</strong> heißt hier: nicht „das Gesetz erlaubt es“, sondern „eine Regierung behauptet im Extremfall eine Ausnahme, obwohl die Rechtslage eigentlich blockiert ist“.</p>
-      <p class="small-note">Politische Zusatzlage: ${politicalClimate.recognizesEmergency
-        ? `Diese Regierung ist für solche Ausnahmelogik grundsätzlich offen. Wenn eure Entscheidung später wirklich eine Ausnahmefreigabe oder einen Abschuss tragen soll, prüft die App einmal zufällig, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-        : 'Diese Regierung lehnt solche Ausnahmelogik ab. Wenn eure Entscheidung später auf Ausnahmefreigabe oder Abschuss zielt, scheitert diese politische Klausel.'}</p>
+      ${politicalVisible
+        ? `
+          <p class="small-note">Regierungskontext dieser Partie: <strong>${politicalClimate.label}</strong>. ${politicalClimate.studentMeaning}</p>
+          <p class="small-note"><strong>Übergesetzlicher Notstand</strong> heißt hier: nicht „das Gesetz erlaubt es“, sondern „eine Regierung behauptet im Extremfall eine Ausnahme, obwohl die Rechtslage eigentlich blockiert ist“.</p>
+          <p class="small-note">Politische Zusatzlage: ${politicalClimate.recognizesEmergency
+            ? `Diese Regierung ist für solche Ausnahmelogik grundsätzlich offen. Wenn eure Entscheidung später wirklich eine Ausnahmefreigabe oder einen Abschuss tragen soll, prüft die App einmal zufällig, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+            : 'Diese Regierung lehnt solche Ausnahmelogik ab. Wenn eure Entscheidung später auf Ausnahmefreigabe oder Abschuss zielt, scheitert diese politische Klausel.'}</p>
+        `
+        : `
+          <p class="small-note">Der genaue politische Rahmen bleibt in den ersten Runden noch verdeckt. Diskutiert zunächst nur aus eurer Rolle heraus: Was ist jetzt verantwortbar, obwohl die Rückendeckung von oben noch unklar ist?</p>
+        `}
     </article>
 
     <article class="prompt-card">
@@ -4176,6 +4220,7 @@ function renderAuthorityPanel() {
   const rules = getRoundVetoRules();
   const winner = voteOutcome.winner;
   const politicalClimate = getPoliticalClimate();
+  const politicalVisible = isPoliticalContextVisible();
   const emergencyCheck = getEmergencyClauseCheck();
   const externalDecision = ensureRoundExternalDecision();
   const externalImpact = getRoundExternalDecisionImpact();
@@ -4197,11 +4242,17 @@ function renderAuthorityPanel() {
       <p><strong>Aktueller Mehrheitsweg:</strong> Weg ${winner.index + 1} - ${winner.path}</p>
       <p class="small-note">Für 15-Jährige ganz einfach gesagt: Das ist ein zweites Schloss nach der Abstimmung. Erst gewinnt ein Weg. Danach sagen die Rollen mit Sonderrecht offen: „Ja, dieser Weg darf weitergehen“, „Ja, aber nur wenn ...“ oder „Nein, so geht es nicht weiter“.</p>
       <p class="small-note"><strong>Freigeben</strong> heißt: Der Weg darf gespielt werden. <strong>Nur unter Bedingung</strong> heißt: Der Weg darf nur weiterlaufen, wenn die Bedingung offen genannt wird. <strong>Blockieren</strong> heißt: Der Weg ist gestoppt, bis die Gruppe die Abstimmung oder das Veto ändert.</p>
-      <p class="small-note"><strong>${politicalClimate.label}</strong> bestimmt den politischen Rahmen dieser Prüfung. ${politicalClimate.ministryLine}</p>
-      <p class="small-note"><strong>Übergesetzlicher Notstand</strong> bedeutet hier nicht: „Das ist legal.“ Es bedeutet nur: Eine Regierung könnte versuchen, eine extreme Ausnahme politisch zu rechtfertigen.</p>
-      <p class="small-note">Politische Zusatzregel: ${politicalClimate.recognizesEmergency
-        ? `Wenn eure Entscheidungen in dieser oder einer späteren Runde wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, würfelt die App genau einmal, ob diese Regierung die Notstandsklausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-        : 'Diese Regierung lehnt die Notstandsklausel ab. Auch wenn einzelne Rollen später darauf hoffen, wird sie politisch nicht wirksam.'}</p>
+      ${politicalVisible
+        ? `
+          <p class="small-note"><strong>${politicalClimate.label}</strong> bestimmt den politischen Rahmen dieser Prüfung. ${politicalClimate.ministryLine}</p>
+          <p class="small-note"><strong>Übergesetzlicher Notstand</strong> bedeutet hier nicht: „Das ist legal.“ Es bedeutet nur: Eine Regierung könnte versuchen, eine extreme Ausnahme politisch zu rechtfertigen.</p>
+          <p class="small-note">Politische Zusatzregel: ${politicalClimate.recognizesEmergency
+            ? `Wenn eure Entscheidungen in dieser oder einer späteren Runde wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, würfelt die App genau einmal, ob diese Regierung die Notstandsklausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+            : 'Diese Regierung lehnt die Notstandsklausel ab. Auch wenn einzelne Rollen später darauf hoffen, wird sie politisch nicht wirksam.'}</p>
+        `
+        : `
+          <p class="small-note">Die genaue Regierungslinie ist in dieser frühen Phase noch nicht offen sichtbar. Prüft den Mehrheitsweg deshalb zunächst nur danach, was eure Rolle jetzt praktisch, rechtlich und moralisch verantworten kann.</p>
+        `}
       ${emergencyCheck ? `<p class="small-note"><strong>Letzter Klausel-Check:</strong> ${emergencyCheck.activated ? 'Die Klausel wurde politisch wirksam.' : 'Die Klausel wurde politisch nicht wirksam.'}</p>` : ''}
     </article>
 
@@ -4827,6 +4878,7 @@ function renderDetailedPhoneScreen(invite) {
   const selectedCard = availableCards.find((card) => card.id === phoneDraftState.cardId) || null;
   const selectedMeasure = measures.find((measure) => measure.id === snapshot.selectedMeasureId) || null;
   const politicalClimate = getPoliticalClimate(snapshot);
+  const politicalVisible = isPoliticalContextVisible(snapshot);
   const externalDecision = getRoundExternalDecision(snapshot.roundIndex, snapshot);
 
   desktopApp.classList.add('hidden');
@@ -4856,8 +4908,8 @@ function renderDetailedPhoneScreen(invite) {
         <strong>${snapshot.phoneVoteWeight} Punkte</strong>
       </article>
       <article class="phone-status-card">
-        <span>Regierungslinie</span>
-        <strong>${politicalClimate.label}</strong>
+        <span>${politicalVisible ? 'Regierungslinie' : 'Politische Lage'}</span>
+        <strong>${politicalVisible ? politicalClimate.label : 'noch nicht offengelegt'}</strong>
       </article>
     </div>
   `;
@@ -4883,11 +4935,17 @@ function renderDetailedPhoneScreen(invite) {
       <p><strong>Warum deine Stimme ${snapshot.phoneVoteWeight} Punkte zählt:</strong> ${snapshot.phoneVoteWeightReason}</p>
       <p><strong>Leitfrage:</strong> ${teaching.conflict}</p>
       <p><strong>Was am Ende entschieden werden soll:</strong> ${teaching.decisionTask}</p>
-      <p><strong>Regierungskontext:</strong> ${politicalClimate.label} - ${politicalClimate.coalition}. ${politicalClimate.studentMeaning}</p>
-      <p><strong>Was meint „übergesetzlicher Notstand“?</strong> ${EXTRAORDINARY_EMERGENCY_EXPLAINER}</p>
-      <p><strong>Politische Zusatzlage:</strong> ${politicalClimate.recognizesEmergency
-        ? `Diese Regierung ist für solche Ausnahmelogik grundsätzlich offen. Falls eure Runde später wirklich auf Ausnahmefreigabe oder Abschuss hinausläuft, prüft die App einmal zufällig, ob diese Klausel politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
-        : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Falls eure Runde später auf Ausnahmefreigabe oder Abschuss hinausläuft, greift diese Klausel politisch nicht.'}</p>
+      ${politicalVisible
+        ? `
+          <p><strong>Regierungskontext:</strong> ${politicalClimate.label} - ${politicalClimate.coalition}. ${politicalClimate.studentMeaning}</p>
+          <p><strong>Was meint „übergesetzlicher Notstand“?</strong> ${EXTRAORDINARY_EMERGENCY_EXPLAINER}</p>
+          <p><strong>Politische Zusatzlage:</strong> ${politicalClimate.recognizesEmergency
+            ? `Diese Regierung ist für solche Ausnahmelogik grundsätzlich offen. Falls eure Runde später wirklich auf Ausnahmefreigabe oder Abschuss hinausläuft, prüft die App einmal zufällig, ob diese Klausel politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+            : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Falls eure Runde später auf Ausnahmefreigabe oder Abschuss hinausläuft, greift diese Klausel politisch nicht.'}</p>
+        `
+        : `
+          <p><strong>Politische Lage:</strong> Die genaue Regierungslinie ist in dieser frühen Runde noch nicht freigegeben. Entscheide zuerst nur aus deiner Rolle heraus, was jetzt verantwortbar ist.</p>
+        `}
     </article>
 
     <article class="prompt-card">
@@ -5166,6 +5224,10 @@ function render() {
   resumeGameBtn.textContent = gameOverlayOpen ? 'Spielfenster ist geöffnet' : 'Laufende Partie öffnen';
   navOpenGameBtn.disabled = !state.setupComplete;
   navOpenGameBtn.textContent = state.setupComplete ? 'Direkt zur Partie' : 'Partie noch nicht gestartet';
+  navCompanionBtn.disabled = false;
+  navCompanionBtn.textContent = state.setupComplete && getPlayMode() === 'hybrid'
+    ? 'Handy-Version starten'
+    : 'Handy-Weg öffnen';
   resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete || !selectedMeasure || !authorityOutcome.allowed || !externalImpact.allowed;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
@@ -5213,6 +5275,7 @@ const phoneLead = document.querySelector('#phoneLead');
 const phoneStatusPanel = document.querySelector('#phoneStatusPanel');
 const phoneRolePanel = document.querySelector('#phoneRolePanel');
 const phoneActionPanel = document.querySelector('#phoneActionPanel');
+const phoneGuide = document.querySelector('#phoneGuide');
 const roleAssignmentPanel = document.querySelector('#roleAssignmentPanel');
 const setupPanel = document.querySelector('#setupPanel');
 const gameOverlay = document.querySelector('#gameOverlay');
@@ -5248,6 +5311,7 @@ const restoredBanner = document.querySelector('#restoredBanner');
 const newGameBtn = document.querySelector('#newGameBtn');
 const resumeGameBtn = document.querySelector('#resumeGameBtn');
 const navOpenGameBtn = document.querySelector('#navOpenGameBtn');
+const navCompanionBtn = document.querySelector('#navCompanionBtn');
 const resetBtn = document.querySelector('#resetBtn');
 const resolveBtn = document.querySelector('#resolveBtn');
 const closeGameBtn = document.querySelector('#closeGameBtn');
@@ -5278,6 +5342,7 @@ newGameBtn.addEventListener('click', () => {
 
 resumeGameBtn.addEventListener('click', openGameOverlay);
 navOpenGameBtn.addEventListener('click', openGameOverlay);
+navCompanionBtn.addEventListener('click', openCompanionEntry);
 closeGameBtn.addEventListener('click', closeGameOverlay);
 gameOverlayBackdrop.addEventListener('click', closeGameOverlay);
 resetBtn.addEventListener('click', resetState);
