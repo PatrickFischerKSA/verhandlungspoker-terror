@@ -188,26 +188,26 @@ const EXTERNAL_DECISION_TEMPLATES = {
     {
       id: 'court-human-dignity-veto',
       institution: 'Bundesverfassungsgericht',
-      title: 'Veto-Entscheid zur Menschenwürde',
-      summary: 'Das Gericht erinnert daran, dass unschuldige Menschen an Bord nicht gegen andere Leben aufgerechnet werden dürfen.',
-      ruleText: 'Wenn eure Runde jetzt auf Ausnahmefreigabe oder Abschuss hinausläuft, blockiert dieses Veto die Notstandsklausel in dieser Runde.',
+      title: 'Eilvermerk zur Menschenwürdegrenze',
+      summary: 'Im Lagezentrum liegt ein juristischer Vermerk mit Verweis auf die Karlsruher Linie vor: Unschuldige Menschen an Bord dürfen nicht zum Mittel für die Rettung anderer gemacht werden.',
+      ruleText: 'Wenn eure Runde jetzt auf Ausnahmefreigabe oder Abschuss hinausläuft, sperrt dieser Vermerk den Ausnahmeweg in dieser Runde.',
       effectType: 'block_exception_clause'
     },
     {
       id: 'court-defense-gap',
       institution: 'Bundesverfassungsgericht',
-      title: 'Hinweis zur offenen Verteidigungsfallfrage',
-      summary: 'Das Gericht hat die Frage des äußersten Verteidigungsfalls nicht vollständig geklärt. Ein enger argumentativer Spalt bleibt offen.',
-      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe hinausläuft, steigt die Chance leicht, dass die politische Notstandsklausel greift.',
+      title: 'Lagehinweis zur offenen Verteidigungsfallfrage',
+      summary: 'Im juristischen Lagebild wird festgehalten: Die äußerste Verteidigungsfrage ist nicht in jedem Punkt abschließend geklärt. Ein schmaler argumentativer Spalt bleibt offen.',
+      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe hinausläuft, wächst dadurch leicht die Chance, dass die politische Notstandsklausel greift.',
       effectType: 'boost_exception_clause',
       chanceModifier: 0.15
     },
     {
       id: 'court-state-restraint',
       institution: 'Bundesverfassungsgericht',
-      title: 'Mahnung staatlicher Selbstbegrenzung',
-      summary: 'Das Gericht mahnt, dass gerade in der Krise die staatliche Selbstbegrenzung sichtbar bleiben muss.',
-      ruleText: 'Wenn ihr auf eine Ausnahme setzt, braucht ihr in dieser Runde ausdrücklich politische Deckung. Sonst ist der Weg blockiert.',
+      title: 'Karlsruher Mahnung zur staatlichen Selbstbegrenzung',
+      summary: 'Aus der verfassungsrechtlichen Linie wird klar signalisiert: Gerade in der Krise muss sichtbar bleiben, wer Verantwortung übernimmt und wo die Grenze gezogen wird.',
+      ruleText: 'Wenn ihr auf eine Ausnahme setzt, braucht ihr in dieser Runde eine erkennbare politische Deckung. Ohne sie bleibt der Weg gesperrt.',
       effectType: 'require_cover_for_exception'
     }
   ],
@@ -215,25 +215,25 @@ const EXTERNAL_DECISION_TEMPLATES = {
     {
       id: 'minister-population-priority',
       institution: 'Verteidigungsminister',
-      title: 'Weisung: Schutz der Bevölkerung hat Vorrang',
-      summary: 'Der Verteidigungsminister drängt auf maximale Handlungsfähigkeit zum Schutz des Stadions.',
-      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe hinausläuft, steigt die Chance, dass die Notstandsklausel politisch wirksam wird.',
+      title: 'Eilweisung: Schutz der Bevölkerung priorisieren',
+      summary: 'Aus dem Ministerbüro geht die Linie ein, dass der Schutz der Menschen im Stadion jetzt höchste Priorität hat und die Handlungsfähigkeit nicht im Abstimmungsstau verloren gehen darf.',
+      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe hinausläuft, steigt dadurch die Chance, dass die Notstandsklausel politisch wirksam wird.',
       effectType: 'boost_exception_clause',
       chanceModifier: 0.2
     },
     {
       id: 'minister-no-private-shot',
       institution: 'Verteidigungsminister',
-      title: 'Weisung: Kein Alleingang im Cockpit',
-      summary: 'Der Minister verlangt, dass kein Pilot die äußerste Gewaltentscheidung ohne erkennbare politische Deckung allein tragen soll.',
-      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe oder Abschuss hinausläuft, braucht ihr in dieser Runde sichtbar politische Deckung. Sonst blockiert diese Weisung den Weg.',
+      title: 'Eilweisung: Kein Alleingang im Cockpit',
+      summary: 'Aus dem Ministerium kommt die Ansage, dass kein Pilot die äußerste Gewaltentscheidung ohne klare politische Deckung allein schultern soll.',
+      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe oder Abschuss hinausläuft, braucht ihr in dieser Runde sichtbar politische Deckung. Fehlt sie, stoppt diese Weisung den Weg.',
       effectType: 'require_cover_for_exception'
     },
     {
       id: 'minister-written-chain',
       institution: 'Verteidigungsminister',
-      title: 'Weisung: Klare Befehlskette vor Extremschritt',
-      summary: 'Der Minister verlangt, dass ein äußerster Eingriff nur mit klarer Befehls- und Freigabelinie weiterverfolgt werden darf.',
+      title: 'Eilweisung: Vor Extremschritt klare Befehlskette',
+      summary: 'Der Minister lässt ausrichten, dass ein äußerster Eingriff nur dann weitergedacht werden darf, wenn die Freigabe- und Befehlslinie erkennbar geschlossen ist.',
       ruleText: 'Wenn eure Runde auf eine Ausnahme zusteuert, braucht ihr eine erkennbare Freigabelogik. Sonst stoppt diese Weisung den Weg.',
       effectType: 'require_cover_for_exception'
     }
@@ -2127,7 +2127,7 @@ function getRoundExternalDecisionImpact(roundIndex = state.roundIndex, inputStat
       allowed: false,
       chanceModifier: 0,
       blockingReason: `${decision.institution}: ${decision.title}. ${decision.ruleText}`,
-      conditionText: 'Für diesen Ausnahmeweg braucht ihr zuerst sichtbar politische Deckung oder eine klare Freigabelinie.'
+      conditionText: 'Für diesen Ausnahmeweg braucht ihr zuerst sichtbar politische Deckung oder eine klar erkennbare Freigabelinie.'
     };
   }
 
@@ -2135,14 +2135,14 @@ function getRoundExternalDecisionImpact(roundIndex = state.roundIndex, inputStat
     event: decision,
     exceptionPath: true,
     allowed: true,
-    chanceModifier: decision.effectType === 'boost_exception_clause' ? (decision.chanceModifier || 0) : 0,
-    blockingReason: '',
-    conditionText: decision.effectType === 'require_cover_for_exception'
-      ? 'Die nötige politische Deckung ist in dieser Runde sichtbar vorhanden.'
+      chanceModifier: decision.effectType === 'boost_exception_clause' ? (decision.chanceModifier || 0) : 0,
+      blockingReason: '',
+      conditionText: decision.effectType === 'require_cover_for_exception'
+      ? 'Die nötige politische Deckung ist in dieser Runde sichtbar vorhanden. Der Weg bleibt deshalb offen.'
       : decision.effectType === 'boost_exception_clause'
-      ? `${decision.institution} verschiebt die politische Ausnahmechance dieser Runde.`
+      ? `${decision.institution} verschiebt die politische Ausnahmechance dieser Runde leicht zugunsten einer Freigabe.`
       : ''
-  };
+    };
 }
 
 function hasActivatedEmergencyClause(inputState = state) {
@@ -3481,18 +3481,18 @@ function renderBriefing() {
         </div>
         ${externalDecision ? `
           <div class="briefing-pod">
-            <strong>Externer Richtungsentscheid dieser Runde</strong>
+            <strong>Neue Einspielung ins Lagezentrum</strong>
             <span>${externalDecision.institution}: ${externalDecision.title}. ${externalDecision.summary} ${externalDecision.ruleText}</span>
           </div>
         ` : ''}
         ${externalDecision ? `
           <div class="briefing-pod">
-            <strong>Wie wirkt dieses Ereignis im Spiel?</strong>
+            <strong>Was bedeutet diese Einspielung jetzt konkret?</strong>
             <span>${externalImpact.exceptionPath
               ? externalImpact.allowed
-                ? (externalImpact.conditionText || 'Dieses Ereignis lenkt die Runde, blockiert sie aber aktuell nicht.')
+                ? (externalImpact.conditionText || 'Diese Einspielung lenkt eure Runde, blockiert sie aber aktuell nicht.')
                 : externalImpact.blockingReason
-              : 'Dieses Ereignis ist für diese Runde gespeichert. Es wird nur dann wirksam, wenn eure Gruppe wirklich in eine Ausnahme- oder Abschusslogik hineinentscheidet.'}</span>
+              : 'Diese Einspielung liegt jetzt im Lagezentrum. Sie wird erst dann scharf, wenn eure Gruppe wirklich in eine Ausnahme- oder Abschusslogik hineingeht.'}</span>
           </div>
         ` : ''}
         ${emergencyCheck ? `
@@ -3806,7 +3806,7 @@ function renderCurrentTaskPanel() {
     </p>
     ${externalDecision ? `
       <p class="guide-note">
-        Externer Richtungsentscheid dieser Runde: <strong>${externalDecision.institution}</strong> meldet sich mit <strong>${externalDecision.title}</strong>. ${externalDecision.summary} ${externalImpact.exceptionPath && !externalImpact.allowed
+        Neue Einspielung in dieser Runde: <strong>${externalDecision.institution}</strong> meldet sich mit <strong>${externalDecision.title}</strong>. ${externalDecision.summary} ${externalImpact.exceptionPath && !externalImpact.allowed
           ? `Wichtig gerade jetzt: ${externalImpact.blockingReason}`
           : externalDecision.ruleText}
       </p>
@@ -4113,15 +4113,15 @@ function renderAuthorityPanel() {
 
     ${externalDecision ? `
       <article class="prompt-card">
-        <h3>Externer Richtungsentscheid</h3>
+        <h3>Neue Einspielung In Die Verhandlung</h3>
         <p><strong>${externalDecision.institution}:</strong> ${externalDecision.title}</p>
         <p>${externalDecision.summary}</p>
-        <p><strong>Regelwirkung:</strong> ${externalDecision.ruleText}</p>
+        <p><strong>Konkrete Folge für die Verhandlung:</strong> ${externalDecision.ruleText}</p>
         <p>${externalImpact.exceptionPath
           ? externalImpact.allowed
-            ? (externalImpact.conditionText || 'Dieses Ereignis lenkt die Runde, blockiert sie aber aktuell nicht.')
+            ? (externalImpact.conditionText || 'Diese Einspielung lenkt die Runde, blockiert sie aber aktuell nicht.')
             : externalImpact.blockingReason
-          : 'Dieses Ereignis bleibt zunächst Hintergrundrahmen. Es greift erst, wenn eure Entscheidungen wirklich in eine Ausnahme- oder Abschusslogik hineingehen.'}</p>
+          : 'Diese Einspielung bleibt zunächst Hintergrundrahmen. Sie greift erst, wenn eure Entscheidungen wirklich in eine Ausnahme- oder Abschusslogik hineingehen.'}</p>
       </article>
     ` : ''}
 
@@ -4457,15 +4457,15 @@ function renderReferencePanel() {
     </article>
     ${externalDecision ? `
       <article class="prompt-card">
-        <h3>Externer Entscheid Im Verfahren</h3>
+        <h3>Neue Lageeinspielung</h3>
         <p><strong>${externalDecision.institution}</strong> setzt mit <strong>${externalDecision.title}</strong> einen neuen Rahmen.</p>
         <p>${externalDecision.summary}</p>
         <p>${externalDecision.ruleText}</p>
         <p>${externalImpact.exceptionPath
           ? externalImpact.allowed
-            ? (externalImpact.conditionText || 'Dieses Ereignis wirkt gerade eher richtungsweisend als blockierend.')
+            ? (externalImpact.conditionText || 'Diese Einspielung wirkt gerade eher richtungsweisend als blockierend.')
             : externalImpact.blockingReason
-          : 'Noch ist dieses Ereignis nur ein Hintergrundsignal. Es wird erst scharf, wenn eure Gruppe wirklich auf Ausnahme oder Abschuss zusteuert.'}</p>
+          : 'Noch ist diese Einspielung nur ein Hintergrundsignal. Sie wird erst scharf, wenn eure Gruppe wirklich auf Ausnahme oder Abschuss zusteuert.'}</p>
       </article>
     ` : ''}
   `;
@@ -4813,7 +4813,7 @@ function renderDetailedPhoneScreen(invite) {
 
     ${shouldShowExternalDecision(externalDecision, 'phone') ? `
       <article class="prompt-card">
-        <h3>Externer Richtungsentscheid</h3>
+        <h3>Neue Einspielung</h3>
         <p><strong>${externalDecision.institution}:</strong> ${externalDecision.title}</p>
         <p>${externalDecision.summary}</p>
         <p><strong>Wirkung für diese Runde:</strong> ${externalDecision.ruleText}</p>
