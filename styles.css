@@ -584,6 +584,84 @@ h1 span {
   gap: 12px;
 }
 
+.briefing-fact-grid,
+.measure-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.briefing-fact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.briefing-fact-card,
+.measure-result-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.briefing-fact-card strong,
+.briefing-fact-card span,
+.measure-result-card p {
+  display: block;
+}
+
+.briefing-fact-card span,
+.measure-result-card p {
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.measure-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.measure-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(250, 246, 240, 0.94);
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.measure-btn strong,
+.measure-btn span,
+.measure-btn em {
+  display: block;
+}
+
+.measure-btn span,
+.measure-btn em {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.measure-btn em {
+  margin-top: 8px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.measure-btn.selected {
+  border-color: rgba(141, 94, 41, 0.34);
+  background: rgba(141, 94, 41, 0.08);
+  box-shadow: 0 14px 24px rgba(141, 94, 41, 0.12);
+}
+
+.measure-result-card {
+  margin-top: 12px;
+}
+
+.measure-result-card.is-ready {
+  border-color: rgba(47, 111, 89, 0.28);
+  background: rgba(47, 111, 89, 0.08);
+}
+
 .briefing-options > strong {
   font-size: 1rem;
 }
@@ -1622,6 +1700,8 @@ h1 span {
   .assignment-grid,
   .decision-grid,
   .briefing-action-grid,
+  .briefing-fact-grid,
+  .measure-grid,
   .vote-grid,
   .vote-tally-grid {
     grid-template-columns: 1fr;

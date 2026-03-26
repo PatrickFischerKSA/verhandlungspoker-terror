@@ -657,6 +657,546 @@ const ROUND_TEACHER_BRIEFINGS = [
   }
 ];
 
+const ROUND_CONCRETE_FACTS = [
+  [
+    { label: 'Fluglage', value: 'LH 2047 fliegt 11 Grad südlicher als geplant, Flughöhe stabil bei rund 9 400 m.' },
+    { label: 'Entfernung', value: 'Noch etwa 110 km bis zum Münchner Stadionraum.' },
+    { label: 'Stadion', value: '70 000 Menschen im Stadion, Spielbeginn läuft, niemand ahnt die Luftlage.' },
+    { label: 'Rechtslage', value: 'Kein Eingriff in Richtung Abschuss zulässig; es geht nur um Beobachtung, Alarmierung und Vorbereitung.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Alarmrotte hat Sichtkontakt, das Ziel reagiert aber nicht eindeutig.' },
+    { label: 'Entfernung', value: 'Noch etwa 95 km bis zum Stadionraum.' },
+    { label: 'Stadion', value: 'Arena voll besetzt, Ordner und Rettungskräfte noch im Normalbetrieb.' },
+    { label: 'Zeitfenster', value: 'Eine geordnete Vorwarnung ist noch möglich, aber jede Minute verkürzt die Evakuierungsreserve.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Keine Antwort auf Funk, kein Abdrängen, Kurs bleibt auffällig stabil.' },
+    { label: 'Entfernung', value: 'Noch etwa 82 km bis zum Stadionraum.' },
+    { label: 'Stadion', value: 'Menschen sitzen dicht, Ausgänge sind nicht auf Räumung vorbereitet.' },
+    { label: 'Befehlskette', value: 'Luftlage wird ernster, aber ein durchgehender Handlungsplan fehlt noch.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Warnsignale bleiben folgenlos, der Korridor zur Arena wirkt plausibel.' },
+    { label: 'Entfernung', value: 'Noch etwa 68 km bis zum Stadionraum.' },
+    { label: 'Stadion', value: 'Keine sichtbare Räumung, Zuschauer nehmen die Lage weiter als normales Spiel wahr.' },
+    { label: 'Politik', value: 'Es braucht jetzt eine erkennbare Linie: schützen, begrenzen oder weiter klären.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Die Drohung gilt als belastbar: Das Flugzeug könnte direkt ins Stadion gelenkt werden.' },
+    { label: 'Menschen', value: '164 Menschen an Bord stehen 70 000 Menschen im Stadion gegenüber.' },
+    { label: 'Evakuierung', value: 'Erst wenige vorbereitende Maßnahmen, keine wirksame Massenräumung.' },
+    { label: 'Rechtsfrage', value: 'Die Zahl der Bedrohten steigt drastisch, die verfassungsrechtliche Grenze bleibt aber bestehen.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Die Luftlage bleibt bedrohlich, ein Einschlagsszenario ist nicht mehr fern.' },
+    { label: 'Rechtslage', value: 'Unschuldige Menschen an Bord dürfen nicht einfach gegen Unschuldige am Boden verrechnet werden.' },
+    { label: 'Politik', value: 'Jede Form von Freigabe, Duldung oder Schweigen bekommt jetzt Verfassungsgewicht.' },
+    { label: 'Klassenfrage', value: 'Die Gruppe muss jetzt sichtbar sagen, ob sie die Rechtsgrenze absolut hält.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Die Bedrohung bleibt bestehen, während parallel am Boden erst langsam reagiert wird.' },
+    { label: 'Evakuierung', value: 'Rund 18 % des Stadions sind bisher aus dem Gefahrenraum bewegt.' },
+    { label: 'Bodenlage', value: 'Treppen, Gänge und Engstellen bremsen jede schnelle Räumung.' },
+    { label: 'Risiko', value: 'Zu späte Räumung tötet, zu harte Räumung kann Panik und Stürze auslösen.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Der Anflugkorridor verdichtet sich, operative Rückfragen kosten jetzt sofort Zeit.' },
+    { label: 'Befehlskette', value: 'Politik, Führung und Cockpit schieben Verantwortung sichtbar hin und her.' },
+    { label: 'Evakuierung', value: 'Rund 31 % des Stadions sind geräumt, die große Masse steht noch im Innenraum.' },
+    { label: 'Klassenfrage', value: 'Jetzt entscheidet sich, ob das System klare Befehle geben kann oder an Deckung erstickt.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Das Flugzeug nähert sich München, der Zielraum ist in wenigen Minuten erreichbar.' },
+    { label: 'Entfernung', value: 'Noch etwa 35 km bis zum Stadionraum.' },
+    { label: 'Evakuierung', value: 'Rund 44 % des Stadions sind geräumt, mehr als die Hälfte ist noch gefährdet.' },
+    { label: 'Druck', value: 'Jede letzte Abstimmung muss sich jetzt daran messen lassen, ob sie überhaupt noch rechtzeitig kommt.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Die letzten Kommunikationsversuche laufen, aber ein verlässliches Umschwenken ist nicht erkennbar.' },
+    { label: 'Entfernung', value: 'Noch etwa 24 km bis zum Stadionraum.' },
+    { label: 'Evakuierung', value: 'Rund 53 % geräumt; ein großer Rest ist weiter im Gefahrenkorridor.' },
+    { label: 'Konflikt', value: 'Freigabe, Verbot und Eigenentscheidung liegen jetzt offen auf dem Tisch.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Die Maschine hält den gefährlichen Kurs, Luftzeit und Bodenzeit kollidieren fast ohne Reserve.' },
+    { label: 'Entfernung', value: 'Noch etwa 15 km bis zum Stadionraum.' },
+    { label: 'Evakuierung', value: 'Rund 61 % geräumt; viele Menschen stecken noch in Rängen, Treppen und Engstellen.' },
+    { label: 'Medizinische Lage', value: 'Selbst ein guter Beschluss kann jetzt oft nur noch Schäden begrenzen, nicht mehr alles verhindern.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Der Anflug auf die Arena ist stabil, jede Restminute zählt doppelt.' },
+    { label: 'Entfernung', value: 'Noch etwa 8 km bis zum Stadionraum.' },
+    { label: 'Evakuierung', value: 'Rund 69 % geräumt; Tausende Menschen befinden sich noch im Gefahrenbereich.' },
+    { label: 'Moralischer Druck', value: 'Auch Nicht-Handeln wirkt jetzt wie eine aktive Entscheidung mit absehbaren Folgen.' }
+  ],
+  [
+    { label: 'Fluglage', value: 'Die Schlussminute läuft, operative Vorbereitung ist vorbei.' },
+    { label: 'Entfernung', value: 'Noch etwa 4 km bis zum Stadionraum.' },
+    { label: 'Evakuierung', value: 'Rund 74 % geräumt; ein großer Rest ist trotz aller Maßnahmen noch nicht draußen.' },
+    { label: 'Urteilslogik', value: 'Jeder letzte Beschluss beschreibt jetzt offen, wofür dieses System im Extremfall steht.' }
+  ]
+];
+
+const ROUND_SHARED_MEASURES = [
+  [
+    {
+      id: 'r1-radar-bridge',
+      title: 'Luftlage-Zelle sofort hochfahren',
+      summary: 'Eine kleine Sonderzelle bündelt Radar, Funk und Lagebild in Echtzeit.',
+      impact: 'Mehr Informationsklarheit, aber die sichtbare Schutzreaktion nach außen bleibt noch schwach.',
+      effect(state) {
+        adjustResource(state, 'infoClarity', 2);
+        adjustResource(state, 'commandConsensus', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine Luftlage-Zelle bündelt Radar, Funk und erste Meldungen in Echtzeit.');
+      }
+    },
+    {
+      id: 'r1-stadium-quiet-prep',
+      title: 'Stadion im Hintergrund vorbereiten',
+      summary: 'Ordner, Sanität und Einsatzleitung werden intern in erhöhte Bereitschaft versetzt.',
+      impact: 'Etwas Evakuierungsvorsprung, aber auch mehr Druck auf Führung und Stadionlogik.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 6);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Das Stadion wird still vorbereitet, ohne schon offen Alarm zu schlagen.');
+      }
+    },
+    {
+      id: 'r1-funk-priority',
+      title: 'Alle Kommunikationskanäle priorisieren',
+      summary: 'Funk, Tower und militärische Kommunikation bekommen Vorrang vor allen Nebenlagen.',
+      impact: 'Mehr Klarheit, aber weniger operative Bodenwirkung in dieser Runde.',
+      effect(state) {
+        adjustResource(state, 'infoClarity', 1);
+        adjustResource(state, 'danger', -1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Alle verfügbaren Kommunikationskanäle werden auf LH 2047 konzentriert.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r2-ordner-vorwarnung',
+      title: 'Ordner und Rettungskräfte vorwarnen',
+      summary: 'Die Arena bleibt offiziell ruhig, aber alle Einsatzkräfte am Boden wechseln in Alarmbereitschaft.',
+      impact: 'Der Boden reagiert schneller, zugleich steigt das Risiko einer spürbaren Unruhe.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 7);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Ordner, Sanität und Polizei im Stadionumfeld werden vorgewarnt.');
+      }
+    },
+    {
+      id: 'r2-fuehrungslinie',
+      title: 'Eine Führungsstelle spricht für alle',
+      summary: 'Alle Meldungen laufen über eine einzige Lageführung, um Widersprüche zu vermeiden.',
+      impact: 'Mehr Befehlsklarheit, aber etwas weniger spontane Reaktion am Boden.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 2);
+        adjustResource(state, 'infoClarity', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine Führungsstelle spricht ab jetzt verbindlich für die Lage.');
+      }
+    },
+    {
+      id: 'r2-still-hold',
+      title: 'Noch kein sichtbarer Alarm',
+      summary: 'Die Gruppe entscheidet sich bewusst gegen sichtbare Stadionmaßnahmen in dieser Runde.',
+      impact: 'Weniger Unruhe, aber auch weniger Evakuierungsvorsprung.',
+      effect(state) {
+        adjustResource(state, 'publicPressure', -1);
+        adjustResource(state, 'danger', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Noch kein sichtbarer Alarm im Stadion, um Fehlreaktionen zu vermeiden.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r3-parallel-briefing',
+      title: 'Parallelbriefing für Luft und Boden',
+      summary: 'Luftlage und Stadionschutz werden jetzt gleichzeitig instruiert.',
+      impact: 'Mehr Evakuierung und Klarheit, aber auch mehr Entscheidungsdruck.',
+      effect(state) {
+        adjustResource(state, 'infoClarity', 1);
+        adjustResource(state, 'evacuation', 5);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Luftlage und Bodenschutz werden parallel gebrieft.');
+      }
+    },
+    {
+      id: 'r3-ministerium-live',
+      title: 'Ministerium sofort in die Live-Lage holen',
+      summary: 'Die politische Ebene bekommt jetzt denselben Takt wie die operative Führung.',
+      impact: 'Mehr Befehlsklarheit, aber mehr jurisch-politische Sichtbarkeit.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 2);
+        adjustResource(state, 'legalRisk', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Das Ministerium wird in die laufende Live-Lage eingebunden.');
+      }
+    },
+    {
+      id: 'r3-evacuation-ready',
+      title: 'Evakuierungsrouten offenhalten',
+      summary: 'Das Stadion wird auf schnelle Teilräumung vorbereitet, auch ohne offenen Massenalarm.',
+      impact: 'Mehr Evakuierungsvorsprung, aber höheres Panikrisiko später.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 8);
+        adjustResource(state, 'danger', -1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Flucht- und Räumungswege werden vorsorglich offengehalten.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r4-politik-position',
+      title: 'Politische Linie erzwingen',
+      summary: 'Das Ministerium muss jetzt offen sagen, welche Grenze oder Freigabe gilt.',
+      impact: 'Mehr Klarheit in der Befehlskette, aber höheres Rechtsrisiko.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 2);
+        adjustResource(state, 'legalRisk', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Das Ministerium wird gezwungen, offen Position zu beziehen.');
+      }
+    },
+    {
+      id: 'r4-stadium-soft-evac',
+      title: 'Weiche Stadionräumung beginnen',
+      summary: 'Der Boden beginnt mit einer vorsichtigen, begründeten Teilräumung ohne Massenpanik zu provozieren.',
+      impact: 'Mehr Evakuierung, aber auch spürbar höherer öffentlicher Druck.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 9);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine weiche Teilräumung des Stadions wird gestartet.');
+      }
+    },
+    {
+      id: 'r4-cockpit-last-contact',
+      title: 'Letzten Kontaktversuch priorisieren',
+      summary: 'Alle Hoffnungen liegen noch einmal auf einem letzten Cockpitkontakt.',
+      impact: 'Etwas mehr Informationsklarheit, aber weniger Bodenvorbereitung.',
+      effect(state) {
+        adjustResource(state, 'infoClarity', 2);
+        adjustResource(state, 'danger', -1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Ein letzter maximaler Kontaktversuch zum Cockpit erhält Priorität.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r5-nordringe-raeumen',
+      title: 'Nord- und Oberränge zuerst räumen',
+      summary: 'Die am schwersten zu leerenden Bereiche bekommen sofort Priorität.',
+      impact: 'Mehr reale Rettungschance, aber auch mehr Unruhe im Stadion.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 10);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Zuerst werden die langsamsten Stadionbereiche priorisiert geräumt.');
+      }
+    },
+    {
+      id: 'r5-rechtslinie-offen',
+      title: 'Rechtsgrenze öffentlich intern markieren',
+      summary: 'Alle Führungsebenen halten schriftlich fest, dass es keine freie Aufrechnung von Leben gibt.',
+      impact: 'Weniger jurische Unschärfe, aber geringere operative Beweglichkeit.',
+      effect(state) {
+        adjustResource(state, 'legalRisk', -1);
+        adjustResource(state, 'commandConsensus', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die Rechtsgrenze wird intern ausdrücklich markiert und dokumentiert.');
+      }
+    },
+    {
+      id: 'r5-letzte-reserve-boden',
+      title: 'Letzte Bodenreserve anfordern',
+      summary: 'Zusätzliche Sanität, Polizei und Verkehrslenkung werden in den Stadionraum gezogen.',
+      impact: 'Etwas mehr Evakuierung und Schadensbegrenzung, aber auch mehr Druck im Gesamtsystem.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 6);
+        adjustResource(state, 'commandConsensus', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Zusätzliche Bodenreserve wird in den Stadionraum gezogen.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r6-rechtsgutachten-kurz',
+      title: 'Kurz-Gutachten zur Verfassungsgrenze',
+      summary: 'Die Gruppe erzwingt eine knappe, klare juristische Lageeinschätzung für alle Rollen.',
+      impact: 'Mehr Rechtsklarheit, aber höherer Zeitdruck.',
+      effect(state) {
+        adjustResource(state, 'legalRisk', -1);
+        adjustResource(state, 'danger', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine kurze juristische Lageeinschätzung wird für alle Rollen festgehalten.');
+      }
+    },
+    {
+      id: 'r6-politische-deckung-stop',
+      title: 'Keine verdeckte politische Deckung',
+      summary: 'Die Gruppe verbietet jede informelle Abschussdeckung ohne offenes Bekenntnis.',
+      impact: 'Weniger rechtliche Verwischung, aber geringere operative Flexibilität.',
+      effect(state) {
+        adjustResource(state, 'legalRisk', -2);
+        adjustResource(state, 'commandConsensus', -1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Verdeckte politische Deckung wird ausdrücklich ausgeschlossen.');
+      }
+    },
+    {
+      id: 'r6-notstand-szenario',
+      title: 'Notstandsszenario durchdenken',
+      summary: 'Die Gruppe lässt offen prüfen, welche Ausnahmebegründung im Extremfall behauptet würde.',
+      impact: 'Mehr Befehlsklarheit im Ernstfall, aber höheres Rechtsrisiko.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 1);
+        adjustResource(state, 'legalRisk', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Ein mögliches Notstandsszenario wird offen mitgedacht.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r7-ausgaenge-max',
+      title: 'Alle Ausgänge kompromisslos öffnen',
+      summary: 'Evakuierung hat Vorrang vor perfekter Ordnung.',
+      impact: 'Viel mehr Evakuierung, aber spürbar mehr Panikrisiko.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 12);
+        adjustResource(state, 'publicPressure', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Alle Ausgänge werden kompromisslos für die Räumung geöffnet.');
+      }
+    },
+    {
+      id: 'r7-blockweise-raeumen',
+      title: 'Blockweise Räumung beibehalten',
+      summary: 'Die Gruppe setzt auf Ordnung statt maximale Geschwindigkeit.',
+      impact: 'Weniger Sprung bei der Evakuierung, aber bessere Steuerbarkeit.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 7);
+        adjustResource(state, 'commandConsensus', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die Räumung bleibt blockweise und geordnet.');
+      }
+    },
+    {
+      id: 'r7-medizin-vorziehen',
+      title: 'Medizinische Korridore vorziehen',
+      summary: 'Die Gruppe bereitet Verletztenversorgung und Druckpunkte im Umfeld sichtbar vor.',
+      impact: 'Mehr Schadensbegrenzung und etwas bessere Ordnung.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 1);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Medizinische Korridore und Sammelpunkte werden vorgezogen.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r8-befehl-schriftlich',
+      title: 'Jede Linie schriftlich festhalten',
+      summary: 'Die Gruppe will keine mündliche Unschärfe mehr in der Befehlskette.',
+      impact: 'Mehr Verantwortungsklarheit, aber mehr Zeit- und Rechtsdruck.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 2);
+        adjustResource(state, 'legalRisk', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Entscheidungswege werden ab jetzt schriftlich festgehalten.');
+      }
+    },
+    {
+      id: 'r8-jetzt-klare-linie',
+      title: 'Eine Stelle legt die Linie fest',
+      summary: 'Die Gruppe erzwingt einen eindeutigen Geltungsbefehl.',
+      impact: 'Mehr Befehlsklarheit, aber weniger politisches Ausweichen.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 3);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine Stelle legt die operative Linie verbindlich fest.');
+      }
+    },
+    {
+      id: 'r8-rueckfrage-offen',
+      title: 'Rückfragefenster offen lassen',
+      summary: 'Die Gruppe gibt der Deckungssuche noch einmal Raum.',
+      impact: 'Etwas weniger Druck, aber mehr Gefahr durch Verzögerung.',
+      effect(state) {
+        adjustResource(state, 'danger', 1);
+        adjustResource(state, 'publicPressure', -1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Ein letztes Rückfragefenster für Freigabe oder Verbot bleibt offen.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r9-letzte-koordination',
+      title: 'Letzte Koordinationsminute erzwingen',
+      summary: 'Alle Rollen stimmen sich noch einmal ab, obwohl die Zeit fast weg ist.',
+      impact: 'Etwas mehr Befehlsklarheit, aber Verlust an Restzeit.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 2);
+        adjustResource(state, 'danger', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine letzte Koordinationsminute wird erzwungen.');
+      }
+    },
+    {
+      id: 'r9-stadion-voll-auf',
+      title: 'Stadion auf maximale Räumung stellen',
+      summary: 'Alle verbleibenden Kräfte gehen auf schnellstmögliche Räumung.',
+      impact: 'Großer Evakuierungsschub, aber mehr Unruhe und Druck.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 11);
+        adjustResource(state, 'publicPressure', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Der Stadionraum wird auf maximale Räumung gestellt.');
+      }
+    },
+    {
+      id: 'r9-pilot-last-frame',
+      title: 'Koch bekommt letzte Lageformel',
+      summary: 'Der Pilot erhält eine komprimierte, ehrliche Lageformel statt vager Rückfragen.',
+      impact: 'Mehr operative Klarheit im Cockpit, aber auch mehr Last auf Koch.',
+      effect(state) {
+        adjustResource(state, 'infoClarity', 1);
+        adjustResource(state, 'commandConsensus', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Koch erhält eine letzte komprimierte Lageformel ohne Beschönigung.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r10-freigabe-erzwingen',
+      title: 'Klare Freigabe oder klares Verbot verlangen',
+      summary: 'Die Gruppe erlaubt keine schweigende Grauzone mehr.',
+      impact: 'Mehr Befehlsklarheit, aber deutlich mehr jurische Schärfe.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 2);
+        adjustResource(state, 'legalRisk', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine klare Freigabe oder ein klares Verbot wird eingefordert.');
+      }
+    },
+    {
+      id: 'r10-schadensbild-boden',
+      title: 'Bodenfolgen offen mitdenken',
+      summary: 'Die Gruppe lässt die möglichen Opfer im Stadion konkret beziffern und in die Lage einfließen.',
+      impact: 'Mehr Rettungsfokus, aber mehr moralischen Druck auf alle Rollen.',
+      effect(state) {
+        adjustResource(state, 'danger', -1);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Das mögliche Schadensbild am Boden wird offen in die Entscheidung eingeblendet.');
+      }
+    },
+    {
+      id: 'r10-kein-schutzmantel',
+      title: 'Keine nachträgliche Deckung versprechen',
+      summary: 'Niemand bekommt vorab die Zusicherung, später geschützt zu werden.',
+      impact: 'Weniger Verwischung, aber höhere Unsicherheit im Handeln.',
+      effect(state) {
+        adjustResource(state, 'legalRisk', -1);
+        adjustResource(state, 'commandConsensus', -1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Es wird keine nachträgliche Deckung für Grenzüberschreitungen versprochen.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r11-medizin-schadensbegrenzung',
+      title: 'Schadensbegrenzung am Boden vorziehen',
+      summary: 'Sanität, Zufahrten und Sammelpunkte werden auf Massenanfall vorbereitet.',
+      impact: 'Mehr Ordnung und geringere Folgeopfer, aber keine Wunder mehr bei der Evakuierung.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 1);
+        adjustResource(state, 'evacuation', 4);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Medizinische und logistische Schadensbegrenzung wird vorgezogen.');
+      }
+    },
+    {
+      id: 'r11-letzte-luftoption',
+      title: 'Letzte Luftoption offenhalten',
+      summary: 'Die Gruppe hält die letzte Eingriffsoption in der Luft bewusst offen.',
+      impact: 'Mehr operative Beweglichkeit, aber mehr Rechtsrisiko.',
+      effect(state) {
+        adjustResource(state, 'danger', -1);
+        adjustResource(state, 'legalRisk', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die letzte Luftoption wird bewusst offengehalten.');
+      }
+    },
+    {
+      id: 'r11-tribuenen-sperren',
+      title: 'Resttribünen hart sperren',
+      summary: 'Alle noch offenen Publikumswege werden kompromisslos auf Räumung gedrückt.',
+      impact: 'Mehr Evakuierung, aber spürbare Hektik und Druck.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 9);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die letzten offenen Tribünenbereiche werden hart auf Räumung gedrückt.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r12-unterlassen-benennen',
+      title: 'Unterlassen ausdrücklich benennen',
+      summary: 'Die Gruppe hält fest, welche Folgen Nicht-Handeln jetzt haben würde.',
+      impact: 'Mehr Klarheit über Verantwortung, aber mehr moralischer Druck.',
+      effect(state) {
+        adjustResource(state, 'commandConsensus', 1);
+        adjustResource(state, 'publicPressure', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die Folgen des Unterlassens werden offen benannt und dokumentiert.');
+      }
+    },
+    {
+      id: 'r12-letzte-bodenwelle',
+      title: 'Letzte Bodenwelle auslösen',
+      summary: 'Die Gruppe setzt auf einen letzten Evakuierungsschub trotz Unruhe.',
+      impact: 'Mehr Räumung, aber höheres Chaosrisiko.',
+      effect(state) {
+        adjustResource(state, 'evacuation', 8);
+        adjustResource(state, 'publicPressure', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine letzte Bodenwelle zur Räumung wird ausgelöst.');
+      }
+    },
+    {
+      id: 'r12-klare-grenze',
+      title: 'Letzte Grenze klar ziehen',
+      summary: 'Die Gruppe entscheidet sich bewusst dafür, eine Grenze nicht mehr zu überschreiten.',
+      impact: 'Weniger Rechtsrisiko, aber mehr Gefahr aus dem verbleibenden Zeitverlust.',
+      effect(state) {
+        adjustResource(state, 'legalRisk', -2);
+        adjustResource(state, 'danger', 1);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Eine letzte rechtliche oder moralische Grenze wird ausdrücklich gezogen.');
+      }
+    }
+  ],
+  [
+    {
+      id: 'r13-schlussbegruendung',
+      title: 'Schlussbegründung vorziehen',
+      summary: 'Die Gruppe legt offen fest, wie sie ihre Endhaltung später rechtfertigen will.',
+      impact: 'Mehr argumentative Klarheit, aber keine zusätzliche Zeit mehr.',
+      effect(state) {
+        state.meta.prosecution += 1;
+        state.meta.defense += 1;
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die Schlussbegründung der Gruppe wird noch vor der Endkarte offengelegt.');
+      }
+    },
+    {
+      id: 'r13-rettung-radikal',
+      title: 'Rettungslogik radikal priorisieren',
+      summary: 'Die Gruppe erklärt offen, dass jetzt maximaler Bodenschutz das Leitprinzip ist.',
+      impact: 'Mehr Rettungsfokus, aber deutlich höherer Rechtsdruck.',
+      effect(state) {
+        state.meta.rescueImpact += 1;
+        adjustResource(state, 'legalRisk', 2);
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die Gruppe priorisiert in der Schlussminute radikal den Bodenschutz.');
+      }
+    },
+    {
+      id: 'r13-grenze-radikal',
+      title: 'Rechtsgrenze radikal priorisieren',
+      summary: 'Die Gruppe erklärt offen, dass keine letzte Rettungslogik die Grenze sprengen darf.',
+      impact: 'Weniger Rechtsrisiko, aber härtere Last auf dem Unterlassen.',
+      effect(state) {
+        adjustResource(state, 'legalRisk', -2);
+        addResponsibility(state, 'ministerium', { omitted: 1, legal: 1 });
+        addLogEntry(state, 'Gemeinsamer Beschluss: Die Gruppe priorisiert in der Schlussminute radikal die Rechtsgrenze.');
+      }
+    }
+  ]
+];
+
 function getPhase(roundIndex) {
   if (roundIndex <= 3) return 'early';
   if (roundIndex <= 8) return 'middle';
@@ -707,6 +1247,7 @@ function createInitialState() {
     companionRoles: normalizeCompanionRoles(),
     notesByRound: {},
     votesByRound: {},
+    measuresByRound: {},
     selections: {},
     lastResolution: [],
     resources: {
@@ -767,6 +1308,7 @@ function hydrateState(input) {
     companionRoles: normalizeCompanionRoles(input.companionRoles),
     notesByRound: input.notesByRound && typeof input.notesByRound === 'object' ? input.notesByRound : {},
     votesByRound: input.votesByRound && typeof input.votesByRound === 'object' ? input.votesByRound : {},
+    measuresByRound: input.measuresByRound && typeof input.measuresByRound === 'object' ? input.measuresByRound : {},
     selections: input.selections && typeof input.selections === 'object' ? input.selections : {},
     lastResolution: Array.isArray(input.lastResolution) ? input.lastResolution : [],
     resources: {
@@ -923,6 +1465,14 @@ function getTeacherBriefing(roundIndex = state.roundIndex) {
   return ROUND_TEACHER_BRIEFINGS[Math.min(roundIndex, ROUND_TEACHER_BRIEFINGS.length - 1)];
 }
 
+function getRoundFacts(roundIndex = state.roundIndex) {
+  return ROUND_CONCRETE_FACTS[Math.min(roundIndex, ROUND_CONCRETE_FACTS.length - 1)];
+}
+
+function getRoundSharedMeasures(roundIndex = state.roundIndex) {
+  return ROUND_SHARED_MEASURES[Math.min(roundIndex, ROUND_SHARED_MEASURES.length - 1)];
+}
+
 function getRoundNoteKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
@@ -933,6 +1483,10 @@ function setRoundNote(value) {
 }
 
 function getRoundVoteKey(roundIndex = state.roundIndex) {
+  return String(roundIndex);
+}
+
+function getRoundMeasureKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
 
@@ -1056,6 +1610,22 @@ function getRoundVoteOutcome(roundIndex = state.roundIndex) {
     winner,
     tiebreakReason
   };
+}
+
+function getSelectedSharedMeasureId(roundIndex = state.roundIndex) {
+  return state.measuresByRound?.[getRoundMeasureKey(roundIndex)] || '';
+}
+
+function getSelectedSharedMeasure(roundIndex = state.roundIndex) {
+  const selectedId = getSelectedSharedMeasureId(roundIndex);
+  return getRoundSharedMeasures(roundIndex).find((measure) => measure.id === selectedId) || null;
+}
+
+function setSelectedSharedMeasure(measureId) {
+  const available = getRoundSharedMeasures();
+  if (!available.some((measure) => measure.id === measureId)) return;
+  state.measuresByRound[getRoundMeasureKey()] = measureId;
+  saveState(state);
 }
 
 function setPlayerName(roleId, value) {
@@ -1804,6 +2374,11 @@ function selectCard(roleId, cardId) {
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
+  if (!getSelectedSharedMeasure()) {
+    roundFeedback.textContent = 'Wählt zuerst den gemeinsamen Krisenbeschluss dieser Runde. Erst danach werden die Auswahlkarten freigeschaltet.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
   state.selections[roleId] = cardId;
   saveState(state);
   render();
@@ -1868,6 +2443,13 @@ function resolveRound() {
     return;
   }
 
+  const selectedMeasure = getSelectedSharedMeasure();
+  if (!selectedMeasure) {
+    roundFeedback.textContent = 'Vor der Auswertung fehlt noch der gemeinsame Krisenbeschluss dieser Runde.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
+
   const missingRoles = ROLE_ORDER.filter((roleId) => !state.selections[roleId]);
   if (missingRoles.length > 0) {
     const names = missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
@@ -1877,6 +2459,9 @@ function resolveRound() {
   }
 
   const resolutionLines = [];
+
+  selectedMeasure.effect(state);
+  resolutionLines.push(`Gemeinsamer Krisenbeschluss: ${selectedMeasure.title}`);
 
   for (const roleId of ROLE_ORDER) {
     const selectedId = state.selections[roleId];
@@ -1957,6 +2542,7 @@ function renderStatusStrip() {
 function renderBriefing() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const teaching = getTeacherBriefing();
+  const facts = getRoundFacts();
   const resolutionSummary = state.lastResolution.length
     ? `<div class="briefing-pod"><strong>Was in der letzten Runde entschieden wurde</strong><span>${state.lastResolution.join(' | ')}</span></div>`
     : '';
@@ -1967,6 +2553,14 @@ function renderBriefing() {
       <div class="timeline-chip">T - ${round.minute} Minuten</div>
       <h3>${round.title}</h3>
       <p>${teaching.happened}</p>
+      <div class="briefing-fact-grid">
+        ${facts.map((fact) => `
+          <article class="briefing-fact-card">
+            <strong>${fact.label}</strong>
+            <span>${fact.value}</span>
+          </article>
+        `).join('')}
+      </div>
       <div class="briefing-grid">
         <div class="briefing-pod">
           <strong>Was ist passiert?</strong>
@@ -2129,8 +2723,9 @@ function renderCurrentTaskPanel() {
   const namesReady = missingPlayerNames.length === 0;
   const missingRoles = getMissingRoleIds();
   const voteOutcome = getRoundVoteOutcome();
+  const selectedMeasure = getSelectedSharedMeasure();
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
-  const readyToResolve = state.setupComplete && missingRoles.length === 0;
+  const readyToResolve = state.setupComplete && voteOutcome.complete && selectedMeasure && missingRoles.length === 0;
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const nextRolesText = missingRoles.length
@@ -2163,15 +2758,28 @@ function renderCurrentTaskPanel() {
       status: !state.setupComplete ? 'pending' : voteOutcome.complete ? 'done' : 'active'
     },
     {
+      label: 'Gemeinsamen Krisenbeschluss wählen',
+      detail: !state.setupComplete
+        ? 'Die Zusatzbeschlüsse werden erst freigeschaltet, wenn die Partie gestartet wurde.'
+        : !voteOutcome.complete
+        ? 'Der gemeinsame Krisenbeschluss folgt erst nach der gewichteten Abstimmung.'
+        : selectedMeasure
+        ? `Gewählt ist bereits: ${selectedMeasure.title}.`
+        : 'Wählt jetzt einen der drei konkreten Krisenbeschlüsse dieser Runde. Dieser Beschluss verändert die Lage zusätzlich und gibt der Klasse mehr Mitbestimmung.',
+      status: !state.setupComplete || !voteOutcome.complete ? 'pending' : selectedMeasure ? 'done' : 'active'
+    },
+    {
       label: 'Auswahlkarten in den Rollenfeldern anklicken',
       detail: !state.setupComplete
         ? 'Die Auswahlkarten bleiben gesperrt, bis die Partie oben im Unterrichtsstart-Modus gestartet wurde.'
         : !voteOutcome.complete
         ? 'Die Auswahlkarten bleiben gesperrt, bis alle sechs Kurzvoten abgegeben wurden und der Rundenentscheid automatisch erzeugt ist.'
+        : !selectedMeasure
+        ? 'Die Auswahlkarten bleiben gesperrt, bis zusätzlich ein gemeinsamer Krisenbeschluss ausgewählt wurde.'
         : missingRoles.length
         ? `Es fehlen noch Auswahlkarten für: ${nextRolesText}. Geht zu „5. Auswahlkarten pro Rolle anklicken“. Dort seht ihr sechs große Rollenfelder. In jedem offenen Rollenfeld klickt ihr genau eine rechteckige Auswahlkarte mit Titel und Kurzbeschreibung an.`
         : 'Alle sechs Rollen haben unten im Abschnitt „5. Auswahlkarten pro Rolle anklicken“ bereits genau eine Auswahlkarte.',
-      status: !state.setupComplete || !voteOutcome.complete ? 'pending' : readyToResolve ? 'done' : 'active'
+      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure ? 'pending' : readyToResolve ? 'done' : 'active'
     },
     {
       label: 'Button drücken',
@@ -2179,10 +2787,12 @@ function renderCurrentTaskPanel() {
         ? 'Auch die Auswertung bleibt gesperrt, bis die Partie gestartet wurde.'
         : !voteOutcome.complete
         ? 'Auch die Auswertung bleibt gesperrt, bis die sechs Kurzvoten abgegeben und die Auswahlkarten gewählt wurden.'
+        : !selectedMeasure
+        ? 'Auch die Auswertung bleibt gesperrt, bis ein gemeinsamer Krisenbeschluss ausgewählt wurde.'
         : readyToResolve
         ? 'Drückt jetzt „6. Runde auswerten“. Lest danach rechts Protokoll, Matrix und Meta-System.'
         : 'Diesen Button drückt ihr erst, wenn wirklich alle Rollen eine Karte haben.',
-      status: !state.setupComplete || !voteOutcome.complete ? 'pending' : readyToResolve ? 'active' : 'pending'
+      status: !state.setupComplete || !voteOutcome.complete || !selectedMeasure ? 'pending' : readyToResolve ? 'active' : 'pending'
     }
   ];
 
@@ -2203,6 +2813,8 @@ function renderCurrentTaskPanel() {
           : `Richtet zuerst die fehlenden Rollen ein: ${missingPlayerText}.`
         : !voteOutcome.complete
         ? `Gebt jetzt die fehlenden Kurzvoten ab für ${missingVoteText}.`
+        : !selectedMeasure
+        ? 'Wählt jetzt den gemeinsamen Krisenbeschluss für diese Runde.'
         : readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
         : `Diskutiert kurz und klickt danach die fehlenden Auswahlkarten für ${nextRolesText} an.`}
@@ -2219,7 +2831,7 @@ function renderCurrentTaskPanel() {
       `).join('')}
     </ol>
     <p class="guide-note">
-      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Erst wenn daraus der gewichtete Rundenentscheid erzeugt wurde, geht ihr zu „5. Auswahlkarten pro Rolle anklicken“.
+      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Danach wählt die Klasse zusätzlich einen gemeinsamen Krisenbeschluss mit Folgen für die Lage. Erst dann geht ihr zu „5. Auswahlkarten pro Rolle anklicken“.
     </p>
   `;
 }
@@ -2230,6 +2842,8 @@ function renderDiscussionPanel() {
   const voteOutcome = getRoundVoteOutcome();
   const winner = voteOutcome.winner;
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
+  const measures = getRoundSharedMeasures();
+  const selectedMeasure = getSelectedSharedMeasure();
 
   discussionPanel.innerHTML = `
     <article class="prompt-card">
@@ -2369,6 +2983,32 @@ function renderDiscussionPanel() {
     </article>
 
     <article class="prompt-card">
+      <h3>Zusätzlicher Krisenbeschluss der Klasse</h3>
+      <p>Damit die Klasse noch mehr mitbestimmt, wählt ihr pro Runde zusätzlich einen gemeinsamen Krisenbeschluss. Er gilt für alle Rollen gemeinsam und verändert die Lage sichtbar, bevor die einzelnen Auswahlkarten gespielt werden.</p>
+      <div class="measure-grid">
+        ${measures.map((measure) => `
+          <button
+            class="measure-btn ${selectedMeasure?.id === measure.id ? 'selected' : ''}"
+            type="button"
+            data-measure-id="${measure.id}"
+            ${voteOutcome.complete ? '' : 'disabled'}
+          >
+            <strong>${measure.title}</strong>
+            <span>${measure.summary}</span>
+            <em>Folge: ${measure.impact}</em>
+          </button>
+        `).join('')}
+      </div>
+      <div class="measure-result-card ${selectedMeasure ? 'is-ready' : ''}">
+        ${selectedMeasure
+          ? `<p><strong>Gewählter Krisenbeschluss:</strong> ${selectedMeasure.title}</p><p>${selectedMeasure.summary}</p><p><strong>Konkrete Folge für die Lage:</strong> ${selectedMeasure.impact}</p>`
+          : voteOutcome.complete
+          ? '<p><strong>Noch offen:</strong> Die Abstimmung ist fertig, aber der gemeinsame Krisenbeschluss wurde noch nicht ausgewählt.</p>'
+          : '<p><strong>Noch gesperrt:</strong> Der Krisenbeschluss wird erst freigeschaltet, nachdem die gewichtete Abstimmung abgeschlossen ist.</p>'}
+      </div>
+    </article>
+
+    <article class="prompt-card">
       <h3>Darauf sollt ihr bei der Diskussion achten</h3>
       <ol class="discussion-list">
         ${guide.prompts.map((prompt) => `<li>${prompt}</li>`).join('')}
@@ -2388,6 +3028,13 @@ function renderDiscussionPanel() {
       setRoleVoteReason(field.dataset.voteReason, field.value);
     });
     field.addEventListener('blur', () => {
+      render();
+    });
+  });
+
+  discussionPanel.querySelectorAll('[data-measure-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      setSelectedSharedMeasure(button.dataset.measureId);
       render();
     });
   });
@@ -2413,6 +3060,7 @@ function renderSelectionSummary() {
 function renderRoles() {
   const namesReady = getMissingPlayerNameRoleIds().length === 0;
   const voteOutcome = getRoundVoteOutcome();
+  const selectedMeasure = getSelectedSharedMeasure();
   rolesGrid.innerHTML = Object.keys(ROLE_META).map((roleId) => {
     const role = ROLE_META[roleId];
     const assignment = ROLE_ASSIGNMENTS[roleId];
@@ -2461,7 +3109,7 @@ function renderRoles() {
           type="button"
           data-role="${roleId}"
           data-card="${card.id}"
-          ${namesReady && voteOutcome.complete ? '' : 'disabled'}
+          ${namesReady && voteOutcome.complete && selectedMeasure ? '' : 'disabled'}
           style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
         >
           <span class="choice-kicker">Auswahlkarte für ${role.short}</span>
@@ -2494,6 +3142,8 @@ function renderRoles() {
           ? 'Diese Rollenkarte wird erst freigeschaltet, wenn oben alle sechs Namen eingetragen sind.'
           : !voteOutcome.complete
           ? 'Diese Auswahlkarten werden erst freigeschaltet, wenn in Schritt 4 alle sechs Rollen ihren Weg gewählt und ihr Kurzvotum geschrieben haben.'
+          : !selectedMeasure
+          ? 'Diese Auswahlkarten werden erst freigeschaltet, wenn die Klasse zusätzlich einen gemeinsamen Krisenbeschluss gewählt hat.'
           : `Unter diesem Rollenfeld liegen die anklickbaren Auswahlkarten für ${role.label}. ${getRolePlayerLabel(roleId)} klickt jetzt genau eine rechteckige Auswahlkarte an, um den erzeugten Rundenentscheid für diese Rolle umzusetzen.`}</p>
         <div class="card-choice-grid">${cardsMarkup}</div>
       </article>
@@ -2879,6 +3529,7 @@ function render() {
 
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const voteOutcome = getRoundVoteOutcome();
+  const selectedMeasure = getSelectedSharedMeasure();
   document.body.classList.toggle('overlay-active', state.setupComplete && gameOverlayOpen);
   gameOverlay.classList.toggle('hidden', !(state.setupComplete && gameOverlayOpen));
   gameOverlay.setAttribute('aria-hidden', state.setupComplete && gameOverlayOpen ? 'false' : 'true');
@@ -2887,7 +3538,7 @@ function render() {
   resumeGameBtn.textContent = gameOverlayOpen ? 'Spielfenster ist geöffnet' : 'Laufende Partie öffnen';
   navOpenGameBtn.disabled = !state.setupComplete;
   navOpenGameBtn.textContent = state.setupComplete ? 'Direkt zur Partie' : 'Partie noch nicht gestartet';
-  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete;
+  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete || !selectedMeasure;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
     roundFeedback.className = 'round-feedback tone-neutral';
@@ -2900,6 +3551,9 @@ function render() {
   } else if (!voteOutcome.complete) {
     const names = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
     roundFeedback.textContent = `Nächster Schritt: Gebt in „4. Diskussion und Abstimmung“ noch vollständige Kurzvoten ab für ${names}. Erst dann erzeugt die App den Rundenentscheid und schaltet die Auswahlkarten frei.`;
+    roundFeedback.className = 'round-feedback tone-legal';
+  } else if (!selectedMeasure) {
+    roundFeedback.textContent = 'Der Rundenentscheid steht fest. Wählt jetzt zusätzlich den gemeinsamen Krisenbeschluss dieser Runde. Erst danach werden die Auswahlkarten freigeschaltet.';
     roundFeedback.className = 'round-feedback tone-legal';
   } else {
     const missingRoles = getMissingRoleIds();
