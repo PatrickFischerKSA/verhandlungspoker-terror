@@ -384,6 +384,40 @@ h1 span {
   color: var(--ink);
 }
 
+.briefing-options {
+  display: grid;
+  gap: 12px;
+}
+
+.briefing-options > strong {
+  font-size: 1rem;
+}
+
+.briefing-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.briefing-action-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.74);
+  display: grid;
+  gap: 6px;
+}
+
+.briefing-action-card strong,
+.briefing-action-card span {
+  display: block;
+}
+
+.briefing-action-card span {
+  color: var(--muted);
+  line-height: 1.58;
+}
+
 .task-intro {
   margin: 0;
   color: var(--ink);
@@ -1357,7 +1391,8 @@ h1 span {
   }
 
   .assignment-grid,
-  .decision-grid {
+  .decision-grid,
+  .briefing-action-grid {
     grid-template-columns: 1fr;
   }
 

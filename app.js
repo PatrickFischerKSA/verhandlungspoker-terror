@@ -286,6 +286,8 @@ const ROUNDS = [
 
 const ROUND_GUIDES = [
   {
+    situation: 'Ein Passagierflugzeug weicht vom Kurs ab. Der Funkkontakt ist brüchig. Noch weiß niemand sicher, ob ein technischer Defekt, eine Entführung oder ein Kommunikationsproblem vorliegt.',
+    decisionNeed: 'Ihr müsst entscheiden, ob in dieser frühen Phase vor allem Informationen gesammelt werden sollen oder ob schon jetzt erste sichtbare Schutzmaßnahmen nötig sind.',
     discussion: 'Prüft, ob die Lage schon nach akuter Bedrohung aussieht oder ob das System zuerst Zeit und Informationen gewinnen sollte.',
     question: 'Soll in dieser frühen Phase bereits sichtbar gehandelt werden oder ist vorsichtiges Prüfen noch verantwortbarer?',
     prompts: [
@@ -296,6 +298,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Schreibt in ein bis zwei Sätzen, warum eure Gruppe in der Frühphase eher aktiv handelt oder eher abwartet.'
   },
   {
+    situation: 'Die Alarmrotte ist gestartet. Das Stadion ist voll. Das Flugzeug bleibt auffällig, aber die Gesamtlage ist noch nicht vollständig geklärt.',
+    decisionNeed: 'Ihr müsst entscheiden, welche Rolle jetzt als Erste ein klares Signal setzt: beobachten, warnen, koordinieren oder schon Schutzmaßnahmen einleiten.',
     discussion: 'Die Alarmrotte ist gestartet, aber das Gesamtbild ist noch unscharf. Diskutiert, wie viel Entschlossenheit schon nötig ist.',
     question: 'Welche Rolle sollte jetzt das erste deutlich sichtbare Signal setzen: Führung, Katastrophenschutz, Ministerium oder Koch?',
     prompts: [
@@ -306,6 +310,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Notiert, welche Rolle in eurer Gruppe den ersten klaren Impuls setzen muss und warum.'
   },
   {
+    situation: 'Die Maschine reagiert nicht auf Standardkommunikation und nicht auf Abdrängmanöver. Damit wird aus einer Auffälligkeit eine reale Bedrohung.',
+    decisionNeed: 'Ihr müsst entscheiden, ob weiter vor allem Klarheit gewonnen werden soll oder ob mehrere Rollen sofort parallel handeln müssen.',
     discussion: 'Aus Unsicherheit wird eine ernsthafte Bedrohung. Jetzt zeigt sich, ob das System noch koordiniert oder schon zu spät reagiert.',
     question: 'Ist jetzt Informationsverdichtung wichtiger als Evakuierung oder muss schon parallel gehandelt werden?',
     prompts: [
@@ -316,6 +322,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Haltet fest, welche Priorität ihr in dieser Runde setzt: Klarheit gewinnen oder Menschen schon jetzt in Bewegung bringen.'
   },
   {
+    situation: 'Warnsignale zeigen keine Wirkung. Flugbahn und Stadion rücken näher zusammen. Es reicht nicht mehr, nur festzustellen, dass die Lage schlimm ist.',
+    decisionNeed: 'Ihr müsst entscheiden, wer jetzt offen Verantwortung übernimmt, statt sie nur weiterzureichen.',
     discussion: 'Die Warnungen bleiben wirkungslos. Diskutiert, wer nun Verantwortung übernehmen muss, statt sie weiterzureichen.',
     question: 'Wer muss in dieser Runde Verantwortung klar benennen: operative Führung, Politik oder der Pilot selbst?',
     prompts: [
@@ -326,6 +334,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Schreibt auf, welche Instanz aus eurer Sicht jetzt offen Verantwortung übernehmen muss.'
   },
   {
+    situation: 'Die Drohung gilt nun als belastbar: Das entführte Flugzeug könnte in ein voll besetztes Stadion gelenkt werden. Zehntausende Menschen sind bedroht.',
+    decisionNeed: 'Ihr müsst entscheiden, ob ihr jetzt vor allem Leben im Stadion schützen, rechtliche Grenzen markieren oder noch Zeit gewinnen wollt.',
     discussion: 'Die Drohung gilt als belastbar. Die Gruppe muss jetzt klären, ob sie vor allem retten, rechtlich begrenzen oder Zeit gewinnen will.',
     question: 'Verändert die Zahl der bedrohten Menschen eure Entscheidung, obwohl das Recht gleich bleibt?',
     prompts: [
@@ -336,6 +346,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Formuliert eure Kernabwägung: mehr Menschen retten oder rechtliche Grenze strikt halten?'
   },
   {
+    situation: 'Die rechtliche Kernfrage steht offen im Raum: Unschuldige Menschen an Bord dürfen nicht einfach gegen Unschuldige im Stadion aufgerechnet werden.',
+    decisionNeed: 'Ihr müsst entscheiden, ob ihr die Rechtsgrenze strikt haltet oder ob einzelne Rollen bereits eine Ausnahmelogik vorbereiten.',
     discussion: 'Jetzt steht die Verfassungsgrenze offen im Raum. Diskutiert, wie Recht und Rettungslogik aufeinanderprallen.',
     question: 'Soll eine Rolle die Rechtsgrenze klar verteidigen oder ist schon jetzt eine Ausnahmelogik denkbar?',
     prompts: [
@@ -346,6 +358,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Schreibt eure Gruppenposition zur Verfassungsgrenze dieser Runde in einem klaren Satz auf.'
   },
   {
+    situation: 'Die Evakuierung beginnt, aber sie läuft zu langsam. Menschenmassen, Wege und Zeitdruck machen jede praktische Rettung schwierig.',
+    decisionNeed: 'Ihr müsst entscheiden, welche Rolle jetzt konkret Menschen aus dem Gefahrenbereich bringt und wer nur noch flankieren oder absichern kann.',
     discussion: 'Die Räumung beginnt, aber sie ist langsam und unübersichtlich. Jetzt geht es um reale Rettung unter Zeitdruck.',
     question: 'Ist jetzt praktische Evakuierung wichtiger als juristische Absicherung oder braucht es beides parallel?',
     prompts: [
@@ -356,6 +370,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Notiert, wie eure Gruppe Evakuierung und Ordnung in dieser Runde gewichtet.'
   },
   {
+    situation: 'Die Befehlskette wird dichter, aber nicht klarer. Jeder wartet auf Deckung, Freigabe oder ein ausdrückliches Verbot.',
+    decisionNeed: 'Ihr müsst entscheiden, wer jetzt eine eindeutige Linie festlegt und wer Verantwortung nicht länger nach oben oder unten verschieben darf.',
     discussion: 'Die Befehlskette wird enger, aber nicht klarer. Diskutiert, ob jetzt eher Deckung, Verbot oder Freigabe gebraucht wird.',
     question: 'Ist eine unklare Befehlskette jetzt schon selbst eine Form von Verantwortungslosigkeit?',
     prompts: [
@@ -366,6 +382,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Schreibt auf, ob das Problem dieser Runde eher fehlende Befehle oder falsche Befehle sind.'
   },
   {
+    situation: 'Das Flugzeug nähert sich München. Es bleibt kaum noch Zeit, um Entscheidungen zurückzunehmen oder langsam zu koordinieren.',
+    decisionNeed: 'Ihr müsst entscheiden, ob jetzt noch auf letzte Abstimmung gesetzt wird oder ob einzelne Rollen schon im Modus des letzten Handelns sind.',
     discussion: 'Der Zielanflug verdichtet sich. Jetzt werden „Noch nicht“-Entscheidungen fast genauso folgenreich wie offene Eingriffe.',
     question: 'Ist es noch verantwortbar, eine letzte Klarstellung abzuwarten, oder ist das bereits zu spät?',
     prompts: [
@@ -376,6 +394,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Haltet fest, ob eure Gruppe jetzt noch auf Abstimmung setzt oder in den Modus des letzten Handelns kippt.'
   },
   {
+    situation: 'Die Zeit läuft fast ab. Ab jetzt stehen Freigabe, Verbot und eigenmächtige Entscheidung direkt gegeneinander.',
+    decisionNeed: 'Ihr müsst entscheiden, welche Option trotz hoher moralischer und juristischer Kosten noch am ehesten tragbar ist.',
     discussion: 'Die Optionen widersprechen sich direkt. Diskutiert, welche Handlung ihr jetzt trotz hoher Kosten noch vertreten könnt.',
     question: 'Welche Entscheidung könnt ihr in dieser Runde noch begründen, obwohl fast jede Option moralisch beschädigt ist?',
     prompts: [
@@ -386,6 +406,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Schreibt die Entscheidung auf, die eure Gruppe in dieser Runde noch am ehesten verantworten kann.'
   },
   {
+    situation: 'Die Räumung stockt, während die verbleibende Zeit zusammenschmilzt. Gute Entscheidungen können jetzt oft nur noch Schaden begrenzen, nicht mehr alles retten.',
+    decisionNeed: 'Ihr müsst entscheiden, welche Rolle jetzt real noch Leben retten kann und welche nur noch die Folgen kleiner machen kann.',
     discussion: 'Die Räumung steht unter massivem Zeitdruck. Jetzt müsst ihr bewerten, ob Schadensbegrenzung oder letzte Intervention Vorrang hat.',
     question: 'Welche Rolle kann jetzt real noch Leben retten und welche nur noch Verantwortung dokumentieren?',
     prompts: [
@@ -396,6 +418,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Notiert eure Begründung dafür, welche Rolle in dieser Runde noch tatsächlich retten kann.'
   },
   {
+    situation: 'Die Schlussphase ist erreicht. Wenn jetzt nicht gehandelt wird, wird Untätigkeit selbst zur folgenreichen Entscheidung.',
+    decisionNeed: 'Ihr müsst entscheiden, ob Nicht-Handeln in dieser Zuspitzung noch vertretbar ist oder ob es bereits aktiv zur Katastrophe beiträgt.',
     discussion: 'Die Schlussphase ist erreicht. Jetzt geht es um die letzte vertretbare Grenzziehung zwischen Eingreifen und Unterlassen.',
     question: 'Ist Untätigkeit jetzt noch Neutralität oder bereits ein aktiver Beitrag zur Katastrophe?',
     prompts: [
@@ -406,6 +430,8 @@ const ROUND_GUIDES = [
     notePrompt: 'Formuliert, ob ihr Untätigkeit in dieser Runde noch als vertretbar ansehen würdet.'
   },
   {
+    situation: 'Die letzte Minute läuft. Jetzt kann nichts mehr vorbereitet werden. Jede Rolle legt offen, wofür sie im Extremfall steht.',
+    decisionNeed: 'Ihr müsst entscheiden, welche letzte Kartenkombination eure Position am ehrlichsten ausdrückt und welche Folgen ihr bewusst in Kauf nehmt.',
     discussion: 'Die letzte Minute zwingt zu einer Endentscheidung. Jetzt müsst ihr nicht mehr vorbereiten, sondern euer Systembild offenlegen.',
     question: 'Welche letzte Entscheidung beschreibt am ehrlichsten, wofür euer System im Extremfall steht?',
     prompts: [
@@ -735,7 +761,13 @@ function getMissingRoleIds() {
 }
 
 function getRoundScenarioText(round, guide) {
-  return `Situation in dieser Runde: ${round.summary} ${round.pressure} Ihr müsst jetzt entscheiden, welche Rolle sofort handeln, welche Rolle absichern und welche Rolle warnen oder bremsen soll.`;
+  return `${guide.situation} ${guide.decisionNeed}`;
+}
+
+function getRoleOptionSummary(roleId, state) {
+  const cards = getAvailableCards(roleId, state).slice(0, 2);
+  if (!cards.length) return 'In dieser Runde liegt gerade keine spielbare Karte vor.';
+  return cards.map((card) => card.title).join(' oder ');
 }
 
 function addLogEntry(state, text) {
@@ -1565,30 +1597,43 @@ function renderStatusStrip() {
 
 function renderBriefing() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
+  const guide = getRoundGuide();
   const resolutionSummary = state.lastResolution.length
     ? `<div class="briefing-pod"><strong>Letzte Auflösung</strong><span>${state.lastResolution.join(' | ')}</span></div>`
     : '';
+  const optionMarkup = ROLE_ORDER.map((roleId) => `
+    <article class="briefing-action-card">
+      <strong>${ROLE_META[roleId].label}</strong>
+      <span>${getRoleOptionSummary(roleId, state)}</span>
+    </article>
+  `).join('');
 
   briefingCard.innerHTML = `
     <div class="briefing-frame">
       <div class="timeline-chip">Lagefenster der Runde</div>
       <div class="timeline-chip">T - ${round.minute} Minuten</div>
       <h3>${round.title}</h3>
-      <p>${round.summary}</p>
+      <p>${guide.situation}</p>
       <div class="briefing-grid">
         <div class="briefing-pod">
-          <strong>Fokus</strong>
-          <span>${round.focus}</span>
+          <strong>Was gerade passiert</strong>
+          <span>${guide.situation}</span>
         </div>
         <div class="briefing-pod">
-          <strong>Drucklinie</strong>
-          <span>${round.pressure}</span>
+          <strong>Was jetzt entschieden werden muss</strong>
+          <span>${guide.decisionNeed}</span>
         </div>
         <div class="briefing-pod">
-          <strong>Status</strong>
-          <span>${state.statuses.planeStatus}. ${state.statuses.stadiumStatus}.</span>
+          <strong>Streitfrage dieser Runde</strong>
+          <span>${guide.question}</span>
         </div>
         ${resolutionSummary}
+      </div>
+      <div class="briefing-options">
+        <strong>Konkrete Handlungsoptionen in dieser Runde</strong>
+        <div class="briefing-action-grid">
+          ${optionMarkup}
+        </div>
       </div>
     </div>
   `;
@@ -1793,8 +1838,8 @@ function renderDiscussionPanel() {
   discussionPanel.innerHTML = `
     <article class="prompt-card">
       <h3>Welche Situation liegt vor?</h3>
-      <p>${round.summary}</p>
-      <p>${round.focus}</p>
+      <p>${guide.situation}</p>
+      <p>${round.pressure}</p>
     </article>
 
     <div class="question-box">
@@ -1804,6 +1849,7 @@ function renderDiscussionPanel() {
 
     <article class="prompt-card">
       <h3>Was müsst ihr am Ende entscheiden?</h3>
+      <p>${guide.decisionNeed}</p>
       <div class="decision-grid">
         ${ROLE_ORDER.map((roleId) => `
           <article class="decision-card">
