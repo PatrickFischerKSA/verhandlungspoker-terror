@@ -444,6 +444,10 @@ function createEmptyPlayerNames() {
   return Object.fromEntries(ROLE_ORDER.map((roleId) => [roleId, '']));
 }
 
+function createEmptyRoleModes() {
+  return Object.fromEntries(ROLE_ORDER.map((roleId) => [roleId, 'player']));
+}
+
 function normalizeCompanionRoles(input) {
   return Object.fromEntries(
     ROLE_ORDER.map((roleId) => [roleId, false])
@@ -457,7 +461,9 @@ function createInitialState() {
     finished: false,
     restored: false,
     ending: null,
+    setupComplete: false,
     playerNames: createEmptyPlayerNames(),
+    roleModes: createEmptyRoleModes(),
     companionRoles: normalizeCompanionRoles(),
     notesByRound: {},
     selections: {},
@@ -508,9 +514,14 @@ function hydrateState(input) {
     ...initial,
     ...input,
     sessionId: typeof input.sessionId === 'string' ? input.sessionId : initial.sessionId,
+    setupComplete: Boolean(input.setupComplete),
     playerNames: {
       ...initial.playerNames,
       ...((input.playerNames && typeof input.playerNames === 'object') ? input.playerNames : {})
+    },
+    roleModes: {
+      ...initial.roleModes,
+      ...((input.roleModes && typeof input.roleModes === 'object') ? input.roleModes : {})
     },
     companionRoles: normalizeCompanionRoles(input.companionRoles),
     notesByRound: input.notesByRound && typeof input.notesByRound === 'object' ? input.notesByRound : {},
@@ -681,12 +692,42 @@ function setPlayerName(roleId, value) {
   saveState(state);
 }
 
+function setRoleMode(roleId, value) {
+  if (!ROLE_META[roleId]) return;
+  state.roleModes[roleId] = value === 'group' ? 'group' : 'player';
+  saveState(state);
+}
+
 function getPlayerName(roleId) {
   return (state.playerNames[roleId] || '').trim();
 }
 
+function getRoleMode(roleId) {
+  return state.roleModes[roleId] === 'group' ? 'group' : 'player';
+}
+
+function getRolePlayerLabel(roleId) {
+  return getRoleMode(roleId) === 'group'
+    ? 'gemeinsam in der Gruppe'
+    : getPlayerName(roleId) || 'Name fehlt noch';
+}
+
 function getMissingPlayerNameRoleIds() {
-  return ROLE_ORDER.filter((roleId) => !getPlayerName(roleId));
+  return ROLE_ORDER.filter((roleId) => getRoleMode(roleId) === 'player' && !getPlayerName(roleId));
+}
+
+function canStartGame() {
+  return getMissingPlayerNameRoleIds().length === 0;
+}
+
+function startGame() {
+  if (!canStartGame()) {
+    render();
+    return;
+  }
+  state.setupComplete = true;
+  saveState(state);
+  render();
 }
 
 function getMissingRoleIds() {
@@ -1367,10 +1408,8 @@ function resetState() {
 
 function selectCard(roleId, cardId) {
   if (state.finished) return;
-  const missingNames = getMissingPlayerNameRoleIds();
-  if (missingNames.length) {
-    const names = missingNames.map((item) => ROLE_META[item].short).join(', ');
-    roundFeedback.textContent = `Tragt zuerst alle sechs Namen ein. Es fehlen noch Namen bei: ${names}.`;
+  if (!state.setupComplete) {
+    roundFeedback.textContent = 'Startet die Partie zuerst oben im Unterrichtsstart-Modus.';
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
@@ -1432,10 +1471,8 @@ function applyCompanionAnswer(roleId, rawCode) {
 function resolveRound() {
   if (state.finished) return;
 
-  const missingNames = getMissingPlayerNameRoleIds();
-  if (missingNames.length > 0) {
-    const names = missingNames.map((roleId) => ROLE_META[roleId].short).join(', ');
-    roundFeedback.textContent = `Vor dem Spielstart müssen alle Namen eingetragen sein. Es fehlen noch: ${names}.`;
+  if (!state.setupComplete) {
+    roundFeedback.textContent = 'Die Partie wurde noch nicht gestartet. Richtet zuerst oben die Rollen ein und drückt dann „Spiel starten“.';
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
@@ -1573,24 +1610,42 @@ function renderRoleAssignmentPanel() {
     const role = ROLE_META[roleId];
     const assignment = ROLE_ASSIGNMENTS[roleId];
     const playerName = state.playerNames[roleId] || '';
+    const roleMode = getRoleMode(roleId);
     return `
       <article class="assignment-card">
         <span class="assignment-slot">${assignment.slot}</span>
         <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
         <p>${role.subtitle}</p>
         <p>${assignment.duty}</p>
+        <label class="assignment-label" for="roleMode-${roleId}">Wie wird diese Rolle gespielt?</label>
+        <select
+          id="roleMode-${roleId}"
+          class="assignment-select"
+          data-role-mode="${roleId}"
+        >
+          <option value="player" ${roleMode === 'player' ? 'selected' : ''}>Eine Person spielt diese Rolle</option>
+          <option value="group" ${roleMode === 'group' ? 'selected' : ''}>Diese Rolle wird gemeinsam in der Gruppe gespielt</option>
+        </select>
         <label class="assignment-label" for="playerName-${roleId}">Name der spielenden Person</label>
         <input
           id="playerName-${roleId}"
           class="assignment-input"
           type="text"
           data-player-name="${roleId}"
-          placeholder="${assignment.slot} trägt hier den Namen ein"
+          placeholder="${roleMode === 'group' ? 'Diese Rolle wird gemeinsam gespielt' : `${assignment.slot} trägt hier den Namen ein`}"
+          ${roleMode === 'group' ? 'disabled' : ''}
           value="${escapeHtml(playerName)}"
         />
       </article>
     `;
   }).join('');
+
+  roleAssignmentPanel.querySelectorAll('[data-role-mode]').forEach((input) => {
+    input.addEventListener('change', () => {
+      setRoleMode(input.dataset.roleMode, input.value);
+      render();
+    });
+  });
 
   roleAssignmentPanel.querySelectorAll('[data-player-name]').forEach((input) => {
     input.addEventListener('input', () => {
@@ -1605,11 +1660,47 @@ function renderRoleAssignmentPanel() {
   });
 }
 
+function renderSetupPanel() {
+  const missingPlayerNames = getMissingPlayerNameRoleIds();
+  const ready = canStartGame();
+
+  setupPanel.innerHTML = `
+    <article class="setup-card">
+      <h3>Unterrichtsstart</h3>
+      <p>
+        Richtet zuerst alle Rollen ein. Eine Rolle kann entweder von einer einzelnen Person
+        gespielt oder gemeinsam in der Gruppe übernommen werden. Erst danach startet ihr
+        die Partie bewusst mit dem Button.
+      </p>
+      <div class="setup-summary">
+        ${ROLE_ORDER.map((roleId) => `
+          <span class="setup-pill">
+            ${ROLE_ASSIGNMENTS[roleId].slot}: ${getRolePlayerLabel(roleId)}
+          </span>
+        `).join('')}
+      </div>
+      <p class="small-note">
+        ${ready
+          ? 'Alles ist eingerichtet. Ihr könnt jetzt mit Runde 1 starten.'
+          : `Noch unvollständig: ${missingPlayerNames.map((roleId) => ROLE_ASSIGNMENTS[roleId].slot).join(', ')} brauchen noch einen Namen oder den Modus „gemeinsam in der Gruppe“.`}
+      </p>
+      <div class="button-row">
+        <button id="startGameBtn" class="primary-btn" type="button" ${ready ? '' : 'disabled'}>Spiel starten</button>
+      </div>
+    </article>
+  `;
+
+  const startButton = document.querySelector('#startGameBtn');
+  if (startButton) {
+    startButton.addEventListener('click', startGame);
+  }
+}
+
 function renderCurrentTaskPanel() {
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const namesReady = missingPlayerNames.length === 0;
   const missingRoles = getMissingRoleIds();
-  const readyToResolve = namesReady && missingRoles.length === 0;
+  const readyToResolve = state.setupComplete && missingRoles.length === 0;
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const nextRolesText = missingRoles.length
@@ -1619,39 +1710,41 @@ function renderCurrentTaskPanel() {
 
   const steps = [
     {
-      label: 'Namen eintragen',
-      detail: namesReady
-        ? 'Alle sechs Rollen sind einer spielenden Person zugeordnet.'
-        : `Bevor es losgeht, müssen diese Rollen noch einen Namen bekommen: ${missingPlayerText}.`,
-      status: namesReady ? 'done' : 'active'
+      label: 'Startmodus abschließen',
+      detail: state.setupComplete
+        ? 'Die Rollen sind eingerichtet und die Partie wurde gestartet.'
+        : namesReady
+        ? 'Alle Rollen sind eingerichtet. Drückt oben jetzt „Spiel starten“.'
+        : `Richtet erst alle Rollen ein. Es fehlen noch Namen bei: ${missingPlayerText}. Rollen können alternativ auf „gemeinsam in der Gruppe“ gestellt werden.`,
+      status: state.setupComplete ? 'done' : 'active'
     },
     {
       label: 'Lage lesen',
       detail: 'Lest zuerst oben „Lageüberblick“ und „Lage lesen“, damit alle dieselbe Ausgangslage im Blick haben.',
-      status: namesReady ? 'done' : 'pending'
+      status: state.setupComplete ? 'done' : 'pending'
     },
     {
       label: 'Diskutieren',
       detail: 'Beantwortet gemeinsam die Leitfrage dieser Runde und notiert eure Begründung direkt im Notizfeld darunter.',
-      status: namesReady ? 'active' : 'pending'
+      status: state.setupComplete ? 'active' : 'pending'
     },
     {
       label: 'Karten wählen',
-      detail: !namesReady
-        ? 'Die Kartenwahl bleibt gesperrt, bis alle sechs Namen eingetragen sind.'
+      detail: !state.setupComplete
+        ? 'Die Kartenwahl bleibt gesperrt, bis die Partie oben im Unterrichtsstart-Modus gestartet wurde.'
         : missingRoles.length
         ? `Es fehlen noch Karten für: ${nextRolesText}. Klickt in jeder offenen Rolle genau eine Karte an.`
         : 'Alle sechs Rollen sind gewählt. Die Runde ist bereit für den nächsten Schritt.',
-      status: !namesReady ? 'pending' : readyToResolve ? 'done' : 'active'
+      status: !state.setupComplete ? 'pending' : readyToResolve ? 'done' : 'active'
     },
     {
       label: 'Button drücken',
-      detail: !namesReady
-        ? 'Auch die Auswertung bleibt gesperrt, bis alle Namen eingetragen sind.'
+      detail: !state.setupComplete
+        ? 'Auch die Auswertung bleibt gesperrt, bis die Partie gestartet wurde.'
         : readyToResolve
         ? 'Drückt jetzt „6. Runde auswerten“. Lest danach unten Protokoll, Matrix und Meta-System.'
         : 'Diesen Button drückt ihr erst, wenn wirklich alle Rollen eine Karte haben.',
-      status: !namesReady ? 'pending' : readyToResolve ? 'active' : 'pending'
+      status: !state.setupComplete ? 'pending' : readyToResolve ? 'active' : 'pending'
     }
   ];
 
@@ -1666,8 +1759,10 @@ function renderCurrentTaskPanel() {
       </div>
     </article>
     <p class="task-intro">
-      Nächste Aktion in Runde ${state.roundIndex + 1}: ${!namesReady
-        ? `Tragt zuerst die fehlenden Namen ein: ${missingPlayerText}.`
+      Nächste Aktion in Runde ${state.roundIndex + 1}: ${!state.setupComplete
+        ? namesReady
+          ? 'Die Rollen sind eingerichtet. Drückt jetzt oben „Spiel starten“.'
+          : `Richtet zuerst die fehlenden Rollen ein: ${missingPlayerText}.`
         : readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
         : `Diskutiert kurz und wählt danach die fehlenden Karten für ${nextRolesText}.`}
@@ -1712,7 +1807,7 @@ function renderDiscussionPanel() {
         ${ROLE_ORDER.map((roleId) => `
           <article class="decision-card">
             <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label}</strong>
-            <span>${getPlayerName(roleId) || 'Noch kein Name eingetragen'}</span>
+            <span>${getRolePlayerLabel(roleId)}</span>
             <span>Diese Person entscheidet gleich, welche Karte ihre Rolle in dieser Runde legt.</span>
           </article>
         `).join('')}
@@ -1756,7 +1851,7 @@ function renderSelectionSummary() {
 
     return `
       <span class="selection-chip ${selectedCard ? 'done' : 'pending'} ${!selectedCard ? 'desktop-only' : ''}">
-        ${role.short} · ${playerName || 'kein Name'} · ${selectedCard ? selectedCard.title : 'noch keine Karte gewählt'}
+        ${role.short} · ${getRolePlayerLabel(roleId)} · ${selectedCard ? selectedCard.title : 'noch keine Karte gewählt'}
       </span>
     `;
   }).join('');
@@ -1782,7 +1877,7 @@ function renderRoles() {
               <p class="mini-label">${assignment.slot}</p>
               <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
               <p>${role.subtitle}</p>
-              <p class="small-note">${playerName || 'Name fehlt noch'}</p>
+              <p class="small-note">${getRolePlayerLabel(roleId)}</p>
             </div>
             <div class="role-scoreline">
               <span class="score-badge">aktiv ${row.active}</span>
@@ -1831,7 +1926,7 @@ function renderRoles() {
             <p class="mini-label">${assignment.slot}</p>
             <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
             <p>${role.subtitle}</p>
-            <p class="small-note">${playerName || 'Name fehlt noch'}</p>
+            <p class="small-note">${getRolePlayerLabel(roleId)}</p>
           </div>
           <div class="role-scoreline">
             <span class="score-badge">aktiv ${row.active}</span>
@@ -2209,6 +2304,7 @@ function render() {
   updateStatuses(state);
   renderRestoreBanner();
   renderRoleAssignmentPanel();
+  renderSetupPanel();
   renderStatusStrip();
   renderBriefing();
   renderCurrentTaskPanel();
@@ -2225,13 +2321,16 @@ function render() {
   renderEndScreen();
 
   const missingPlayerNames = getMissingPlayerNameRoleIds();
-  resolveBtn.disabled = state.finished || missingPlayerNames.length > 0;
+  gameSection.classList.toggle('hidden', !state.setupComplete);
+  resolveBtn.disabled = state.finished || !state.setupComplete;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
     roundFeedback.className = 'round-feedback tone-neutral';
-  } else if (missingPlayerNames.length) {
+  } else if (!state.setupComplete) {
     const names = missingPlayerNames.map((roleId) => `${ROLE_ASSIGNMENTS[roleId].slot} / ${ROLE_META[roleId].short}`).join(', ');
-    roundFeedback.textContent = `Bevor gespielt wird, müssen oben alle sechs Namen eingetragen sein. Es fehlen noch: ${names}.`;
+    roundFeedback.textContent = missingPlayerNames.length
+      ? `Unterrichtsstart noch nicht abgeschlossen. Diese Rollen brauchen noch einen Namen oder den Modus „gemeinsam in der Gruppe“: ${names}.`
+      : 'Unterrichtsstart bereit. Drückt oben „Spiel starten“, um Runde 1 freizuschalten.';
     roundFeedback.className = 'round-feedback tone-danger';
   } else {
     const missingRoles = getMissingRoleIds();
@@ -2253,6 +2352,8 @@ const phoneStatusPanel = document.querySelector('#phoneStatusPanel');
 const phoneRolePanel = document.querySelector('#phoneRolePanel');
 const phoneActionPanel = document.querySelector('#phoneActionPanel');
 const roleAssignmentPanel = document.querySelector('#roleAssignmentPanel');
+const setupPanel = document.querySelector('#setupPanel');
+const gameSection = document.querySelector('#gameSection');
 const statusStrip = document.querySelector('#statusStrip');
 const briefingCard = document.querySelector('#briefingCard');
 const currentTaskPanel = document.querySelector('#currentTaskPanel');
@@ -2285,7 +2386,7 @@ updateStatuses(state);
 
 newGameBtn.addEventListener('click', () => {
   state = createInitialState();
-  roundFeedback.textContent = 'Neue Desktop-Partie gestartet. Beginnt oben bei „1. Lageüberblick“ und folgt dann den Schritten 2 bis 6.';
+  roundFeedback.textContent = 'Neue Partie vorbereitet. Richtet jetzt oben im Unterrichtsstart-Modus die Rollen ein und drückt danach „Spiel starten“.';
   roundFeedback.className = 'round-feedback tone-safe';
   saveState(state);
   render();
