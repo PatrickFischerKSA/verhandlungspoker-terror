@@ -176,6 +176,70 @@ const EMERGENCY_TRIGGER_MEASURE_IDS = new Set([
   'r10-freigabe-erzwingen'
 ]);
 
+const COVER_SIGNAL_CARD_IDS = new Set([
+  'emergency-review',
+  'exceptional-release',
+  'request-release',
+  'overlegal-necessity'
+]);
+
+const EXTERNAL_DECISION_TEMPLATES = {
+  court: [
+    {
+      id: 'court-human-dignity-veto',
+      institution: 'Bundesverfassungsgericht',
+      title: 'Veto-Entscheid zur Menschenwürde',
+      summary: 'Das Gericht erinnert daran, dass unschuldige Menschen an Bord nicht gegen andere Leben aufgerechnet werden dürfen.',
+      ruleText: 'Wenn eure Runde jetzt auf Ausnahmefreigabe oder Abschuss hinausläuft, blockiert dieses Veto die Notstandsklausel in dieser Runde.',
+      effectType: 'block_exception_clause'
+    },
+    {
+      id: 'court-defense-gap',
+      institution: 'Bundesverfassungsgericht',
+      title: 'Hinweis zur offenen Verteidigungsfallfrage',
+      summary: 'Das Gericht hat die Frage des äußersten Verteidigungsfalls nicht vollständig geklärt. Ein enger argumentativer Spalt bleibt offen.',
+      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe hinausläuft, steigt die Chance leicht, dass die politische Notstandsklausel greift.',
+      effectType: 'boost_exception_clause',
+      chanceModifier: 0.15
+    },
+    {
+      id: 'court-state-restraint',
+      institution: 'Bundesverfassungsgericht',
+      title: 'Mahnung staatlicher Selbstbegrenzung',
+      summary: 'Das Gericht mahnt, dass gerade in der Krise die staatliche Selbstbegrenzung sichtbar bleiben muss.',
+      ruleText: 'Wenn ihr auf eine Ausnahme setzt, braucht ihr in dieser Runde ausdrücklich politische Deckung. Sonst ist der Weg blockiert.',
+      effectType: 'require_cover_for_exception'
+    }
+  ],
+  minister: [
+    {
+      id: 'minister-population-priority',
+      institution: 'Verteidigungsminister',
+      title: 'Weisung: Schutz der Bevölkerung hat Vorrang',
+      summary: 'Der Verteidigungsminister drängt auf maximale Handlungsfähigkeit zum Schutz des Stadions.',
+      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe hinausläuft, steigt die Chance, dass die Notstandsklausel politisch wirksam wird.',
+      effectType: 'boost_exception_clause',
+      chanceModifier: 0.2
+    },
+    {
+      id: 'minister-no-private-shot',
+      institution: 'Verteidigungsminister',
+      title: 'Weisung: Kein Alleingang im Cockpit',
+      summary: 'Der Minister verlangt, dass kein Pilot die äußerste Gewaltentscheidung ohne erkennbare politische Deckung allein tragen soll.',
+      ruleText: 'Wenn eure Runde auf Ausnahmefreigabe oder Abschuss hinausläuft, braucht ihr in dieser Runde sichtbar politische Deckung. Sonst blockiert diese Weisung den Weg.',
+      effectType: 'require_cover_for_exception'
+    },
+    {
+      id: 'minister-written-chain',
+      institution: 'Verteidigungsminister',
+      title: 'Weisung: Klare Befehlskette vor Extremschritt',
+      summary: 'Der Minister verlangt, dass ein äußerster Eingriff nur mit klarer Befehls- und Freigabelinie weiterverfolgt werden darf.',
+      ruleText: 'Wenn eure Runde auf eine Ausnahme zusteuert, braucht ihr eine erkennbare Freigabelogik. Sonst stoppt diese Weisung den Weg.',
+      effectType: 'require_cover_for_exception'
+    }
+  ]
+};
+
 const ROLE_META = {
   koch: {
     label: 'Lars Koch',
@@ -1443,6 +1507,10 @@ function createSessionId() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
+function chooseRandom(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 function createEmptyPlayerNames() {
   return Object.fromEntries(ROLE_ORDER.map((roleId) => [roleId, '']));
 }
@@ -1474,6 +1542,7 @@ function createInitialState() {
     measuresByRound: {},
     vetoesByRound: {},
     emergencyClauseChecksByRound: {},
+    externalDecisionsByRound: {},
     selections: {},
     lastResolution: [],
     resources: {
@@ -1540,6 +1609,9 @@ function hydrateState(input) {
     vetoesByRound: input.vetoesByRound && typeof input.vetoesByRound === 'object' ? input.vetoesByRound : {},
     emergencyClauseChecksByRound: input.emergencyClauseChecksByRound && typeof input.emergencyClauseChecksByRound === 'object'
       ? input.emergencyClauseChecksByRound
+      : {},
+    externalDecisionsByRound: input.externalDecisionsByRound && typeof input.externalDecisionsByRound === 'object'
+      ? input.externalDecisionsByRound
       : {},
     selections: input.selections && typeof input.selections === 'object' ? input.selections : {},
     lastResolution: Array.isArray(input.lastResolution) ? input.lastResolution : [],
@@ -1612,6 +1684,7 @@ function buildCompanionInvite(roleId, phoneMode = '1') {
     pl: getRolePlayerLabel(roleId),
     sm: getSelectedSharedMeasureId(),
     pc: state.politicalClimateId,
+    ed: ensureRoundExternalDecision(),
     vw: ROLE_VOTE_WEIGHTS[roleId].weight,
     vr: ROLE_VOTE_WEIGHTS[roleId].reason,
     rs: RESOURCE_KEYS.map((key) => state.resources[key]),
@@ -1642,6 +1715,7 @@ function buildCompanionSnapshot(invite) {
   snapshot.phonePlayerLabel = invite.pl || '';
   snapshot.selectedMeasureId = invite.sm || '';
   snapshot.politicalClimateId = normalizePoliticalClimateId(invite.pc || snapshot.politicalClimateId);
+  snapshot.currentExternalDecision = invite.ed || null;
   snapshot.phoneVoteWeight = typeof invite.vw === 'number' ? invite.vw : 1;
   snapshot.phoneVoteWeightReason = invite.vr || '';
   updateStatuses(snapshot);
@@ -1807,6 +1881,10 @@ function getRoundEmergencyKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
 
+function getRoundExternalDecisionKey(roundIndex = state.roundIndex) {
+  return String(roundIndex);
+}
+
 function ensureRoundVotes(roundIndex = state.roundIndex) {
   const key = getRoundVoteKey(roundIndex);
   if (!state.votesByRound[key] || typeof state.votesByRound[key] !== 'object') {
@@ -1942,6 +2020,50 @@ function getSelectedSharedMeasure(roundIndex = state.roundIndex) {
   return getRoundSharedMeasures(roundIndex).find((measure) => measure.id === selectedId) || null;
 }
 
+function getRoundExternalDecision(roundIndex = state.roundIndex, inputState = state) {
+  const key = getRoundExternalDecisionKey(roundIndex);
+  if (inputState?.externalDecisionsByRound && Object.prototype.hasOwnProperty.call(inputState.externalDecisionsByRound, key)) {
+    return inputState.externalDecisionsByRound[key];
+  }
+  if (roundIndex === inputState?.roundIndex && Object.prototype.hasOwnProperty.call(inputState || {}, 'currentExternalDecision')) {
+    return inputState.currentExternalDecision;
+  }
+  return null;
+}
+
+function ensureRoundExternalDecision(roundIndex = state.roundIndex) {
+  const key = getRoundExternalDecisionKey(roundIndex);
+  if (Object.prototype.hasOwnProperty.call(state.externalDecisionsByRound, key)) {
+    return state.externalDecisionsByRound[key];
+  }
+
+  if (roundIndex < 2 || Math.random() < 0.4) {
+    state.externalDecisionsByRound[key] = null;
+    return null;
+  }
+
+  const politicalClimate = getPoliticalClimate();
+  const institutionKey = politicalClimate.recognizesEmergency
+    ? (Math.random() < 0.58 ? 'minister' : 'court')
+    : (Math.random() < 0.65 ? 'court' : 'minister');
+  const template = chooseRandom(EXTERNAL_DECISION_TEMPLATES[institutionKey]);
+  const surface = Math.random() < 0.34 ? 'both' : 'desktop';
+
+  const decision = {
+    ...template,
+    surface
+  };
+
+  state.externalDecisionsByRound[key] = decision;
+  return decision;
+}
+
+function shouldShowExternalDecision(decision, surface = 'desktop') {
+  if (!decision) return false;
+  if (surface === 'desktop') return true;
+  return decision.surface === 'both';
+}
+
 function getEmergencyClauseCheck(roundIndex = state.roundIndex) {
   return state.emergencyClauseChecksByRound?.[getRoundEmergencyKey(roundIndex)] || null;
 }
@@ -1951,6 +2073,76 @@ function shouldTriggerEmergencyClause(roundIndex = state.roundIndex, selections 
   const cardTriggered = ROLE_ORDER.some((roleId) => EMERGENCY_TRIGGER_CARD_IDS.has(selections[roleId]));
   const measureTriggered = EMERGENCY_TRIGGER_MEASURE_IDS.has(selectedMeasureId);
   return roundIndex >= 5 && (cardTriggered || measureTriggered);
+}
+
+function hasVisiblePoliticalCover(roundIndex = state.roundIndex, selections = state.selections) {
+  const measureId = getSelectedSharedMeasureId(roundIndex);
+  const cardSignal = ROLE_ORDER.some((roleId) => COVER_SIGNAL_CARD_IDS.has(selections[roleId]));
+  const measureSignal = EMERGENCY_TRIGGER_MEASURE_IDS.has(measureId);
+  return cardSignal || measureSignal;
+}
+
+function getRoundExternalDecisionImpact(roundIndex = state.roundIndex, inputState = state) {
+  const decision = getRoundExternalDecision(roundIndex, inputState);
+  const exceptionPath = shouldTriggerEmergencyClause(roundIndex, inputState.selections || {});
+  const politicalCover = hasVisiblePoliticalCover(roundIndex, inputState.selections || {});
+
+  if (!decision) {
+    return {
+      event: null,
+      exceptionPath,
+      allowed: true,
+      chanceModifier: 0,
+      blockingReason: '',
+      conditionText: ''
+    };
+  }
+
+  if (!exceptionPath) {
+    return {
+      event: decision,
+      exceptionPath: false,
+      allowed: true,
+      chanceModifier: 0,
+      blockingReason: '',
+      conditionText: ''
+    };
+  }
+
+  if (decision.effectType === 'block_exception_clause') {
+    return {
+      event: decision,
+      exceptionPath: true,
+      allowed: false,
+      chanceModifier: 0,
+      blockingReason: `${decision.institution}: ${decision.title}. ${decision.ruleText}`,
+      conditionText: ''
+    };
+  }
+
+  if (decision.effectType === 'require_cover_for_exception' && !politicalCover) {
+    return {
+      event: decision,
+      exceptionPath: true,
+      allowed: false,
+      chanceModifier: 0,
+      blockingReason: `${decision.institution}: ${decision.title}. ${decision.ruleText}`,
+      conditionText: 'Für diesen Ausnahmeweg braucht ihr zuerst sichtbar politische Deckung oder eine klare Freigabelinie.'
+    };
+  }
+
+  return {
+    event: decision,
+    exceptionPath: true,
+    allowed: true,
+    chanceModifier: decision.effectType === 'boost_exception_clause' ? (decision.chanceModifier || 0) : 0,
+    blockingReason: '',
+    conditionText: decision.effectType === 'require_cover_for_exception'
+      ? 'Die nötige politische Deckung ist in dieser Runde sichtbar vorhanden.'
+      : decision.effectType === 'boost_exception_clause'
+      ? `${decision.institution} verschiebt die politische Ausnahmechance dieser Runde.`
+      : ''
+  };
 }
 
 function hasActivatedEmergencyClause(inputState = state) {
@@ -1966,12 +2158,14 @@ function resolveEmergencyClauseForRound(roundIndex = state.roundIndex) {
   if (existing) return existing;
 
   const climate = getPoliticalClimate();
+  const externalImpact = getRoundExternalDecisionImpact(roundIndex);
   let roll = null;
   let activated = false;
+  const threshold = clamp(climate.activationChance + externalImpact.chanceModifier, 0, 0.95);
 
   if (climate.recognizesEmergency) {
     roll = Math.random();
-    activated = roll < climate.activationChance;
+    activated = roll < threshold;
   }
 
   const result = {
@@ -1979,7 +2173,8 @@ function resolveEmergencyClauseForRound(roundIndex = state.roundIndex) {
     climateId: climate.id,
     activated,
     roll,
-    threshold: climate.activationChance
+    threshold,
+    externalDecisionId: externalImpact.event?.id || ''
   };
 
   state.emergencyClauseChecksByRound[getRoundEmergencyKey(roundIndex)] = result;
@@ -3077,8 +3272,18 @@ function resolveRound() {
     return;
   }
 
+  const externalImpact = getRoundExternalDecisionImpact();
+  if (!externalImpact.allowed) {
+    roundFeedback.textContent = `Ein externer Richtungsentscheid blockiert diese Runde: ${externalImpact.blockingReason}`;
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
+
   const resolutionLines = [];
   const emergencyClauseResult = resolveEmergencyClauseForRound();
+  if (externalImpact.event && externalImpact.exceptionPath) {
+    resolutionLines.push(`${externalImpact.event.institution}: ${externalImpact.event.title}`);
+  }
 
   selectedMeasure.effect(state);
   resolutionLines.push(`Gemeinsamer Krisenbeschluss: ${selectedMeasure.title}`);
@@ -3207,6 +3412,8 @@ function renderBriefing() {
   const facts = getRoundFacts();
   const politicalClimate = getPoliticalClimate();
   const emergencyCheck = getEmergencyClauseCheck();
+  const externalDecision = ensureRoundExternalDecision();
+  const externalImpact = getRoundExternalDecisionImpact();
   const resolutionSummary = state.lastResolution.length
     ? `<div class="briefing-pod"><strong>Was in der letzten Runde entschieden wurde</strong><span>${state.lastResolution.join(' | ')}</span></div>`
     : '';
@@ -3272,6 +3479,22 @@ function renderBriefing() {
             ? `Wenn eure Gruppe später wirklich auf Ausnahmefreigabe oder Abschuss zusteuert, prüft die App einmal per Zufall, ob diese Regierung die Klausel in genau dieser Runde politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
             : 'Auch wenn einzelne Rollen später auf Ausnahmefreigabe drängen, bleibt diese Regierung politisch bei der Verfassungsgrenze.'}</span>
         </div>
+        ${externalDecision ? `
+          <div class="briefing-pod">
+            <strong>Externer Richtungsentscheid dieser Runde</strong>
+            <span>${externalDecision.institution}: ${externalDecision.title}. ${externalDecision.summary} ${externalDecision.ruleText}</span>
+          </div>
+        ` : ''}
+        ${externalDecision ? `
+          <div class="briefing-pod">
+            <strong>Wie wirkt dieses Ereignis im Spiel?</strong>
+            <span>${externalImpact.exceptionPath
+              ? externalImpact.allowed
+                ? (externalImpact.conditionText || 'Dieses Ereignis lenkt die Runde, blockiert sie aber aktuell nicht.')
+                : externalImpact.blockingReason
+              : 'Dieses Ereignis ist für diese Runde gespeichert. Es wird nur dann wirksam, wenn eure Gruppe wirklich in eine Ausnahme- oder Abschusslogik hineinentscheidet.'}</span>
+          </div>
+        ` : ''}
         ${emergencyCheck ? `
           <div class="briefing-pod">
             <strong>Letzter Klausel-Check</strong>
@@ -3430,6 +3653,8 @@ function renderCurrentTaskPanel() {
   const selectedMeasure = getSelectedSharedMeasure();
   const authorityOutcome = getRoundAuthorityOutcome();
   const politicalClimate = getPoliticalClimate();
+  const externalDecision = ensureRoundExternalDecision();
+  const externalImpact = getRoundExternalDecisionImpact();
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
   const missingAuthorityText = authorityOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
   const readyToResolve = state.setupComplete && voteOutcome.complete && selectedMeasure && authorityOutcome.allowed && missingRoles.length === 0;
@@ -3579,6 +3804,13 @@ function renderCurrentTaskPanel() {
         ? `Falls eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Regierung die Klausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
         : 'Falls eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel politisch nicht wirksam.'}
     </p>
+    ${externalDecision ? `
+      <p class="guide-note">
+        Externer Richtungsentscheid dieser Runde: <strong>${externalDecision.institution}</strong> meldet sich mit <strong>${externalDecision.title}</strong>. ${externalDecision.summary} ${externalImpact.exceptionPath && !externalImpact.allowed
+          ? `Wichtig gerade jetzt: ${externalImpact.blockingReason}`
+          : externalDecision.ruleText}
+      </p>
+    ` : ''}
   `;
 }
 
@@ -3851,6 +4083,8 @@ function renderAuthorityPanel() {
   const winner = voteOutcome.winner;
   const politicalClimate = getPoliticalClimate();
   const emergencyCheck = getEmergencyClauseCheck();
+  const externalDecision = ensureRoundExternalDecision();
+  const externalImpact = getRoundExternalDecisionImpact();
 
   if (!voteOutcome.complete || !winner) {
     authorityPanel.innerHTML = `
@@ -3876,6 +4110,20 @@ function renderAuthorityPanel() {
         : 'Diese Regierung lehnt die Notstandsklausel ab. Auch wenn einzelne Rollen später darauf hoffen, wird sie politisch nicht wirksam.'}</p>
       ${emergencyCheck ? `<p class="small-note"><strong>Letzter Klausel-Check:</strong> ${emergencyCheck.activated ? 'Die Klausel wurde politisch wirksam.' : 'Die Klausel wurde politisch nicht wirksam.'}</p>` : ''}
     </article>
+
+    ${externalDecision ? `
+      <article class="prompt-card">
+        <h3>Externer Richtungsentscheid</h3>
+        <p><strong>${externalDecision.institution}:</strong> ${externalDecision.title}</p>
+        <p>${externalDecision.summary}</p>
+        <p><strong>Regelwirkung:</strong> ${externalDecision.ruleText}</p>
+        <p>${externalImpact.exceptionPath
+          ? externalImpact.allowed
+            ? (externalImpact.conditionText || 'Dieses Ereignis lenkt die Runde, blockiert sie aber aktuell nicht.')
+            : externalImpact.blockingReason
+          : 'Dieses Ereignis bleibt zunächst Hintergrundrahmen. Es greift erst, wenn eure Entscheidungen wirklich in eine Ausnahme- oder Abschusslogik hineingehen.'}</p>
+      </article>
+    ` : ''}
 
     <div class="authority-grid">
       ${rules.map((rule) => {
@@ -4180,6 +4428,8 @@ function renderMetaSummary() {
 function renderReferencePanel() {
   const lens = getRoundArgumentLens();
   const courtPrompt = getDramaticCourtPrompt();
+  const externalDecision = ensureRoundExternalDecision();
+  const externalImpact = getRoundExternalDecisionImpact();
   referencePanel.innerHTML = `
     <article class="prompt-card">
       <h3>Trolleyproblem</h3>
@@ -4205,6 +4455,19 @@ function renderReferencePanel() {
       <p>${courtPrompt.classAction}</p>
       <p class="small-note">Vorbereitender Link zur Theoriefrage: <a href="https://www.dropbox.com/scl/fi/0q2zm7rgr03b7l9bz133z/STRASSENBAHN-das-philosophische-Gedankenexperiment-filosofix.mp4?rlkey=oh1qz7n1nhgq0kcuu8jpgipt2&st=ud6qhs4q&dl=0" target="_blank" rel="noreferrer noopener">Straßenbahn - das philosophische Gedankenexperiment</a></p>
     </article>
+    ${externalDecision ? `
+      <article class="prompt-card">
+        <h3>Externer Entscheid Im Verfahren</h3>
+        <p><strong>${externalDecision.institution}</strong> setzt mit <strong>${externalDecision.title}</strong> einen neuen Rahmen.</p>
+        <p>${externalDecision.summary}</p>
+        <p>${externalDecision.ruleText}</p>
+        <p>${externalImpact.exceptionPath
+          ? externalImpact.allowed
+            ? (externalImpact.conditionText || 'Dieses Ereignis wirkt gerade eher richtungsweisend als blockierend.')
+            : externalImpact.blockingReason
+          : 'Noch ist dieses Ereignis nur ein Hintergrundsignal. Es wird erst scharf, wenn eure Gruppe wirklich auf Ausnahme oder Abschuss zusteuert.'}</p>
+      </article>
+    ` : ''}
   `;
 }
 
@@ -4469,6 +4732,7 @@ function renderDetailedPhoneScreen(invite) {
   const selectedCard = availableCards.find((card) => card.id === phoneDraftState.cardId) || null;
   const selectedMeasure = measures.find((measure) => measure.id === snapshot.selectedMeasureId) || null;
   const politicalClimate = getPoliticalClimate(snapshot);
+  const externalDecision = getRoundExternalDecision(snapshot.roundIndex, snapshot);
 
   desktopApp.classList.add('hidden');
   phoneApp.classList.remove('hidden');
@@ -4546,6 +4810,15 @@ function renderDetailedPhoneScreen(invite) {
         `).join('')}
       </div>
     </article>
+
+    ${shouldShowExternalDecision(externalDecision, 'phone') ? `
+      <article class="prompt-card">
+        <h3>Externer Richtungsentscheid</h3>
+        <p><strong>${externalDecision.institution}:</strong> ${externalDecision.title}</p>
+        <p>${externalDecision.summary}</p>
+        <p><strong>Wirkung für diese Runde:</strong> ${externalDecision.ruleText}</p>
+      </article>
+    ` : ''}
 
     <article class="prompt-card">
       <h3>Dein kurzes Votum</h3>
@@ -4761,6 +5034,9 @@ function renderInvalidPhoneScreen() {
 }
 
 function render() {
+  if (state.setupComplete && !state.finished) {
+    ensureRoundExternalDecision();
+  }
   updateStatuses(state);
   renderRestoreBanner();
   renderRoleAssignmentPanel();
@@ -4786,6 +5062,7 @@ function render() {
   const voteOutcome = getRoundVoteOutcome();
   const selectedMeasure = getSelectedSharedMeasure();
   const authorityOutcome = getRoundAuthorityOutcome();
+  const externalImpact = getRoundExternalDecisionImpact();
   document.body.classList.toggle('overlay-active', state.setupComplete && gameOverlayOpen);
   gameOverlay.classList.toggle('hidden', !(state.setupComplete && gameOverlayOpen));
   gameOverlay.setAttribute('aria-hidden', state.setupComplete && gameOverlayOpen ? 'false' : 'true');
@@ -4794,7 +5071,7 @@ function render() {
   resumeGameBtn.textContent = gameOverlayOpen ? 'Spielfenster ist geöffnet' : 'Laufende Partie öffnen';
   navOpenGameBtn.disabled = !state.setupComplete;
   navOpenGameBtn.textContent = state.setupComplete ? 'Direkt zur Partie' : 'Partie noch nicht gestartet';
-  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete || !selectedMeasure || !authorityOutcome.allowed;
+  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete || !selectedMeasure || !authorityOutcome.allowed || !externalImpact.allowed;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
     roundFeedback.className = 'round-feedback tone-neutral';
@@ -4818,6 +5095,9 @@ function render() {
   } else if (!authorityOutcome.allowed) {
     const blockers = authorityOutcome.blockedBy.map((entry) => ROLE_META[entry.roleId].short).join(', ');
     roundFeedback.textContent = `Der Mehrheitsweg ist aktuell blockiert durch: ${blockers}. Ändert jetzt die Abstimmung oder das Veto, bevor ihr zu den Auswahlkarten weitergeht.`;
+    roundFeedback.className = 'round-feedback tone-danger';
+  } else if (externalImpact.exceptionPath && !externalImpact.allowed) {
+    roundFeedback.textContent = `Ein externer Richtungsentscheid stoppt eure aktuelle Linie: ${externalImpact.blockingReason}`;
     roundFeedback.className = 'round-feedback tone-danger';
   } else {
     const missingRoles = getMissingRoleIds();
