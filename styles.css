@@ -501,6 +501,28 @@ h1 span {
   line-height: 1.66;
 }
 
+.briefing-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.briefing-line {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(250, 246, 240, 0.9);
+}
+
+.briefing-line strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.briefing-line span {
+  color: var(--muted);
+  line-height: 1.62;
+}
+
 .question-box {
   padding: 16px;
   border-radius: 18px;

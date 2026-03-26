@@ -445,145 +445,184 @@ const ROUND_GUIDES = [
 
 const ROUND_TEACHER_BRIEFINGS = [
   {
-    happened: 'Ein Passagierflugzeug verlässt den vorgesehenen Kurs. Der Funkkontakt ist brüchig. Noch ist unklar, ob ein Defekt, eine Entführung oder ein Missverständnis vorliegt.',
-    known: 'Sicher ist nur: Der Kurs stimmt nicht, der Funkkontakt ist schlecht und das Flugzeug verhält sich auffällig.',
-    conflict: 'Soll das System zunächst vorsichtig Informationen sammeln oder schon jetzt sichtbar handeln, um Zeit zu gewinnen?',
+    happened: 'LH 2047 verlässt den vorgesehenen Kurs. Im Cockpit meldet sich niemand klar. Für die Menschen im Stadion ist davon noch nichts sichtbar, aber in der Luftüberwachung fällt sofort auf: Dieses Flugzeug passt nicht mehr in den normalen Linienverkehr.',
+    known: 'Sicher ist: Der Kurs stimmt nicht, der Funkkontakt ist brüchig und das Flugzeug reagiert nicht normal auf Standardanfragen. Sicher ist noch nicht, ob ein technischer Defekt, ein Irrtum oder bereits eine Entführung vorliegt.',
+    unclear: 'Unklar ist vor allem, warum die Maschine den Kurs verlässt, wer im Cockpit die Kontrolle hat und ob das Flugzeug überhaupt in Richtung Stadion fliegen soll.',
+    risk: 'Wenn jetzt nur beobachtet wird, geht wertvolle Vorbereitungszeit verloren. Wenn zu früh Alarm ausgelöst wird, kann aber auch unnötige Panik oder Fehlsteuerung entstehen.',
+    conflict: 'Soll das System zuerst möglichst viele Fakten sammeln oder jetzt schon Schutzmaßnahmen vorbereiten, obwohl die Lage noch nicht vollständig bestätigt ist?',
+    decisionTask: 'Ihr müsst entscheiden, ob eure Gruppe in dieser ersten Runde eher auf vorsichtige Klärung, frühe Vorbereitung oder sofortige Alarmierung setzt.',
     paths: [
-      'Erst klären: Luftlage und Funkverkehr möglichst genau sammeln.',
-      'Früh absichern: Stadion und Behörden vorsichtig vorbereiten.',
-      'Früh warnen: Schon jetzt operative Schutzmaßnahmen anstoßen.'
+      'Erst klären: Luftlage, Funkverkehr und Radardaten so genau wie möglich sammeln, bevor nach außen sichtbar gehandelt wird.',
+      'Früh absichern: Stadion, Polizei und Katastrophenschutz still vorbereiten, ohne schon einen offenen Massenalarm auszulösen.',
+      'Früh warnen: Schon jetzt operative Schutzmaßnahmen starten, damit bei einer echten Bedrohung keine Minute verloren geht.'
     ],
     firstSpeaker: 'Führungszentrum spricht zuerst, weil dort als Erstes geklärt werden muss, wie sicher die Luftlage überhaupt ist.'
   },
   {
-    happened: 'Die Alarmrotte ist gestartet. Das Stadion ist voll besetzt. Das Flugzeug bleibt auffällig, aber noch ist nicht jedes Detail gesichert.',
-    known: 'Es gibt ein volles Stadion, ein verdächtiges Flugzeug und erste militärische Reaktion, aber noch kein vollständig klares Gesamtbild.',
-    conflict: 'Soll schon jetzt ein deutliches Schutzsignal gesetzt werden oder ist die Lage noch zu unklar für sichtbare Eingriffe?',
+    happened: 'Die Alarmrotte ist in der Luft. Im Stadion sitzen weiterhin Tausende Menschen dicht beieinander. Das verdächtige Flugzeug bleibt auffällig, aber noch ist die Gefahrenlage nicht in jedem Punkt bewiesen.',
+    known: 'Sicher ist: Das Stadion ist voll, das Flugzeug verhält sich nicht normal und militärische Stellen reagieren bereits. Die Lage ist also ernst genug, um nicht mehr nur intern zuzuschauen.',
+    unclear: 'Unklar ist, ob das Flugzeug wirklich auf das Stadion zuläuft oder ob der Kurs noch geändert werden kann. Auch unklar ist, wie viel Zeit für eine geordnete Räumung überhaupt bleibt.',
+    risk: 'Wenn jetzt niemand das Stadion vorbereitet, könnte später jede Evakuierung zu spät kommen. Wenn man jetzt offen eingreift, kann man jedoch ein ganzes Großereignis ohne sichere Fakten ins Chaos stürzen.',
+    conflict: 'Soll schon jetzt ein deutliches Schutzsignal gesetzt werden oder ist die Lage noch zu unsicher für sichtbare Eingriffe im Stadion?',
+    decisionTask: 'Ihr müsst entscheiden, ob ihr in dieser Runde das Stadion schon vorbereitet, eher intern koordiniert oder die Lage noch zurückhaltend behandelt.',
     paths: [
-      'Koordination stärken: Alle Informationen und Befehle zentral bündeln.',
-      'Schutz vorbereiten: Stadion und Rettungskräfte früh in Bereitschaft setzen.',
-      'Zurückhalten: Noch keine sichtbare Außenreaktion auslösen.'
+      'Koordination stärken: Alle Informationen, Zuständigkeiten und Befehle zentral bündeln, bevor draußen gehandelt wird.',
+      'Schutz vorbereiten: Stadionleitung, Rettungskräfte und Polizei vorsichtig in Bereitschaft versetzen.',
+      'Zurückhalten: Noch keine sichtbare Außenreaktion starten, um Fehlalarm und Verwirrung zu vermeiden.'
     ],
     firstSpeaker: 'Katastrophenschutz spricht zuerst, weil jetzt die Frage drängt, ob das Stadion schon vorbereitet werden muss.'
   },
   {
-    happened: 'Das Flugzeug reagiert nicht auf Standardkommunikation und nicht auf Abdrängmanöver. Damit wirkt die Gefahr deutlich realer als zuvor.',
-    known: 'Es gibt keine brauchbare Antwort aus dem Cockpit. Das Flugzeug bleibt auf problematischem Kurs. Die Bedrohung wächst.',
-    conflict: 'Soll jetzt weiter zuerst Klarheit gewonnen werden oder müssen mehrere Rollen gleichzeitig handeln?',
+    happened: 'Das Flugzeug reagiert weder auf Standardkommunikation noch auf Abdrängmanöver. Was anfangs noch wie eine Störung wirkte, bekommt jetzt den Charakter einer echten Bedrohung.',
+    known: 'Sicher ist: Das Cockpit liefert keine brauchbare Antwort, die Maschine bleibt auf problematischem Kurs und die Luftwaffe kann sie nicht einfach freundlich zurück auf Linie bringen.',
+    unclear: 'Unklar ist weiterhin, ob das Ziel wirklich das Stadion ist, ob im Cockpit noch jemand handlungsfähig ist und ob durch weitere Kontaktversuche noch Zeit gewonnen werden kann.',
+    risk: 'Wenn jetzt weiter nur auf vollständige Sicherheit gewartet wird, verengt sich das Zeitfenster. Wenn mehrere Stellen parallel losschicken, drohen aber widersprüchliche Befehle und unkoordinierte Maßnahmen.',
+    conflict: 'Reicht Beobachtung noch aus oder müssen jetzt mehrere Rollen gleichzeitig handeln, obwohl das Gesamtbild noch Lücken hat?',
+    decisionTask: 'Ihr müsst entscheiden, ob ihr weiter vor allem auf Lageklärung setzt oder ob Führung, Stadionschutz und politische Verantwortung jetzt parallel anlaufen.',
     paths: [
-      'Informationsdruck erhöhen: Lagebild und Befehle weiter verdichten.',
-      'Parallel handeln: Evakuierung und Führung gleichzeitig anschieben.',
-      'Rechtsgrenze betonen: Noch keine operative Eskalation ohne klare Grundlage.'
+      'Informationsdruck erhöhen: Mehr Radardaten, mehr Funkversuche, mehr Klärung, bevor operative Schritte wachsen.',
+      'Parallel handeln: Lageklärung läuft weiter, aber Evakuierung und Führungsentscheidungen beginnen gleichzeitig.',
+      'Rechtsgrenze betonen: Keine operative Eskalation, solange Ziel und Rechtsgrundlage nicht belastbar genug sind.'
     ],
     firstSpeaker: 'Führungszentrum spricht zuerst, weil jetzt entschieden werden muss, ob Beobachtung noch reicht oder sofort parallel gehandelt werden muss.'
   },
   {
-    happened: 'Warnsignale bleiben ohne Wirkung. Das Flugzeug und das Stadion rücken in einen direkten Gefahrenzusammenhang.',
-    known: 'Die Gefahr reagiert nicht auf Warnung. Reine Feststellungen helfen nicht mehr. Verantwortung muss jetzt aktiv übernommen werden.',
-    conflict: 'Wer muss jetzt eine klare Linie formulieren: operative Führung, Politik oder der Pilot selbst?',
+    happened: 'Warnsignale bleiben ohne Wirkung. Die Verbindung zwischen dem entführten Flugzeug und dem voll besetzten Stadion wird jetzt viel direkter gedacht. Der Fall ist nicht mehr nur eine technische Luftlage, sondern eine politische und moralische Krisensituation.',
+    known: 'Sicher ist: Die Gefahr reagiert nicht auf Warnung. Reine Beobachtung löst nichts mehr. Jemand muss jetzt offen sagen, welche Linie gelten soll.',
+    unclear: 'Unklar ist, wer diese Linie verbindlich festlegt. Wartet die operative Ebene auf Politik? Wartet die Politik auf neue Fakten? Oder läuft alles am Ende auf die Eigenverantwortung von Koch zu?',
+    risk: 'Wenn weiter niemand die Richtung vorgibt, wächst eine gefährliche Leerstelle in der Befehlskette. Wenn aber vorschnell eine harte Linie gesetzt wird, kann sie später rechtlich und moralisch nicht mehr eingefangen werden.',
+    conflict: 'Wer muss jetzt sichtbar Verantwortung übernehmen: die operative Führung, das Ministerium oder im Extremfall später der Pilot selbst?',
+    decisionTask: 'Ihr müsst festlegen, von welcher Ebene in dieser Runde eine klare Linie ausgehen soll.',
     paths: [
-      'Politische Linie fordern: Das Ministerium muss sich offen positionieren.',
-      'Operative Linie setzen: Führung ordnet klar an, was jetzt gilt.',
-      'Eigenverantwortung vorbereiten: Koch verlangt letzte Klarheit und handelt gegebenenfalls später selbst.'
+      'Politische Linie fordern: Das Ministerium soll sich offen positionieren und Verantwortung nicht nach unten weiterreichen.',
+      'Operative Linie setzen: Das Führungszentrum legt fest, was jetzt praktisch gilt und welche Schritte laufen.',
+      'Eigenverantwortung vorbereiten: Koch fordert letzte Klarheit ein und bereitet sich innerlich darauf vor, notfalls selbst zu entscheiden.'
     ],
     firstSpeaker: 'Ministerium spricht zuerst, weil jetzt sichtbar wird, ob politische Verantwortung übernommen oder weiter nach unten verschoben wird.'
   },
   {
-    happened: 'Die Drohung gilt als belastbar: Das entführte Flugzeug könnte in ein voll besetztes Stadion gelenkt werden.',
-    known: 'Es geht nicht mehr nur um eine Störung. Zehntausende Menschen im Stadion sind real bedroht.',
-    conflict: 'Gewichtet ihr jetzt stärker den Schutz der Menschen im Stadion oder die rechtliche Grenze gegenüber den Menschen an Bord?',
+    happened: 'Die Drohung gilt nun als belastbar: Das entführte Flugzeug könnte in das voll besetzte Stadion gelenkt werden. Der mögliche Einschlag ist nicht mehr nur ein theoretisches Szenario.',
+    known: 'Sicher ist: Zehntausende Menschen im Stadion sind real bedroht. Gleichzeitig sitzen unschuldige Menschen im Flugzeug, deren Leben nicht einfach als kleinere Zahl behandelt werden darf.',
+    unclear: 'Unklar ist, ob eine vollständige Evakuierung noch rechtzeitig gelingen kann und ob sich der Kurs der Maschine vielleicht doch noch ändert.',
+    risk: 'Wenn ihr jetzt zu langsam räumt, geraten die Menschen im Stadion in höchste Gefahr. Wenn ihr gedanklich schon auf Abschusslogik umstellt, geraten die Menschen an Bord aus dem Blick.',
+    conflict: 'Gewichtet ihr in dieser Runde stärker den Schutz der Menschen im Stadion oder die unantastbare Grenze gegenüber den Menschen an Bord?',
+    decisionTask: 'Ihr müsst entscheiden, ob der Schwerpunkt jetzt auf schneller Räumung, strikter Rechtsgrenze oder weiterem Zeitgewinn liegt.',
     paths: [
-      'Stadion schützen: Evakuierung und Rettung jetzt maximal beschleunigen.',
-      'Rechtsgrenze markieren: Kein Schritt in Richtung Abschusslogik.',
-      'Zeit gewinnen: Noch Sekunden und Informationen herausholen.'
+      'Stadion schützen: Evakuierung, Rettung und Ordnung im Stadion jetzt maximal beschleunigen.',
+      'Rechtsgrenze markieren: Kein Schritt in Richtung Abschusslogik, solange Unschuldige an Bord sind.',
+      'Zeit gewinnen: Noch Informationen, Sekunden und Handlungsspielraum herausholen, bevor ihr euch festlegt.'
     ],
     firstSpeaker: 'Katastrophenschutz spricht zuerst, weil jetzt konkret entschieden werden muss, ob Menschen im Stadion sofort in Bewegung gebracht werden.'
   },
   {
-    happened: 'Die verfassungsrechtliche Grenze steht offen im Raum: Unschuldige Menschen an Bord dürfen nicht einfach gegen Unschuldige im Stadion aufgerechnet werden.',
-    known: 'Rechtlich ist ein Abschuss hoch problematisch, selbst wenn dadurch viele Menschen gerettet werden könnten.',
-    conflict: 'Haltet ihr die Rechtsgrenze strikt ein oder öffnet ihr gedanklich schon jetzt eine Ausnahme?',
+    happened: 'Die verfassungsrechtliche Grenze steht offen im Raum: Unschuldige Menschen an Bord dürfen nicht einfach gegen Unschuldige im Stadion aufgerechnet werden. Aus der Einsatzfrage wird jetzt ausdrücklich eine Grundsatzfrage des Rechtsstaats.',
+    known: 'Sicher ist: Ein Abschuss wäre rechtlich extrem problematisch, selbst wenn dadurch sehr viele Menschen im Stadion gerettet würden. Das Grundgesetz schützt Menschenwürde und Leben nicht nach Kopfzahl.',
+    unclear: 'Unklar ist, ob eure Gruppe diese Grenze absolut versteht oder ob sie im Extremfall mit einem übergesetzlichen Notstand argumentieren will.',
+    risk: 'Wenn ihr die Rechtsgrenze aufweicht, verschiebt ihr den ganzen Fall in ein gefährliches Ausnahme-Denken. Wenn ihr sie streng haltet, nehmt ihr möglicherweise sehr viele Tote im Stadion in Kauf.',
+    conflict: 'Haltet ihr die Rechtsgrenze strikt ein oder öffnet ihr gedanklich schon jetzt eine Ausnahme für den Extremfall?',
+    decisionTask: 'Ihr müsst entscheiden, ob eure Gruppe in dieser Runde klar sagt: Abschuss bleibt tabu, oder ob ihr zumindest über eine Ausnahme nachdenkt.',
     paths: [
-      'Grenze halten: Abschuss bleibt ausgeschlossen.',
-      'Ausnahme prüfen: Notstand wird als Sonderfall mitgedacht.',
-      'Verantwortung verteilen: Rechtliche Last nicht nur bei Koch verorten.'
+      'Grenze halten: Abschuss bleibt ausgeschlossen, auch unter massivem Druck.',
+      'Ausnahme prüfen: Ein übergesetzlicher Notstand wird als mögliche Sonderlage mitgedacht.',
+      'Verantwortung verteilen: Die rechtliche Last wird nicht nur bei Koch gesehen, sondern in der ganzen Befehlskette.'
     ],
     firstSpeaker: 'Ministerium spricht zuerst, weil diese Runde vor allem eine rechtliche und politische Grenzfrage ist.'
   },
   {
-    happened: 'Die Evakuierung beginnt, aber sie läuft langsam. Menschenmengen, Wege und Zeitdruck erschweren jede reale Rettung.',
-    known: 'Das Stadion ist noch nicht leer. Jede verlorene Minute erhöht das Risiko für Menschen am Boden.',
-    conflict: 'Soll jetzt alles auf praktische Räumung gesetzt werden oder müssen Recht und Kommunikation parallel mitlaufen?',
+    happened: 'Die Evakuierung beginnt, aber sie stockt. Menschenmengen bewegen sich langsam, Wege verengen sich, Durchsagen wirken nicht überall gleich. Auf dem Papier klingt Räumung einfach, in der Realität kostet sie kostbare Minuten.',
+    known: 'Sicher ist: Das Stadion ist noch lange nicht leer. Jede verlorene Minute erhöht die Gefahr für Menschen am Boden.',
+    unclear: 'Unklar ist, wie geordnet die Räumung weiterläuft und ob zusätzliche Alarmierung eher hilft oder Panik erzeugt.',
+    risk: 'Wenn ihr jetzt nicht entschlossen räumt, bleiben zu viele Menschen im Gefahrenraum. Wenn ihr zu hart alarmiert, könnte eine Massenpanik selbst Verletzte und Tote verursachen.',
+    conflict: 'Soll jetzt alles auf praktische Räumung gesetzt werden oder müssen Recht, Kommunikation und Führung bewusst parallel mitlaufen?',
+    decisionTask: 'Ihr müsst entscheiden, ob ihr maximale Räumung, kontrollierte Räumung oder eher Schadensbegrenzung priorisiert.',
     paths: [
-      'Maximal räumen: Alles der schnellen Evakuierung unterordnen.',
-      'Kontrolliert räumen: Panik vermeiden und trotzdem zügig handeln.',
-      'Absichern statt räumen: Eher auf Schadensbegrenzung und Ordnung setzen.'
+      'Maximal räumen: Alles der schnellen Evakuierung unterordnen, auch auf Kosten perfekter Ordnung.',
+      'Kontrolliert räumen: Zügig handeln, aber Panik und Gegendrücken bewusst vermeiden.',
+      'Absichern statt räumen: Eher Wege, medizinische Hilfe und Schadensbegrenzung organisieren.'
     ],
     firstSpeaker: 'Katastrophenschutz spricht zuerst, weil hier die praktische Rettung im Stadionzentrum steht.'
   },
   {
-    happened: 'Die Befehlskette wird dichter, aber nicht klarer. Jede Ebene wartet auf Deckung, Freigabe oder ein ausdrückliches Verbot.',
-    known: 'Verantwortung wandert zwischen Politik, Führung und Cockpit hin und her. Gerade das macht die Lage gefährlich.',
-    conflict: 'Ist eine unklare Befehlskette jetzt schon selbst ein Versagen?',
+    happened: 'Die Befehlskette wird dichter, aber nicht klarer. Politik, Führung und Cockpit sprechen über Verantwortung, aber niemand sagt in einem Satz: Das ist jetzt der gültige Kurs.',
+    known: 'Sicher ist: Verantwortung wandert von oben nach unten und wieder zurück. Gerade diese Unklarheit wird selbst zum Problem.',
+    unclear: 'Unklar ist, ob diese Unschärfe aus Vorsicht entsteht oder aus Angst, später verantwortlich gemacht zu werden.',
+    risk: 'Wenn die Befehlskette unklar bleibt, muss am Ende vielleicht die letzte Person im Cockpit die ganze Last tragen. Wenn jetzt jemand eine Linie setzt, übernimmt diese Stelle aber offen Schuld und Verantwortung.',
+    conflict: 'Ist eine unklare Befehlskette inzwischen selbst schon ein Versagen oder noch verständliche Vorsicht?',
+    decisionTask: 'Ihr müsst entscheiden, ob in dieser Runde endlich eine eindeutige Linie gesetzt, Verantwortung dokumentiert oder weiter vorsichtig vertagt wird.',
     paths: [
-      'Klare Befehle: Eine Stelle legt jetzt offen eine Linie fest.',
-      'Dokumentation: Verantwortung wird sauber sichtbar gemacht.',
-      'Deckung verweigern: Rollen bleiben vorsichtig und verschieben weiter.'
+      'Klare Befehle: Eine Stelle sagt jetzt offen, was gilt und wer handelt.',
+      'Dokumentation: Verantwortung wird bewusst schriftlich und argumentativ sichtbar gemacht.',
+      'Deckung verweigern: Rollen bleiben vorsichtig, sichern sich ab und schieben weiter.'
     ],
     firstSpeaker: 'Führungszentrum spricht zuerst, weil hier entschieden werden muss, ob endlich eine eindeutige Linie gesetzt wird.'
   },
   {
-    happened: 'Das Flugzeug nähert sich München. Es bleibt kaum noch Zeit für langsame Abstimmung oder spätere Korrekturen.',
-    known: 'Jede weitere Minute verringert die Möglichkeit, Entscheidungen noch zurückzunehmen.',
-    conflict: 'Ist Warten auf letzte Klarheit jetzt noch verantwortbar oder schon zu spät?',
+    happened: 'Das Flugzeug nähert sich München. Jetzt geht es nicht mehr um einen frühen Krisenbeginn, sondern um die letzten echten Handlungsminuten. Langsame Abstimmung wird selbst zum Risiko.',
+    known: 'Sicher ist: Jede weitere Minute verkleinert die Möglichkeit, Entscheidungen zurückzunehmen oder nachzubessern.',
+    unclear: 'Unklar ist nur noch wenig. Die eigentliche Unsicherheit liegt jetzt weniger in den Fakten als in der Frage, wer die Konsequenz tragen will.',
+    risk: 'Wenn weiter auf letzte Klarheit gewartet wird, kippt die Situation womöglich in totale Handlungsunfähigkeit. Wenn jetzt hart entschieden wird, gibt es kaum noch Korrekturmöglichkeiten.',
+    conflict: 'Ist Warten auf letzte Klarheit jetzt noch verantwortbar oder ist es bereits ein zu spätes Nicht-Handeln?',
+    decisionTask: 'Ihr müsst entscheiden, ob eure Gruppe in dieser Runde noch abstimmt, sofort schützt oder Koch innerlich auf eine Eigenentscheidung zulaufen lässt.',
     paths: [
-      'Letzte Abstimmung: Noch einmal Freigabe oder Verbot einholen.',
-      'Sofort schützen: Alles auf Rettung im Stadion richten.',
-      'Letzte Eigenverantwortung vorbereiten: Koch rückt ins Zentrum.'
+      'Letzte Abstimmung: Noch einmal Freigabe oder Verbot einholen, obwohl Zeit verloren geht.',
+      'Sofort schützen: Alles auf Rettung und Schutz im Stadion richten.',
+      'Letzte Eigenverantwortung vorbereiten: Koch rückt ins Zentrum und denkt die Entscheidung bis zum Ende.'
     ],
     firstSpeaker: 'Koch spricht zuerst, weil die Zeitlage jetzt unmittelbar auf seine spätere Entscheidung zuläuft.'
   },
   {
-    happened: 'Die Zeit läuft fast ab. Freigabe, Verbot und eigenmächtige Entscheidung stehen jetzt frontal gegeneinander.',
-    known: 'Es gibt keine saubere Lösung mehr. Jede Option hat schwere moralische und rechtliche Kosten.',
-    conflict: 'Welche dieser beschädigten Optionen ist noch am ehesten vertretbar?',
+    happened: 'Die Zeit läuft fast ab. Freigabe, Verbot und eigenmächtige Entscheidung stehen jetzt frontal gegeneinander. Niemand kann mehr behaupten, es gebe noch eine saubere oder folgenlose Lösung.',
+    known: 'Sicher ist: Jede Option kostet Menschenleben, Rechtssicherheit oder politische Integrität. Ihr wägt jetzt keine gute gegen eine schlechte Lösung ab, sondern drei beschädigte Wege gegeneinander.',
+    unclear: 'Unklar ist nur noch, welchen Schaden eure Gruppe bereit ist zu tragen und wie sie diesen Schaden später begründen will.',
+    risk: 'Wenn ihr das Verbot haltet, kann das Stadion sterben. Wenn ihr einen Abschuss freigebt oder duldet, überschreitet ihr eine massive Rechtsgrenze. Wenn Koch allein handelt, konzentriert sich die Last auf eine Person.',
+    conflict: 'Welche dieser beschädigten Optionen ist in euren Augen noch am ehesten vertretbar?',
+    decisionTask: 'Ihr müsst entscheiden, ob ihr das Verbot haltet, eine Freigabe sucht oder die Möglichkeit einer Eigenentscheidung offen mitdenkt.',
     paths: [
-      'Verbot halten: Nicht schießen trotz hoher Gefahr.',
-      'Freigabe suchen: Politische oder rechtliche Deckung erzwingen.',
-      'Eigenentscheidung denken: Koch handelt notfalls gegen die Linie.'
+      'Verbot halten: Nicht schießen, obwohl die Gefahr für das Stadion extrem ist.',
+      'Freigabe suchen: Politische oder rechtliche Deckung für einen Eingriff erzwingen.',
+      'Eigenentscheidung denken: Koch handelt notfalls gegen die bestehende Linie.'
     ],
     firstSpeaker: 'Koch spricht zuerst, weil in dieser Runde seine Rolle operativ am stärksten unter Druck steht.'
   },
   {
-    happened: 'Die Räumung stockt weiter, während die verbleibende Zeit zusammenschmilzt. Gute Entscheidungen können jetzt oft nur noch Schaden mindern.',
-    known: 'Nicht mehr alles ist rettbar. Die Frage lautet zunehmend, wo überhaupt noch wirksames Handeln möglich ist.',
-    conflict: 'Wer kann jetzt real noch Leben retten und wer nur noch Folgen begrenzen?',
+    happened: 'Die Räumung stockt weiter, während die verbleibende Zeit zusammenschmilzt. Gute Entscheidungen können jetzt oft nur noch Schaden mindern, nicht mehr die ganze Gefahr auflösen.',
+    known: 'Sicher ist: Nicht mehr alles ist rettbar. Ein Teil der Verantwortung verschiebt sich jetzt von idealer Rettung zu realistischer Schadensbegrenzung.',
+    unclear: 'Unklar ist, wo überhaupt noch wirksames Handeln möglich ist: am Boden, in der Luft oder nur noch in der Vorbereitung auf die Folgen.',
+    risk: 'Wenn alle weiter so tun, als gäbe es noch eine perfekte Lösung, wird echte Schadensbegrenzung zu spät begonnen. Wenn ihr zu früh aufgebt, verschenkt ihr vielleicht doch noch rettbare Leben.',
+    conflict: 'Wer kann jetzt real noch Leben retten und wer kann nur noch Folgen begrenzen?',
+    decisionTask: 'Ihr müsst festlegen, ob ihr auf letzte Rettung, letzte Intervention oder bewusste Schadensbegrenzung setzt.',
     paths: [
       'Letzte Rettung: Noch möglichst viele Menschen aus dem Stadion bringen.',
-      'Letzte Intervention: In der Luft einzugreifen bleibt denkbar.',
-      'Schadensbegrenzung: Medizinische und organisatorische Folgen abfedern.'
+      'Letzte Intervention: In der Luft eingreifen bleibt als Option denkbar.',
+      'Schadensbegrenzung: Medizinische, organisatorische und kommunikative Folgen abfedern.'
     ],
     firstSpeaker: 'Katastrophenschutz spricht zuerst, weil nun die praktische Frage drängt, ob am Boden noch wirksam gerettet werden kann.'
   },
   {
-    happened: 'Die Schlussphase ist erreicht. Wenn jetzt nicht gehandelt wird, wird Nicht-Handeln selbst zur folgenreichen Entscheidung.',
-    known: 'Neutralität gibt es kaum noch. Auch das Unterlassen einer Handlung erzeugt jetzt unmittelbar Verantwortung.',
-    conflict: 'Ist Untätigkeit noch vertretbar oder bereits ein aktiver Beitrag zur Katastrophe?',
+    happened: 'Die Schlussphase ist erreicht. Wenn jetzt nicht gehandelt wird, wird Unterlassen selbst zur aktiven Entscheidung. Genau darin liegt jetzt der moralische Druck dieser Runde.',
+    known: 'Sicher ist: Neutralität gibt es kaum noch. Auch wer nichts tut, trägt Verantwortung für das, was gleich geschieht.',
+    unclear: 'Unklar ist nur noch, ob eure Gruppe Untätigkeit als rechtlich notwendige Grenze oder als vermeidbares Wegsehen versteht.',
+    risk: 'Wenn ihr euch hinter Nicht-Handeln versteckt, kann das zu einer Katastrophe ohne Gegenwehr führen. Wenn ihr jetzt noch aktiv eingreift, müsst ihr diesen Eingriff vollständig verantworten.',
+    conflict: 'Ist Untätigkeit jetzt noch vertretbar oder bereits ein aktiver Beitrag zur Katastrophe?',
+    decisionTask: 'Ihr müsst offen festhalten, ob Nicht-Handeln in dieser Runde für euch Schutz einer Grenze oder schuldhaftes Unterlassen bedeutet.',
     paths: [
-      'Noch eingreifen: Eine letzte aktive Karte legen.',
-      'Nicht eingreifen: Rechtliche oder moralische Grenze halten.',
+      'Noch eingreifen: Eine letzte aktive Karte legen und Verantwortung übernehmen.',
+      'Nicht eingreifen: Eine rechtliche oder moralische Grenze ausdrücklich halten.',
       'Verantwortung benennen: Klar machen, wer welches Risiko bewusst trägt.'
     ],
     firstSpeaker: 'Nelson spricht zuerst, weil jetzt die Frage nach Unterlassen und Verantwortung besonders scharf wird.'
   },
   {
-    happened: 'Die letzte Minute läuft. Vorbereiten ist vorbei. Jetzt legt jede Rolle offen, wofür sie im Extremfall steht.',
-    known: 'Nach dieser Runde geht es nicht mehr um Vorbereitung, sondern um die endgültige Entscheidung und ihre Folgen.',
-    conflict: 'Welche letzte Kartenkombination beschreibt eure Haltung am ehrlichsten?',
+    happened: 'Die letzte Minute läuft. Vorbereiten ist vorbei. Jetzt legt jede Rolle offen, wofür sie im Extremfall steht und welche Form von Verantwortung sie am Ende tragen will.',
+    known: 'Sicher ist: Nach dieser Runde geht es nicht mehr um Vorbereitung, sondern um die endgültige Haltung eurer Gruppe und um deren Folgen im Urteil.',
+    unclear: 'Unklar ist nur noch, welche Begründung eure Gruppe für ihren letzten Schritt tragen kann: Rettung, Rechtsgrenze oder verteilte Verantwortung.',
+    risk: 'Eine letzte Rettungslogik kann rechtlich kollabieren. Eine letzte Rechtslogik kann moralisch unerträglich wirken. Eine verteilte Verantwortung kann ehrlich sein, aber auch wie Ausweichen aussehen.',
+    conflict: 'Welche letzte Kartenkombination beschreibt eure Haltung im Extremfall am ehrlichsten?',
+    decisionTask: 'Ihr müsst eure Schlussposition festlegen: Was soll eure Gruppe in der Endauswertung über Verantwortung, Rettung und Recht sagen?',
     paths: [
-      'Rettung priorisieren: Möglichst viele Menschen im Stadion schützen.',
+      'Rettung priorisieren: Möglichst viele Menschen im Stadion schützen, auch unter schwerem Rechtsdruck.',
       'Rechtsgrenze priorisieren: Kein Schritt über die verfassungsrechtliche Grenze.',
-      'Verantwortung verteilen: Die Last bewusst auf mehrere Rollen sichtbar machen.'
+      'Verantwortung verteilen: Die Last bewusst auf mehrere Rollen und Ebenen sichtbar machen.'
     ],
     firstSpeaker: 'Biegler spricht zuerst, weil jetzt besonders deutlich wird, wie eure Gruppe die Schlussentscheidung später rechtfertigen will.'
   }
@@ -1741,7 +1780,6 @@ function renderStatusStrip() {
 
 function renderBriefing() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
-  const guide = getRoundGuide();
   const teaching = getTeacherBriefing();
   const resolutionSummary = state.lastResolution.length
     ? `<div class="briefing-pod"><strong>Was in der letzten Runde entschieden wurde</strong><span>${state.lastResolution.join(' | ')}</span></div>`
@@ -1763,8 +1801,20 @@ function renderBriefing() {
           <span>${teaching.known}</span>
         </div>
         <div class="briefing-pod">
+          <strong>Was ist noch unklar?</strong>
+          <span>${teaching.unclear}</span>
+        </div>
+        <div class="briefing-pod">
+          <strong>Was droht, wenn ihr jetzt nicht klar handelt?</strong>
+          <span>${teaching.risk}</span>
+        </div>
+        <div class="briefing-pod">
           <strong>Was ist die Streitfrage?</strong>
           <span>${teaching.conflict}</span>
+        </div>
+        <div class="briefing-pod">
+          <strong>Worüber müsst ihr am Ende dieser Runde abstimmen?</strong>
+          <span>${teaching.decisionTask}</span>
         </div>
         <div class="briefing-pod">
           <strong>Welche Rolle muss zuerst sprechen?</strong>
@@ -1987,7 +2037,24 @@ function renderDiscussionPanel() {
     <article class="prompt-card">
       <h3>Was ist passiert?</h3>
       <p>${teaching.happened}</p>
-      <p>${teaching.known}</p>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Was müsst ihr jetzt gemeinsam klären?</h3>
+      <div class="briefing-stack">
+        <div class="briefing-line">
+          <strong>Was wissen wir sicher?</strong>
+          <span>${teaching.known}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Was ist noch unklar?</strong>
+          <span>${teaching.unclear}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Was droht, wenn ihr nicht klar handelt?</strong>
+          <span>${teaching.risk}</span>
+        </div>
+      </div>
     </article>
 
     <div class="question-box">
@@ -1996,15 +2063,27 @@ function renderDiscussionPanel() {
     </div>
 
     <article class="prompt-card">
-      <h3>Was müsst ihr am Ende entscheiden?</h3>
-      <p>${guide.decisionNeed}</p>
+      <h3>Worüber müsst ihr am Ende abstimmen?</h3>
+      <p>${teaching.decisionTask}</p>
       <p><strong>Erste Wortmeldung:</strong> ${teaching.firstSpeaker}</p>
+      <div class="briefing-action-grid">
+        ${teaching.paths.map((path, index) => `
+          <article class="briefing-action-card">
+            <strong>Weg ${index + 1}</strong>
+            <span>${path}</span>
+          </article>
+        `).join('')}
+      </div>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Wer entscheidet gleich konkret etwas?</h3>
       <div class="decision-grid">
         ${ROLE_ORDER.map((roleId) => `
           <article class="decision-card">
             <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label}</strong>
             <span>${getRolePlayerLabel(roleId)}</span>
-            <span>Diese Person entscheidet gleich, welche Karte ihre Rolle in dieser Runde legt.</span>
+            <span>Diese Person oder Gruppe wählt gleich genau eine Karte für diese Rolle.</span>
           </article>
         `).join('')}
       </div>
