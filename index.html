@@ -6,86 +6,38 @@
   <title>Verantwortungspoker: Terror</title>
   <meta
     name="description"
-    content="Ein digitales Verantwortungspoker zu Ferdinand von Schirachs Terror mit wechselnden Kartenhänden, Unterrichtsmodus, Verantwortungsmatrix und jurischer Endauswertung."
+    content="Ein digitales Verantwortungspoker zu Ferdinand von Schirachs Terror mit Rollen, Kartenwahl, Verantwortungsmatrix und jurischer Endauswertung."
   />
-  <meta name="theme-color" content="#1d2d44" />
-  <meta property="og:title" content="Verantwortungspoker: Terror" />
-  <meta property="og:description" content="Rollenbasiertes Webspiel zu Schirachs Terror mit Verantwortungsmatrix, Reflexion und Urteilsauswertung." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/social-preview.svg" />
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <section id="phoneApp" class="phone-app hidden" aria-live="polite">
-    <div class="page-shell phone-shell">
-      <header class="hero phone-hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Handy-Modus</p>
-          <h1>Privater <span>Rollenbildschirm</span></h1>
-          <p class="lead">
-            Diese Ansicht zeigt genau eine Rolle. Die Kopplung läuft ohne Server direkt zwischen Host und Handy.
-          </p>
-        </div>
-        <aside class="hero-note">
-          <p class="note-kicker">Kopplung</p>
-          <p>
-            1. Host-Link auf dem Handy öffnen. 2. Antwortcode kopieren. 3. Antwortcode am Host einfügen.
-          </p>
-        </aside>
+  <section id="phoneApp" class="phone-app hidden">
+    <div class="phone-shell">
+      <header class="phone-hero panel">
+        <p class="eyebrow">Handy-Modus</p>
+        <h1>Rollenansicht</h1>
+        <p id="phoneLead" class="lead">
+          Diese Ansicht zeigt genau eine Rolle fuer genau eine Runde. Es gibt keine
+          Live-Kopplung: Ihr scannt pro Runde den frischen QR-Code, waehlt eine Karte
+          und gebt den Antwortcode auf dem Desktop ein.
+        </p>
       </header>
 
-      <section id="phonePairPanel" class="panel">
-        <div class="panel-head">
-          <h2>Antwortcode</h2>
-          <p>Den erzeugten Code wieder am Host einfügen, damit die direkte Verbindung geöffnet wird.</p>
-        </div>
-        <div id="phonePairStatus" class="round-feedback">Öffne einen gültigen Einladungslink vom Host.</div>
-        <label class="config-label" for="phoneAnswerOutput">Antwortcode</label>
-        <textarea id="phoneAnswerOutput" class="reflection-note" rows="8" readonly></textarea>
-        <div class="button-row">
-          <button id="copyPhoneAnswerBtn" class="primary-btn" type="button">Antwortcode kopieren</button>
-        </div>
-      </section>
-
-      <section id="phoneGamePanel" class="hidden">
-        <section class="panel">
-          <div class="panel-head compact">
-            <h2 id="phoneRoleTitle">Rolle</h2>
-            <p id="phoneRoundTitle">Warte auf die erste Host-Synchronisation.</p>
-          </div>
-          <div id="phoneStatusStrip" class="status-strip phone-status-strip"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head compact">
-            <h2>Deine Karten</h2>
-            <p>Nur diese Rolle sieht diese Hand. Auswahl wird sofort an den Host gesendet.</p>
-          </div>
-          <div id="phoneGoalBox" class="reflection-prompt"></div>
-          <div id="phoneCards" class="roles-grid phone-cards"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head compact">
-            <h2>Öffentliche Lage</h2>
-            <p>Nur gemeinsame Informationen, keine privaten Karten anderer Rollen.</p>
-          </div>
-          <div id="phonePublicState" class="briefing-card"></div>
-        </section>
-      </section>
+      <section id="phoneStatusPanel" class="panel phone-panel"></section>
+      <section id="phoneRolePanel" class="panel phone-panel"></section>
+      <section id="phoneActionPanel" class="panel phone-panel"></section>
     </div>
   </section>
 
-  <div id="hostApp" class="page-shell">
+  <div id="desktopApp" class="page-shell">
     <header class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Digitales Unterrichts- und Diskussionsspiel</p>
         <h1>Verantwortungspoker: <span>Terror</span></h1>
         <p class="lead">
           Ein rundenbasiertes Rollen- und Entscheidungsspiel zu Ferdinand von Schirachs
-          <em>Terror</em>: sechs Rollen, dreizehn Lagefenster, kleine wechselnde Kartenhände,
-          verdeckte Einzelziele, Reflexionsfragen und eine sichtbare Verantwortungsmatrix.
+          <em>Terror</em>: sechs Rollen, dreizehn Lagefenster, keine Zufallswürfel,
+          dafür Konsequenzen, Unterlassungen und eine sichtbare Verantwortungsmatrix.
         </p>
       </div>
 
@@ -94,7 +46,7 @@
         <p>
           Nicht nur Handeln, auch Nicht-Handeln erzeugt Verantwortung. Zwischen
           Menschenwürde, Zeitdruck, Befehlskette und Rettungslogik verschiebt sich
-          die Schuldfrage mit jeder Karte und jedem ausgelassenen Schritt.
+          die Schuldfrage mit jeder Karte.
         </p>
       </aside>
     </header>
@@ -103,7 +55,7 @@
       <div class="top-bar-copy">
         <h2>Lagezentrum</h2>
         <p id="storageHint">
-          Die Partie wird lokal gespeichert. Szenario- und Rollenänderungen gelten ab der nächsten neuen Partie.
+          Die Partie wird lokal gespeichert. Ihr könnt eine Sitzung später wieder aufnehmen.
         </p>
       </div>
       <div class="button-row">
@@ -116,112 +68,115 @@
       Eine gespeicherte Partie wurde geladen.
     </section>
 
-    <section class="panel config-panel">
-      <div class="panel-head">
-        <h2>Konfiguration</h2>
-        <p>Hier steuerst du Szenario, Unterrichtsmodus, aktive Rollen und den Handy-Modus für die nächste Runde oder die nächste neue Partie.</p>
-      </div>
-
-      <div class="config-grid">
-        <div class="config-box">
-          <label class="config-label" for="scenarioSelect">Szenario</label>
-          <select id="scenarioSelect" class="config-select"></select>
-          <p id="scenarioDescription" class="config-help"></p>
-        </div>
-
-        <div class="config-box">
-          <label class="config-label" for="modeSelect">Modus</label>
-          <select id="modeSelect" class="config-select"></select>
-          <p id="modeDescription" class="config-help"></p>
-        </div>
-
-        <div class="config-box">
-          <span class="config-label">Unterrichts-Presets</span>
-          <div id="presetButtons" class="preset-buttons"></div>
-          <p class="config-help">Presets können Rollen vorkonfigurieren. Die Checkboxen darunter bleiben weiterhin anpassbar.</p>
-        </div>
-      </div>
-
-      <div class="config-box">
-        <span class="config-label">Aktive Rollen</span>
-        <div id="roleToggles" class="role-toggles"></div>
-      </div>
-
-      <div class="config-box">
-        <label class="role-toggle active">
-          <input id="companionToggle" type="checkbox" />
-          <span class="role-toggle-dot" style="background:#425f8f"></span>
-          <span>Handy-Modus aktivieren</span>
-        </label>
-        <p class="config-help">
-          Serverloser Companion-Modus: Host-Gerät plus einzelne private Rollenbildschirme auf Handys.
-          Die Verbindung funktioniert per Einladungslink und Antwortcode am besten im selben WLAN.
+    <nav class="panel page-nav" aria-label="Seitennavigation">
+      <div class="panel-head compact">
+        <h2>Schnellnavigation</h2>
+        <p>
+          Diese Version ist fuer den klaren Desktop-Ablauf gebaut: lesen, diskutieren,
+          notieren, Karten waehlen, auswerten.
         </p>
       </div>
-    </section>
-
-    <section id="companionPanel" class="panel hidden">
-      <div class="panel-head">
-        <h2>Handy-Kopplung</h2>
-        <p>Für jede aktive Rolle kann ein privater Handy-Bildschirm gekoppelt werden. Nicht gekoppelte Rollen bleiben lokal auf dem Host spielbar.</p>
+      <div class="page-nav-buttons">
+        <a href="#desktopGuide" class="ghost-link">Desktop erklaert</a>
+        <a href="#discussionGuide" class="ghost-link">Diskussion</a>
+        <a href="#gameSection" class="ghost-link">Direkt zur Partie</a>
+        <a href="#endScreen" class="ghost-link">Zum Ergebnis</a>
       </div>
-      <div id="companionGrid" class="roles-grid companion-grid"></div>
+    </nav>
+
+    <section class="guide-grid">
+      <article id="desktopGuide" class="panel guide-panel">
+        <div class="panel-head">
+          <h2>Desktop-Spiel ohne Handy</h2>
+          <p>Wenn ihr nur einen Bildschirm nutzt, folgt ihr immer demselben klaren Rhythmus.</p>
+        </div>
+        <ol class="guide-steps">
+          <li><strong>Runde lesen:</strong> Schaut zuerst oben auf Lagefenster, Zeit und Statusanzeigen.</li>
+          <li><strong>Pro Rolle eine Karte waehlen:</strong> In jeder Rollenkarte wird genau eine Option angeklickt.</li>
+          <li><strong>Aufloesen:</strong> Mit „Runde auswerten“ wird die feste Reihenfolge abgearbeitet.</li>
+          <li><strong>Folgen lesen:</strong> Matrix, Meta-System und Protokoll zeigen sofort, wie Verantwortung verschoben wurde.</li>
+        </ol>
+        <p class="guide-note">
+          Ohne Handy braucht ihr nichts weiter einzurichten. Die App ist vollstaendig als
+          lokales Desktop-Spiel spielbar.
+        </p>
+      </article>
+
+      <article id="discussionGuide" class="panel guide-panel">
+        <div class="panel-head">
+          <h2>Worueber diskutiert ihr?</h2>
+          <p>Jede Runde stellt dieselbe Grundfrage neu: Wer muss jetzt handeln und wer traegt Verantwortung, wenn nicht gehandelt wird?</p>
+        </div>
+        <ol class="guide-steps">
+          <li><strong>Lage einschätzen:</strong> Ist das groessere Problem gerade Zeitverlust, Rechtsbruch, unklare Information oder Panik?</li>
+          <li><strong>Rollen vergleichen:</strong> Welche Rolle sollte aktiv handeln und welche eher warnen, dokumentieren oder stoppen?</li>
+          <li><strong>Karte begruenden:</strong> Vor jedem Klick sagt die Gruppe kurz, warum genau diese Karte jetzt passt.</li>
+          <li><strong>Notiz festhalten:</strong> Schreibt eure wichtigste Begruendung ins Notizfeld der Runde.</li>
+        </ol>
+        <p class="guide-note">
+          Ihr beantwortet die Diskussionsfrage direkt im Feld „Diskussion und Gruppenantwort“ innerhalb der Runde.
+        </p>
+      </article>
     </section>
 
-    <main class="dashboard">
+    <main id="gameSection" class="dashboard">
       <section class="board-column">
         <section class="panel status-panel">
           <div class="panel-head compact">
-            <h2>Gesamtlage</h2>
-            <p>Der obere Streifen verdichtet Runde, Zeit, Bedrohung, Szenario und jurische Tendenz.</p>
+            <h2>1. Lageüberblick</h2>
+            <p>Hier seht ihr sofort Runde, Zeitdruck, Stadionlage und jurische Tendenz.</p>
           </div>
           <div id="statusStrip" class="status-strip"></div>
         </section>
 
         <section class="panel briefing-panel">
           <div class="panel-head">
-            <h2>Aktuelles Lagefenster</h2>
-            <p>Jede Runde bildet einen neuen Ausschnitt aus der eskalierenden Entscheidungslage ab.</p>
+            <h2>2. Lage lesen</h2>
+            <p>Lest zuerst diesen Abschnitt gemeinsam. Erst danach diskutiert und entscheidet ihr.</p>
           </div>
           <div id="briefingCard" class="briefing-card"></div>
         </section>
 
-        <section class="panel sequence-panel">
-          <div class="panel-head compact">
-            <h2>Auflösung</h2>
-            <p>Fixe Reihenfolge, damit sichtbar bleibt, wie operative und juristische Ebenen ineinandergreifen.</p>
+        <section class="panel workflow-panel">
+          <div class="panel-head">
+            <h2>3. Was ist jetzt zu tun?</h2>
+            <p>Dieser Bereich sagt euch Schritt fuer Schritt, was in der aktuellen Runde als Naechstes passiert.</p>
           </div>
-          <div id="resolutionOrder" class="resolution-order"></div>
-          <div id="roundFeedback" class="round-feedback">
-            Wählt für jede aktive Rolle genau eine Karte und löst dann die Runde aus.
-          </div>
-          <div class="button-row">
-            <button id="resolveBtn" class="primary-btn wide" type="button">Runde auswerten</button>
-          </div>
+          <div id="currentTaskPanel" class="task-panel"></div>
         </section>
 
-        <section class="panel reflection-panel">
-          <div class="panel-head compact">
-            <h2>Reflexion</h2>
-            <p>Die Frage nach jeder Runde macht die Verantwortung nicht nur sichtbar, sondern diskutierbar.</p>
+        <section class="panel discussion-panel">
+          <div class="panel-head">
+            <h2>4. Diskussion und Gruppenantwort</h2>
+            <p>Hier steht die Leitfrage der Runde. Darunter schreibt ihr eure kurze gemeinsame Begruendung auf.</p>
           </div>
-          <div id="reflectionPrompt" class="reflection-prompt"></div>
-          <label class="config-label" for="reflectionNote">Notiz zur Reflexionsfrage</label>
-          <textarea id="reflectionNote" class="reflection-note" rows="4" placeholder="Kurze Unterrichtsnotiz oder Gruppenreaktion festhalten"></textarea>
-          <div class="button-row">
-            <button id="saveReflectionBtn" class="ghost-btn" type="button">Notiz speichern</button>
-          </div>
+          <div id="discussionPanel" class="discussion-panel-body"></div>
         </section>
 
         <section class="panel roles-panel">
           <div class="panel-head">
-            <h2>Rollenkarten</h2>
+            <h2>5. Karten wählen</h2>
             <p>
-              Jede aktive Rolle erhält pro Runde nur eine kleine Hand. Das zwingt zu knapperen,
-              deutlicheren Entscheidungen statt zu vollständiger Wunschlogik.
+              Klickt in jeder Rolle genau eine Karte an. Erst wenn alle sechs Rollen eine Karte
+              haben, ist die Runde bereit fuer die Auswertung.
             </p>
           </div>
           <div id="rolesGrid" class="roles-grid"></div>
+        </section>
+
+        <section class="panel sequence-panel">
+          <div class="panel-head compact">
+            <h2>6. Runde auswerten</h2>
+            <p>Drückt erst jetzt den Button. Danach lest ihr unten Protokoll, Matrix und Meta-System.</p>
+          </div>
+          <div id="resolutionOrder" class="resolution-order"></div>
+          <div id="selectionSummary" class="selection-summary"></div>
+          <div id="roundFeedback" class="round-feedback">
+            Wählt für jede Rolle genau eine Karte und löst dann die Runde aus.
+          </div>
+          <div class="button-row">
+            <button id="resolveBtn" class="primary-btn wide" type="button">6. Runde auswerten</button>
+          </div>
         </section>
       </section>
 
@@ -237,7 +192,7 @@
         <section class="panel matrix-panel">
           <div class="panel-head compact">
             <h2>Verantwortungsmatrix</h2>
-            <p>Die Matrix sammelt Spuren aus Kartenwahl, Unterlassung und Folgenberechnung.</p>
+            <p>Die Matrix sammelt Spuren aus Kartenwahl und Folgenberechnung.</p>
           </div>
           <div id="matrixTable" class="matrix-table"></div>
         </section>
@@ -248,6 +203,18 @@
             <p>Nelson sammelt Anklagepunkte, Biegler Verteidigungspunkte.</p>
           </div>
           <div id="metaSummary" class="meta-summary"></div>
+        </section>
+
+        <section class="panel companion-panel hidden">
+          <div class="panel-head compact">
+            <h2>Optionaler Handy-Modus</h2>
+            <p>
+              Keine Live-Verbindung, keine fragile Kopplung: Pro Runde wird nur ein
+              frischer QR-Code gescannt und danach ein Antwortcode uebernommen.
+            </p>
+          </div>
+          <div id="companionModePicker" class="companion-mode-picker"></div>
+          <div id="companionPanel" class="companion-grid"></div>
         </section>
 
         <section class="panel protocol-panel">
@@ -263,25 +230,13 @@
     <section id="endScreen" class="panel end-screen hidden">
       <div class="panel-head">
         <h2>Einsatzbilanz</h2>
-        <p>Die Runde ist beendet. Jetzt werden Verantwortungsverteilung, Urteil und Argumentlinien lesbar.</p>
+        <p>Die Runde ist beendet. Jetzt wird die Verantwortungsverteilung als Ergebnis lesbar.</p>
       </div>
 
-      <div id="verdictBanner" class="verdict-banner"></div>
       <div id="endingHeadline" class="ending-headline"></div>
       <div id="endingStats" class="ending-stats"></div>
 
       <div class="closing-grid">
-        <article class="closing-card">
-          <p class="mini-label">Verantwortungsdiagramm</p>
-          <div id="responsibilityChart" class="chart-wrap"></div>
-        </article>
-        <article class="closing-card">
-          <p class="mini-label">Verdeckte Ziele</p>
-          <div id="goalSummary" class="goal-summary"></div>
-        </article>
-      </div>
-
-      <div class="argument-grid">
         <article class="closing-card">
           <p class="mini-label">Generierte Anklage</p>
           <div id="indictmentText" class="closing-text"></div>
@@ -291,26 +246,9 @@
           <div id="defenseText" class="closing-text"></div>
         </article>
       </div>
-
-      <div class="argument-grid">
-        <article class="closing-card">
-          <p class="mini-label">Pro-Argumente</p>
-          <ul id="proList" class="argument-list"></ul>
-        </article>
-        <article class="closing-card">
-          <p class="mini-label">Contra-Argumente</p>
-          <ul id="conList" class="argument-list"></ul>
-        </article>
-      </div>
-
-      <div class="button-row export-row">
-        <button id="exportTxtBtn" class="ghost-btn" type="button">Bericht als Text</button>
-        <button id="exportPdfBtn" class="primary-btn" type="button">Bericht als PDF</button>
-      </div>
     </section>
   </div>
 
-  <script src="game-core.js"></script>
   <script src="vendor/qrcode.js"></script>
   <script src="app.js"></script>
 </body>
