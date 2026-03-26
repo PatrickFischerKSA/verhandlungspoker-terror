@@ -99,6 +99,37 @@ const ROLE_VOTE_WEIGHTS = {
 
 const TOTAL_VOTE_WEIGHT = ROLE_ORDER.reduce((sum, roleId) => sum + ROLE_VOTE_WEIGHTS[roleId].weight, 0);
 
+const POLITICAL_CLIMATES = {
+  strict: {
+    id: 'strict',
+    label: 'Verfassungsstrenge Regierung',
+    short: 'Regierung lehnt den übergesetzlichen Notstand ab',
+    note: 'Diese Regierung sagt öffentlich: Auch im Extremfall darf der Staat die Verfassungsgrenze nicht politisch aufweichen.',
+    recognizesEmergency: false,
+    activationChance: 0
+  },
+  emergency: {
+    id: 'emergency',
+    label: 'Sicherheitsorientierte Regierung',
+    short: 'Regierung erkennt den übergesetzlichen Notstand grundsätzlich an',
+    note: 'Diese Regierung sagt öffentlich: Im absoluten Ausnahmefall kann ein übergesetzlicher Notstand politisch mitgedacht werden.',
+    recognizesEmergency: true,
+    activationChance: 0.65
+  }
+};
+
+const EMERGENCY_TRIGGER_CARD_IDS = new Set([
+  'emergency-review',
+  'exceptional-release',
+  'overlegal-necessity',
+  'shoot'
+]);
+
+const EMERGENCY_TRIGGER_MEASURE_IDS = new Set([
+  'r6-notstand-szenario',
+  'r10-freigabe-erzwingen'
+]);
+
 const ROLE_META = {
   koch: {
     label: 'Lars Koch',
@@ -1271,6 +1302,10 @@ function createEmptyMatrix() {
   );
 }
 
+function pickPoliticalClimateId() {
+  return Math.random() < 0.5 ? 'strict' : 'emergency';
+}
+
 function createSessionId() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
@@ -1297,6 +1332,7 @@ function createInitialState() {
     restored: false,
     ending: null,
     setupComplete: false,
+    politicalClimateId: pickPoliticalClimateId(),
     playerNames: createEmptyPlayerNames(),
     roleModes: createEmptyRoleModes(),
     companionRoles: normalizeCompanionRoles(),
@@ -1304,6 +1340,7 @@ function createInitialState() {
     votesByRound: {},
     measuresByRound: {},
     vetoesByRound: {},
+    emergencyClauseChecksByRound: {},
     selections: {},
     lastResolution: [],
     resources: {
@@ -1326,7 +1363,8 @@ function createInitialState() {
       planeStatus: 'Entführt, Ziel noch unscharf',
       rulesStatus: 'Abschuss verfassungsrechtlich blockiert',
       stadiumStatus: 'Arena voll besetzt',
-      communicationStatus: 'Funkkontakt brüchig'
+      communicationStatus: 'Funkkontakt brüchig',
+      governmentStatus: ''
     },
     meta: {
       prosecution: 0,
@@ -1353,6 +1391,7 @@ function hydrateState(input) {
     ...input,
     sessionId: typeof input.sessionId === 'string' ? input.sessionId : initial.sessionId,
     setupComplete: Boolean(input.setupComplete),
+    politicalClimateId: POLITICAL_CLIMATES[input.politicalClimateId] ? input.politicalClimateId : initial.politicalClimateId,
     playerNames: {
       ...initial.playerNames,
       ...((input.playerNames && typeof input.playerNames === 'object') ? input.playerNames : {})
@@ -1366,6 +1405,9 @@ function hydrateState(input) {
     votesByRound: input.votesByRound && typeof input.votesByRound === 'object' ? input.votesByRound : {},
     measuresByRound: input.measuresByRound && typeof input.measuresByRound === 'object' ? input.measuresByRound : {},
     vetoesByRound: input.vetoesByRound && typeof input.vetoesByRound === 'object' ? input.vetoesByRound : {},
+    emergencyClauseChecksByRound: input.emergencyClauseChecksByRound && typeof input.emergencyClauseChecksByRound === 'object'
+      ? input.emergencyClauseChecksByRound
+      : {},
     selections: input.selections && typeof input.selections === 'object' ? input.selections : {},
     lastResolution: Array.isArray(input.lastResolution) ? input.lastResolution : [],
     resources: {
@@ -1436,6 +1478,7 @@ function buildCompanionInvite(roleId, phoneMode = '1') {
     pm: String(phoneMode),
     pl: getRolePlayerLabel(roleId),
     sm: getSelectedSharedMeasureId(),
+    pc: state.politicalClimateId,
     vw: ROLE_VOTE_WEIGHTS[roleId].weight,
     vr: ROLE_VOTE_WEIGHTS[roleId].reason,
     rs: RESOURCE_KEYS.map((key) => state.resources[key]),
@@ -1465,6 +1508,7 @@ function buildCompanionSnapshot(invite) {
   snapshot.phoneMode = invite.pm || '1';
   snapshot.phonePlayerLabel = invite.pl || '';
   snapshot.selectedMeasureId = invite.sm || '';
+  snapshot.politicalClimateId = POLITICAL_CLIMATES[invite.pc] ? invite.pc : snapshot.politicalClimateId;
   snapshot.phoneVoteWeight = typeof invite.vw === 'number' ? invite.vw : 1;
   snapshot.phoneVoteWeightReason = invite.vr || '';
   updateStatuses(snapshot);
@@ -1559,6 +1603,10 @@ function getTeacherBriefing(roundIndex = state.roundIndex) {
   return ROUND_TEACHER_BRIEFINGS[Math.min(roundIndex, ROUND_TEACHER_BRIEFINGS.length - 1)];
 }
 
+function getPoliticalClimate(inputState = state) {
+  return POLITICAL_CLIMATES[inputState.politicalClimateId] || POLITICAL_CLIMATES.strict;
+}
+
 function getRoundFacts(roundIndex = state.roundIndex) {
   return ROUND_CONCRETE_FACTS[Math.min(roundIndex, ROUND_CONCRETE_FACTS.length - 1)];
 }
@@ -1589,6 +1637,10 @@ function getRoundMeasureKey(roundIndex = state.roundIndex) {
 }
 
 function getRoundVetoKey(roundIndex = state.roundIndex) {
+  return String(roundIndex);
+}
+
+function getRoundEmergencyKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
 
@@ -1725,6 +1777,50 @@ function getSelectedSharedMeasureId(roundIndex = state.roundIndex) {
 function getSelectedSharedMeasure(roundIndex = state.roundIndex) {
   const selectedId = getSelectedSharedMeasureId(roundIndex);
   return getRoundSharedMeasures(roundIndex).find((measure) => measure.id === selectedId) || null;
+}
+
+function getEmergencyClauseCheck(roundIndex = state.roundIndex) {
+  return state.emergencyClauseChecksByRound?.[getRoundEmergencyKey(roundIndex)] || null;
+}
+
+function shouldTriggerEmergencyClause(roundIndex = state.roundIndex, selections = state.selections) {
+  const selectedMeasureId = getSelectedSharedMeasureId(roundIndex);
+  const cardTriggered = ROLE_ORDER.some((roleId) => EMERGENCY_TRIGGER_CARD_IDS.has(selections[roleId]));
+  const measureTriggered = EMERGENCY_TRIGGER_MEASURE_IDS.has(selectedMeasureId);
+  return roundIndex >= 5 && (cardTriggered || measureTriggered);
+}
+
+function hasActivatedEmergencyClause(inputState = state) {
+  return Object.values(inputState.emergencyClauseChecksByRound || {}).some((entry) => entry?.activated);
+}
+
+function resolveEmergencyClauseForRound(roundIndex = state.roundIndex) {
+  if (!shouldTriggerEmergencyClause(roundIndex)) {
+    return null;
+  }
+
+  const existing = getEmergencyClauseCheck(roundIndex);
+  if (existing) return existing;
+
+  const climate = getPoliticalClimate();
+  let roll = null;
+  let activated = false;
+
+  if (climate.recognizesEmergency) {
+    roll = Math.random();
+    activated = roll < climate.activationChance;
+  }
+
+  const result = {
+    attempted: true,
+    climateId: climate.id,
+    activated,
+    roll,
+    threshold: climate.activationChance
+  };
+
+  state.emergencyClauseChecksByRound[getRoundEmergencyKey(roundIndex)] = result;
+  return result;
 }
 
 function setSelectedSharedMeasure(measureId) {
@@ -1964,6 +2060,7 @@ function setFlag(state, key, value) {
 }
 
 function updateStatuses(state) {
+  const politicalClimate = getPoliticalClimate(state);
   if (state.flags.shotByKoch) {
     state.statuses.planeStatus = 'Abgeschossen um 20.21 Uhr';
   } else if (state.roundIndex >= 9) {
@@ -1974,7 +2071,9 @@ function updateStatuses(state) {
     state.statuses.planeStatus = 'Entführt, Ziel noch unscharf';
   }
 
-  if (state.flags.ministryRelease) {
+  if (state.flags.ministryRelease && hasActivatedEmergencyClause(state)) {
+    state.statuses.rulesStatus = 'Notstandsklausel politisch aktiviert';
+  } else if (state.flags.ministryRelease) {
     state.statuses.rulesStatus = 'Übergesetzlicher Notstand wird erwogen';
   } else if (state.flags.noFireOrder) {
     state.statuses.rulesStatus = 'Abschuss bleibt untersagt';
@@ -1997,6 +2096,10 @@ function updateStatuses(state) {
   } else {
     state.statuses.communicationStatus = 'Funkkontakt brüchig';
   }
+
+  state.statuses.governmentStatus = politicalClimate.recognizesEmergency
+    ? 'Regierung erkennt Notstandsklausel grundsätzlich an'
+    : 'Regierung lehnt Notstandsklausel ab';
 }
 
 function getVerdictDelta(state) {
@@ -2780,6 +2883,7 @@ function resolveRound() {
   }
 
   const resolutionLines = [];
+  const emergencyClauseResult = resolveEmergencyClauseForRound();
 
   selectedMeasure.effect(state);
   resolutionLines.push(`Gemeinsamer Krisenbeschluss: ${selectedMeasure.title}`);
@@ -2804,6 +2908,29 @@ function resolveRound() {
     if (!card) continue;
     card.effect(state);
     resolutionLines.push(`${ROLE_META[roleId].short}: ${card.title}`);
+  }
+
+  if (emergencyClauseResult) {
+    const climate = POLITICAL_CLIMATES[emergencyClauseResult.climateId] || getPoliticalClimate();
+    if (emergencyClauseResult.activated) {
+      setFlag(state, 'ministryRelease', true);
+      adjustResource(state, 'commandConsensus', 1);
+      resolutionLines.push('Notstandsklausel: politisch wirksam geworden');
+      addLogEntry(
+        state,
+        `Die Regierungslinie lässt den übergesetzlichen Notstand in dieser Runde politisch greifen. Zufallswurf ${Math.round((emergencyClauseResult.roll || 0) * 100)} gegen Schwelle ${Math.round(emergencyClauseResult.threshold * 100)}.`
+      );
+    } else {
+      setFlag(state, 'ministryRelease', false);
+      adjustResource(state, 'legalRisk', 1);
+      resolutionLines.push('Notstandsklausel: politisch nicht wirksam geworden');
+      addLogEntry(
+        state,
+        climate.recognizesEmergency
+          ? `Die Regierung erkennt den übergesetzlichen Notstand zwar grundsätzlich an, aber in dieser Runde greift die Klausel politisch nicht. Zufallswurf ${Math.round((emergencyClauseResult.roll || 0) * 100)} gegen Schwelle ${Math.round(emergencyClauseResult.threshold * 100)}.`
+          : 'Die Regierung lehnt den übergesetzlichen Notstand politisch ab. Deshalb greift die Klausel in dieser Runde nicht.'
+      );
+    }
   }
 
   state.lastResolution = resolutionLines;
@@ -2832,6 +2959,7 @@ function resolveRound() {
 
 function renderStatusStrip() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
+  const politicalClimate = getPoliticalClimate();
   const statusCards = [
     {
       label: 'Runde',
@@ -2852,6 +2980,11 @@ function renderStatusStrip() {
       label: 'Rechtslage',
       value: state.statuses.rulesStatus,
       detail: `${state.resources.legalRisk}/20 Rechtsrisiko`
+    },
+    {
+      label: 'Regierung',
+      value: politicalClimate.recognizesEmergency ? 'Notstand denkbar' : 'Notstand abgelehnt',
+      detail: state.statuses.governmentStatus
     },
     {
       label: 'Urteilstendenz',
@@ -2877,6 +3010,8 @@ function renderBriefing() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const teaching = getTeacherBriefing();
   const facts = getRoundFacts();
+  const politicalClimate = getPoliticalClimate();
+  const emergencyCheck = getEmergencyClauseCheck();
   const resolutionSummary = state.lastResolution.length
     ? `<div class="briefing-pod"><strong>Was in der letzten Runde entschieden wurde</strong><span>${state.lastResolution.join(' | ')}</span></div>`
     : '';
@@ -2924,6 +3059,24 @@ function renderBriefing() {
           <strong>Welche Rolle muss zuerst sprechen?</strong>
           <span>${teaching.firstSpeaker}</span>
         </div>
+        <div class="briefing-pod">
+          <strong>Welche politische Stimmung herrscht im Land?</strong>
+          <span>${politicalClimate.note}</span>
+        </div>
+        <div class="briefing-pod">
+          <strong>Wie läuft die Notstandsklausel in diesem Spiel?</strong>
+          <span>${politicalClimate.recognizesEmergency
+            ? `Diese Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Wenn eure Gruppe später wirklich auf Ausnahmefreigabe oder Abschuss zusteuert, prüft die App einmal per Zufall, ob diese Klausel in genau dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+            : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Wenn eure Gruppe später trotzdem auf Ausnahmefreigabe oder Abschuss zusteuert, greift diese Klausel politisch nicht.'}</span>
+        </div>
+        ${emergencyCheck ? `
+          <div class="briefing-pod">
+            <strong>Letzter Klausel-Check</strong>
+            <span>${emergencyCheck.activated
+              ? 'In dieser Runde ist die Notstandsklausel politisch wirksam geworden.'
+              : 'In dieser Runde ist die Notstandsklausel politisch nicht wirksam geworden.'}</span>
+          </div>
+        ` : ''}
         ${resolutionSummary}
       </div>
       <div class="briefing-options">
@@ -3059,6 +3212,7 @@ function renderCurrentTaskPanel() {
   const voteOutcome = getRoundVoteOutcome();
   const selectedMeasure = getSelectedSharedMeasure();
   const authorityOutcome = getRoundAuthorityOutcome();
+  const politicalClimate = getPoliticalClimate();
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
   const missingAuthorityText = authorityOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
   const readyToResolve = state.setupComplete && voteOutcome.complete && selectedMeasure && authorityOutcome.allowed && missingRoles.length === 0;
@@ -3165,6 +3319,7 @@ function renderCurrentTaskPanel() {
         <span class="scenario-pill">T - ${round.minute} Minuten</span>
         <span class="scenario-pill">${state.statuses.stadiumStatus}</span>
         <span class="scenario-pill">${state.statuses.rulesStatus}</span>
+        <span class="scenario-pill">${politicalClimate.recognizesEmergency ? 'Regierung: Notstand denkbar' : 'Regierung: Notstand abgelehnt'}</span>
       </div>
     </article>
     <p class="task-intro">
@@ -3198,6 +3353,11 @@ function renderCurrentTaskPanel() {
     <p class="guide-note">
       Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Danach wählt die Klasse zusätzlich einen gemeinsamen Krisenbeschluss mit Folgen für die Lage. In Schritt 5 prüfen einzelne Rollen mit Sonderrecht den Mehrheitsweg. Erst wenn der Weg freigegeben ist, geht ihr zu „6. Auswahlkarten pro Rolle anklicken“.
     </p>
+    <p class="guide-note">
+      Politische Zusatzregel dieses Spiels: ${politicalClimate.recognizesEmergency
+        ? `Die aktuelle Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Wenn eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        : 'Die aktuelle Regierung lehnt den übergesetzlichen Notstand ab. Wenn eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel in diesem Spiel nicht politisch wirksam.'}
+    </p>
   `;
 }
 
@@ -3209,6 +3369,7 @@ function renderDiscussionPanel() {
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
   const measures = getRoundSharedMeasures();
   const selectedMeasure = getSelectedSharedMeasure();
+  const politicalClimate = getPoliticalClimate();
 
   discussionPanel.innerHTML = `
     <article class="prompt-card">
@@ -3267,6 +3428,9 @@ function renderDiscussionPanel() {
         `).join('')}
       </div>
       <p class="small-note">Bei Stimmgleichheit entscheidet transparent die Rolle, die in dieser Runde zuerst sprechen muss.</p>
+      <p class="small-note">Politische Zusatzlage: ${politicalClimate.recognizesEmergency
+        ? `Diese Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Wenn eure Entscheidung später wirklich eine Ausnahmefreigabe oder einen Abschuss tragen soll, prüft die App einmal zufällig, ob diese Klausel in dieser Runde politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Wenn eure Entscheidung später auf Ausnahmefreigabe oder Abschuss zielt, scheitert diese politische Klausel.'}</p>
     </article>
 
     <article class="prompt-card">
@@ -3410,6 +3574,8 @@ function renderAuthorityPanel() {
   const authorityOutcome = getRoundAuthorityOutcome();
   const rules = getRoundVetoRules();
   const winner = voteOutcome.winner;
+  const politicalClimate = getPoliticalClimate();
+  const emergencyCheck = getEmergencyClauseCheck();
 
   if (!voteOutcome.complete || !winner) {
     authorityPanel.innerHTML = `
@@ -3428,6 +3594,10 @@ function renderAuthorityPanel() {
       <p><strong>Aktueller Mehrheitsweg:</strong> Weg ${winner.index + 1} - ${winner.path}</p>
       <p class="small-note">Für 15-Jährige ganz einfach gesagt: Das ist ein zweites Schloss nach der Abstimmung. Erst gewinnt ein Weg. Danach sagen die Rollen mit Sonderrecht offen: „Ja, dieser Weg darf weitergehen“, „Ja, aber nur wenn ...“ oder „Nein, so geht es nicht weiter“.</p>
       <p class="small-note"><strong>Freigeben</strong> heißt: Der Weg darf gespielt werden. <strong>Nur unter Bedingung</strong> heißt: Der Weg darf nur weiterlaufen, wenn die Bedingung offen genannt wird. <strong>Blockieren</strong> heißt: Der Weg ist gestoppt, bis die Gruppe die Abstimmung oder das Veto ändert.</p>
+      <p class="small-note">Politische Zusatzregel: ${politicalClimate.recognizesEmergency
+        ? `Wenn eure Entscheidungen in dieser oder einer späteren Runde wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, würfelt die App genau einmal, ob die Regierung diese Notstandsklausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        : 'Diese Regierung lehnt die Notstandsklausel ab. Auch wenn einzelne Rollen später darauf hoffen, wird sie politisch nicht wirksam.'}</p>
+      ${emergencyCheck ? `<p class="small-note"><strong>Letzter Klausel-Check:</strong> ${emergencyCheck.activated ? 'Die Klausel wurde politisch wirksam.' : 'Die Klausel wurde politisch nicht wirksam.'}</p>` : ''}
     </article>
 
     <div class="authority-grid">
@@ -3985,6 +4155,7 @@ function renderDetailedPhoneScreen(invite) {
   const availableCards = getAvailableCards(invite.o, snapshot);
   const selectedCard = availableCards.find((card) => card.id === phoneDraftState.cardId) || null;
   const selectedMeasure = measures.find((measure) => measure.id === snapshot.selectedMeasureId) || null;
+  const politicalClimate = getPoliticalClimate(snapshot);
 
   desktopApp.classList.add('hidden');
   phoneApp.classList.remove('hidden');
@@ -4012,6 +4183,10 @@ function renderDetailedPhoneScreen(invite) {
         <span>Stimmgewicht</span>
         <strong>${snapshot.phoneVoteWeight} Punkte</strong>
       </article>
+      <article class="phone-status-card">
+        <span>Regierungslinie</span>
+        <strong>${politicalClimate.recognizesEmergency ? 'Notstand denkbar' : 'Notstand abgelehnt'}</strong>
+      </article>
     </div>
   `;
 
@@ -4036,6 +4211,9 @@ function renderDetailedPhoneScreen(invite) {
       <p><strong>Warum deine Stimme ${snapshot.phoneVoteWeight} Punkte zählt:</strong> ${snapshot.phoneVoteWeightReason}</p>
       <p><strong>Leitfrage:</strong> ${teaching.conflict}</p>
       <p><strong>Was am Ende entschieden werden soll:</strong> ${teaching.decisionTask}</p>
+      <p><strong>Politische Zusatzlage:</strong> ${politicalClimate.recognizesEmergency
+        ? `Diese Regierung erkennt den übergesetzlichen Notstand grundsätzlich an. Falls eure Runde später wirklich auf Ausnahmefreigabe oder Abschuss hinausläuft, prüft die App einmal zufällig, ob diese Klausel politisch wirksam wird (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
+        : 'Diese Regierung lehnt den übergesetzlichen Notstand ab. Falls eure Runde später auf Ausnahmefreigabe oder Abschuss hinausläuft, greift diese Klausel politisch nicht.'}</p>
     </article>
 
     <article class="prompt-card">
