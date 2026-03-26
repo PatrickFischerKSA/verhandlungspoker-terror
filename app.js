@@ -549,6 +549,87 @@ const ROUND_GUIDES = [
   }
 ];
 
+const ROUND_ARGUMENT_LENSES = [
+  {
+    trolley: 'Noch ist das kein reines Trolleyproblem, weil mehrere Auswege offen sind. Ihr steht noch nicht nur vor der Frage „eine Gruppe oder viele“, sondern auch vor der Frage, ob bessere Alternativen rechtzeitig aufgebaut werden können.',
+    koch: 'Aus Kochs späterer Sicht müsste jetzt vor allem verhindert werden, dass die Letztentscheidung zu früh auf den Piloten rutscht. Solange noch Zeit ist, sollen Führung und Politik klare Verantwortung übernehmen.',
+    nelson: 'Nelson würde hier schon auf Unterlassung schauen: Wer in der Frühphase zu wenig vorbereitet, verengt später die Möglichkeiten und trägt Mitverantwortung für die Zuspitzung.',
+    judge: 'Die richterliche Leitfrage dieser Runde lautet: Welche legalen und schonenden Alternativen sind jetzt noch offen, bevor überhaupt an aktives Töten gedacht wird?'
+  },
+  {
+    trolley: 'Die Lage beginnt sich in Richtung Trolleyproblem zu bewegen, ist aber noch breiter. Es geht weiterhin darum, ob das System Zeit gewinnt oder Zeit verliert.',
+    koch: 'Koch würde betonen, dass er im Jet nicht allein entscheiden darf, solange der Staat am Boden noch reale Schutzmaßnahmen einleiten kann.',
+    nelson: 'Nelson würde fragen, ob die Arena jetzt endlich vorbereitet wird oder ob die Menge später als Argument dafür herhalten soll, dass keine andere Wahl blieb.',
+    judge: 'Die richterliche Leitfrage lautet: Hätte der Staat in dieser Runde noch Bodenalternativen stärken können, statt spätere Extrementscheidungen vorzubereiten?'
+  },
+  {
+    trolley: 'Jetzt nähert sich der Fall dem Trolleyproblem an, weil die Optionen weniger werden. Trotzdem bleibt der Unterschied: Hier geht es um staatliches Handeln gegen Unschuldige, nicht nur um eine technische Weiche.',
+    koch: 'Koch würde jetzt mehr Klarheit verlangen: Wenn der Staat weiter zögert, wächst die Chance, dass am Ende nur noch die letzte Gewaltoption übrig bleibt.',
+    nelson: 'Nelson würde betonen, dass fehlende Kommunikation und fehlende Evakuierung nicht neutral sind. Sie produzieren die spätere Zwangslage mit.',
+    judge: 'Die richterliche Leitfrage lautet: Wer hat diese Lage so weit verengt, dass sie wie ein Trolleyproblem aussieht?'
+  },
+  {
+    trolley: 'Das Kernproblem verschiebt sich: Nicht nur die Weiche zählt, sondern auch, wer sie überhaupt stellen darf. In einem Rechtsstaat ist die Zuständigkeit selbst Teil der Moralfrage.',
+    koch: 'Koch würde sagen, dass er ohne klare politische Linie nicht zum heimlichen Ersatzgesetzgeber im Cockpit werden darf.',
+    nelson: 'Nelson würde fragen, ob Verantwortung bewusst nach unten geschoben wird, damit am Ende eine Einzelperson den politischen Konflikt tragen muss.',
+    judge: 'Die richterliche Leitfrage lautet: Handelt hier noch der Staat als geordnetes System oder rutscht die Verantwortung schon in eine gefährliche Leerstelle?'
+  },
+  {
+    trolley: 'Jetzt steht die nackte Zahlenfrage im Raum: 164 Menschen an Bord und 70 000 im Stadion. Genau an diesem Punkt wird das Trolleyproblem für die Klasse greifbar.',
+    koch: 'Koch würde später sagen, dass er nicht abstrakt rechnet, sondern eine konkret drohende Massentötung vor Augen hat und sich diesem Bild nicht entziehen kann.',
+    nelson: 'Nelson würde widersprechen: Auch 164 Passagiere bleiben einzelne unschuldige Menschen und dürfen nicht einfach zu einer kleineren Zahl gemacht werden.',
+    judge: 'Die richterliche Leitfrage lautet: Darf eine große Opferzahl die Grenze verschieben oder bleibt die Würde jedes einzelnen Menschen gleich unantastbar?'
+  },
+  {
+    trolley: 'Hier wird der Unterschied zum klassischen Trolleyproblem besonders deutlich. Beim Stück geht es nicht nur um Folgen, sondern um die Frage, ob der Staat Unschuldige absichtlich töten darf.',
+    koch: 'Koch würde anführen, dass er in einer Extremlage vielleicht zwischen zwei Übeln stand und nicht zwischen Gut und Böse.',
+    nelson: 'Nelson würde genau jetzt das Verbot „Leben gegen Leben“ stark machen: Ein Rechtsstaat darf Menschen nicht instrumentalisieren, selbst wenn andere dadurch gerettet werden könnten.',
+    judge: 'Die richterliche Leitfrage lautet: Ist eine moralisch nachvollziehbare Rettungslogik schon eine rechtlich zulässige Staatslogik?'
+  },
+  {
+    trolley: 'Das Trolleyproblem bleibt scharf, aber der Boden rückt wieder nach vorn. Je mehr Menschen ihr wirklich evakuiert, desto weniger darf die Extremoption behaupten, sie sei alternativlos.',
+    koch: 'Koch würde darauf verweisen, dass jede Minute echter Räumung den Druck auf die letzte Luftentscheidung verändert.',
+    nelson: 'Nelson würde prüfen, ob die Rettung am Boden ehrlich versucht wird oder ob sie nur symbolisch bleibt, während innerlich schon auf Gewalt umgestellt wird.',
+    judge: 'Die richterliche Leitfrage lautet: Welche realen Leben konnten am Boden noch geschützt werden, ohne dass der Staat selbst zum Täter wird?'
+  },
+  {
+    trolley: 'Die Weichenfrage ist jetzt auch eine Befehlsfrage. Wer keinen klaren Kurs vorgibt, lässt zu, dass die moralische Last immer weiter auf Einzelne rutscht.',
+    koch: 'Koch würde sagen, dass er eine klare Freigabe oder ein klares Verbot braucht und nicht ein politisch bequemes Schweigen.',
+    nelson: 'Nelson würde genau dieses Schweigen angreifen: Ein diffuser Staat darf später nicht so tun, als sei nur der letzte Täter oder Nichttäter wichtig.',
+    judge: 'Die richterliche Leitfrage lautet: Ist die unklare Befehlskette jetzt schon selbst ein Unrecht?'
+  },
+  {
+    trolley: 'Jetzt wird das Trolleyproblem fast unmittelbar: aktiv wenige töten, um viele zu retten, oder nicht eingreifen und die Kollision riskieren. Trotzdem bleibt der Staat hier Akteur mit Verfassung, nicht nur jemand an einer Weiche.',
+    koch: 'Koch würde jetzt besonders stark betonen, dass im Cockpit keine philosophische Übung, sondern eine konkrete Katastrophe sichtbar wird.',
+    nelson: 'Nelson würde antworten, dass gerade in dieser Härte das Verfassungsrecht gilt, weil der Staat sonst im Ausnahmegefühl seine Grenze verliert.',
+    judge: 'Die richterliche Leitfrage lautet: Wird die Lage wirklich alternativlos oder wird Alternativlosigkeit nur behauptet?'
+  },
+  {
+    trolley: 'Die Lage ist fast maximal verdichtet. Die Frage kippt von „Was wäre klug?“ zu „Welche Grenze darf selbst im Extremfall nicht überschritten werden?“',
+    koch: 'Koch würde geltend machen, dass er unter Sekundenlogik entscheidet und dass nachträgliche Ruhe nicht fair auf eine Extremsituation übertragen werden darf.',
+    nelson: 'Nelson würde einwenden, dass Zeitdruck keine Lizenz ist, unschuldige Menschen absichtlich zu töten.',
+    judge: 'Die richterliche Leitfrage lautet: Entschuldigt der Zeitdruck eine Handlung, die außerhalb des Normalrechts liegt?'
+  },
+  {
+    trolley: 'Das klassische Trolleybild trägt jetzt nur noch teilweise, weil auch Schadensbegrenzung zählt. Vielleicht geht es nicht mehr um „alles oder nichts“, sondern um die letzte noch mögliche Verringerung des Schadens.',
+    koch: 'Koch würde fragen, ob sein Eingriff jetzt noch rettet oder nur eine andere Form von Tragödie erzeugt.',
+    nelson: 'Nelson würde darauf hinweisen, dass auch in verzweifelten Lagen der Unterschied zwischen Rettenwollen und Töten-Dürfen bestehen bleibt.',
+    judge: 'Die richterliche Leitfrage lautet: Welche Handlung hat jetzt noch einen realen Rettungsgehalt und welche nur noch symbolische Härte?'
+  },
+  {
+    trolley: 'In dieser Phase ist auch Nicht-Handeln keine neutrale Weiche mehr. Gerade das verbindet das Stück mit dem Trolleyproblem und unterscheidet es zugleich von ihm.',
+    koch: 'Koch würde sagen, dass Unterlassen jetzt ebenfalls eine aktive Verantwortung erzeugt, weil der Einschlag nicht mehr abstrakt, sondern absehbar ist.',
+    nelson: 'Nelson würde dagegenhalten, dass Unterlassen und aktives Töten nicht einfach moralisch gleichgesetzt werden dürfen.',
+    judge: 'Die richterliche Leitfrage lautet: Wann wird Unterlassen zur Schuld und wann bleibt es das Festhalten an einer rechtlichen Grenze?'
+  },
+  {
+    trolley: 'In der Schlussminute steht das Trolleyproblem am schärfsten vor euch: wenige aktiv töten oder viele sterben lassen. Das Stück verschärft diese Denkfigur aber durch Staat, Verfassung und Würde.',
+    koch: 'Koch würde seine spätere Entscheidung als Versuch beschreiben, eine konkret drohende Massentötung zu verhindern und nicht als kalte Zahlenrechnung.',
+    nelson: 'Nelson würde am Ende daran erinnern, dass ein Staat sich gerade in der Extremminute daran messen lässt, ob er Unschuldige zum Mittel macht.',
+    judge: 'Die richterliche Leitfrage lautet: Wollt ihr am Ende einen Staat denken, der im Extremfall rettet um jeden Preis, oder einen Staat, der auch dann an seiner Grenze festhält?'
+  }
+];
+
 const ROUND_TEACHER_BRIEFINGS = [
   {
     happened: 'LH 2047 verlässt den vorgesehenen Kurs. Im Cockpit meldet sich niemand klar. Für die Menschen im Stadion ist davon noch nichts sichtbar, aber in der Luftüberwachung fällt sofort auf: Dieses Flugzeug passt nicht mehr in den normalen Linienverkehr.',
@@ -1655,6 +1736,10 @@ function getTeacherBriefing(roundIndex = state.roundIndex) {
   return ROUND_TEACHER_BRIEFINGS[Math.min(roundIndex, ROUND_TEACHER_BRIEFINGS.length - 1)];
 }
 
+function getRoundArgumentLens(roundIndex = state.roundIndex) {
+  return ROUND_ARGUMENT_LENSES[Math.min(roundIndex, ROUND_ARGUMENT_LENSES.length - 1)];
+}
+
 function getPoliticalClimate(inputState = state) {
   return POLITICAL_CLIMATES[normalizePoliticalClimateId(inputState.politicalClimateId)] || POLITICAL_CLIMATES.grundlinie;
 }
@@ -2294,7 +2379,35 @@ function generateClosingTexts(state) {
     `Biegler würde deshalb betonen, dass der Fall weniger nach Held oder Täter fragt als nach fragmentierter Verantwortung in extremer Zeitnot.`
   ].join(' ');
 
-  return { indictment, defense };
+  const trolley = [
+    state.ending.type === 'abschuss'
+      ? 'Die Partie endet nun sehr nah am Trolleyproblem: Wenige werden aktiv getötet, um sehr viele zu retten.'
+      : 'Die Partie zeigt, dass das Trolleyproblem auch im Unterlassen steckt: Nicht-Handeln kann eine Katastrophe geschehen lassen.',
+    'Gleichzeitig bleibt der Unterschied zum Gedankenexperiment zentral: Hier stellt nicht privat jemand eine Weiche, sondern der Staat müsste über das aktive Töten unschuldiger Menschen entscheiden.',
+    'Darum geht es nicht nur um Zahlen, sondern auch um Menschenwürde, Verfassung und die Frage, was ein Staat selbst im Extremfall nicht tun darf.'
+  ].join(' ');
+
+  const koch = [
+    state.ending.type === 'abschuss'
+      ? 'In der Logik von Lars Koch würde diese Partie so klingen: Ich habe nicht kalt gerechnet, sondern versucht, eine konkret drohende Massentötung zu verhindern.'
+      : 'In der Logik von Lars Koch würde diese Partie so klingen: Der Staat hat mich in eine Lage laufen lassen, in der jede Entscheidung zerstörerisch wurde.',
+    'Er würde betonen, dass alle Menschen gleich viel wert sind, dass aber die Gefahr für das Stadion unmittelbar und real vor ihm stand.',
+    'Seine Selbstrechtfertigung richtet sich deshalb nicht auf Gesetzestreue, sondern auf Rettung unter extremer Zeitnot.'
+  ].join(' ');
+
+  const judgeAcquit = [
+    'In einer freisprechenden richterlichen Schlusslogik würde der Gerichtspräsident hervorheben, dass der Angeklagte in einer extremen Pflichtenkollision stand.',
+    'Er könnte sagen: Der Staat darf keine einfachen Heldenlösungen verlangen, wenn er selbst die Lage nicht rechtzeitig beherrscht hat.',
+    'Ein Freispruch würde dann nicht heißen, dass der Abschuss rechtmäßig oder gut war, sondern dass die individuelle Schuld hinter der Extremlage und der zersplitterten Verantwortung zurücktritt.'
+  ].join(' ');
+
+  const judgeConvict = [
+    'In einer verurteilenden richterlichen Schlusslogik würde der Gerichtspräsident betonen, dass auch die Extremminute die Verfassungsgrenze nicht aufhebt.',
+    'Er könnte sagen: Wer unschuldige Menschen an Bord gezielt tötet, überschreitet eine Grenze, die der Staat gerade in der Krise achten muss.',
+    'Eine Verurteilung würde dann nicht bedeuten, dass die Bedrohung klein war, sondern dass der Rechtsstaat sich auch unter maximalem Druck nicht selbst entgrenzen darf.'
+  ].join(' ');
+
+  return { indictment, defense, trolley, koch, judgeAcquit, judgeConvict };
 }
 
 const CARD_LIBRARY = {
@@ -3443,6 +3556,7 @@ function renderCurrentTaskPanel() {
 function renderDiscussionPanel() {
   const guide = getRoundGuide();
   const teaching = getTeacherBriefing();
+  const lens = getRoundArgumentLens();
   const voteOutcome = getRoundVoteOutcome();
   const winner = voteOutcome.winner;
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
@@ -3623,6 +3737,29 @@ function renderDiscussionPanel() {
       <ol class="discussion-list">
         ${guide.prompts.map((prompt) => `<li>${prompt}</li>`).join('')}
       </ol>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Denkhilfen Aus Dem Drama</h3>
+      <div class="briefing-stack">
+        <div class="briefing-line">
+          <strong>Trolleyproblem</strong>
+          <span>${lens.trolley}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Was würde Lars Koch später sagen?</strong>
+          <span>${lens.koch}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Was würde Staatsanwältin Nelson entgegnen?</strong>
+          <span>${lens.nelson}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Welche richterliche Leitfrage steckt dahinter?</strong>
+          <span>${lens.judge}</span>
+        </div>
+      </div>
+      <p class="small-note">Diese Kästen sind keine wörtlichen Zitate, sondern didaktische Annäherungen an die Denkfiguren des Stücks.</p>
     </article>
   `;
 
@@ -3983,6 +4120,29 @@ function renderMetaSummary() {
   `;
 }
 
+function renderReferencePanel() {
+  const lens = getRoundArgumentLens();
+  referencePanel.innerHTML = `
+    <article class="prompt-card">
+      <h3>Trolleyproblem</h3>
+      <p>${lens.trolley}</p>
+    </article>
+    <article class="prompt-card">
+      <h3>Lars Koch</h3>
+      <p>${lens.koch}</p>
+    </article>
+    <article class="prompt-card">
+      <h3>Staatsanwältin Nelson</h3>
+      <p>${lens.nelson}</p>
+    </article>
+    <article class="prompt-card">
+      <h3>Richterliche Leitfrage</h3>
+      <p>${lens.judge}</p>
+      <p class="small-note">Didaktische Paraphrase in der Logik des Stücks, nicht als wörtliches Zitat.</p>
+    </article>
+  `;
+}
+
 function renderLog() {
   logList.innerHTML = state.log.map((entry) => `
     <li><span class="log-round">Runde ${entry.round}, T - ${entry.minute}:</span> ${entry.text}</li>
@@ -4134,6 +4294,10 @@ function renderEndScreen() {
 
   indictmentText.textContent = closing.indictment;
   defenseText.textContent = closing.defense;
+  trolleyText.textContent = closing.trolley;
+  kochText.textContent = closing.koch;
+  judgeAcquitText.textContent = closing.judgeAcquit;
+  judgeConvictText.textContent = closing.judgeConvict;
   endScreen.classList.remove('hidden');
 }
 
@@ -4546,6 +4710,7 @@ function render() {
   renderResources();
   renderMatrix();
   renderMetaSummary();
+  renderReferencePanel();
   renderCompanionModePicker();
   renderCompanionPanel();
   renderLog();
@@ -4623,6 +4788,7 @@ const rolesGrid = document.querySelector('#rolesGrid');
 const resourceMeters = document.querySelector('#resourceMeters');
 const matrixTable = document.querySelector('#matrixTable');
 const metaSummary = document.querySelector('#metaSummary');
+const referencePanel = document.querySelector('#referencePanel');
 const companionModePicker = document.querySelector('#companionModePicker');
 const companionPanel = document.querySelector('#companionPanel');
 const logList = document.querySelector('#logList');
@@ -4631,6 +4797,10 @@ const endingHeadline = document.querySelector('#endingHeadline');
 const endingStats = document.querySelector('#endingStats');
 const indictmentText = document.querySelector('#indictmentText');
 const defenseText = document.querySelector('#defenseText');
+const trolleyText = document.querySelector('#trolleyText');
+const kochText = document.querySelector('#kochText');
+const judgeAcquitText = document.querySelector('#judgeAcquitText');
+const judgeConvictText = document.querySelector('#judgeConvictText');
 const restoredBanner = document.querySelector('#restoredBanner');
 const newGameBtn = document.querySelector('#newGameBtn');
 const resumeGameBtn = document.querySelector('#resumeGameBtn');
