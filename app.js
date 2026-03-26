@@ -443,6 +443,152 @@ const ROUND_GUIDES = [
   }
 ];
 
+const ROUND_TEACHER_BRIEFINGS = [
+  {
+    happened: 'Ein Passagierflugzeug verlässt den vorgesehenen Kurs. Der Funkkontakt ist brüchig. Noch ist unklar, ob ein Defekt, eine Entführung oder ein Missverständnis vorliegt.',
+    known: 'Sicher ist nur: Der Kurs stimmt nicht, der Funkkontakt ist schlecht und das Flugzeug verhält sich auffällig.',
+    conflict: 'Soll das System zunächst vorsichtig Informationen sammeln oder schon jetzt sichtbar handeln, um Zeit zu gewinnen?',
+    paths: [
+      'Erst klären: Luftlage und Funkverkehr möglichst genau sammeln.',
+      'Früh absichern: Stadion und Behörden vorsichtig vorbereiten.',
+      'Früh warnen: Schon jetzt operative Schutzmaßnahmen anstoßen.'
+    ],
+    firstSpeaker: 'Führungszentrum spricht zuerst, weil dort als Erstes geklärt werden muss, wie sicher die Luftlage überhaupt ist.'
+  },
+  {
+    happened: 'Die Alarmrotte ist gestartet. Das Stadion ist voll besetzt. Das Flugzeug bleibt auffällig, aber noch ist nicht jedes Detail gesichert.',
+    known: 'Es gibt ein volles Stadion, ein verdächtiges Flugzeug und erste militärische Reaktion, aber noch kein vollständig klares Gesamtbild.',
+    conflict: 'Soll schon jetzt ein deutliches Schutzsignal gesetzt werden oder ist die Lage noch zu unklar für sichtbare Eingriffe?',
+    paths: [
+      'Koordination stärken: Alle Informationen und Befehle zentral bündeln.',
+      'Schutz vorbereiten: Stadion und Rettungskräfte früh in Bereitschaft setzen.',
+      'Zurückhalten: Noch keine sichtbare Außenreaktion auslösen.'
+    ],
+    firstSpeaker: 'Katastrophenschutz spricht zuerst, weil jetzt die Frage drängt, ob das Stadion schon vorbereitet werden muss.'
+  },
+  {
+    happened: 'Das Flugzeug reagiert nicht auf Standardkommunikation und nicht auf Abdrängmanöver. Damit wirkt die Gefahr deutlich realer als zuvor.',
+    known: 'Es gibt keine brauchbare Antwort aus dem Cockpit. Das Flugzeug bleibt auf problematischem Kurs. Die Bedrohung wächst.',
+    conflict: 'Soll jetzt weiter zuerst Klarheit gewonnen werden oder müssen mehrere Rollen gleichzeitig handeln?',
+    paths: [
+      'Informationsdruck erhöhen: Lagebild und Befehle weiter verdichten.',
+      'Parallel handeln: Evakuierung und Führung gleichzeitig anschieben.',
+      'Rechtsgrenze betonen: Noch keine operative Eskalation ohne klare Grundlage.'
+    ],
+    firstSpeaker: 'Führungszentrum spricht zuerst, weil jetzt entschieden werden muss, ob Beobachtung noch reicht oder sofort parallel gehandelt werden muss.'
+  },
+  {
+    happened: 'Warnsignale bleiben ohne Wirkung. Das Flugzeug und das Stadion rücken in einen direkten Gefahrenzusammenhang.',
+    known: 'Die Gefahr reagiert nicht auf Warnung. Reine Feststellungen helfen nicht mehr. Verantwortung muss jetzt aktiv übernommen werden.',
+    conflict: 'Wer muss jetzt eine klare Linie formulieren: operative Führung, Politik oder der Pilot selbst?',
+    paths: [
+      'Politische Linie fordern: Das Ministerium muss sich offen positionieren.',
+      'Operative Linie setzen: Führung ordnet klar an, was jetzt gilt.',
+      'Eigenverantwortung vorbereiten: Koch verlangt letzte Klarheit und handelt gegebenenfalls später selbst.'
+    ],
+    firstSpeaker: 'Ministerium spricht zuerst, weil jetzt sichtbar wird, ob politische Verantwortung übernommen oder weiter nach unten verschoben wird.'
+  },
+  {
+    happened: 'Die Drohung gilt als belastbar: Das entführte Flugzeug könnte in ein voll besetztes Stadion gelenkt werden.',
+    known: 'Es geht nicht mehr nur um eine Störung. Zehntausende Menschen im Stadion sind real bedroht.',
+    conflict: 'Gewichtet ihr jetzt stärker den Schutz der Menschen im Stadion oder die rechtliche Grenze gegenüber den Menschen an Bord?',
+    paths: [
+      'Stadion schützen: Evakuierung und Rettung jetzt maximal beschleunigen.',
+      'Rechtsgrenze markieren: Kein Schritt in Richtung Abschusslogik.',
+      'Zeit gewinnen: Noch Sekunden und Informationen herausholen.'
+    ],
+    firstSpeaker: 'Katastrophenschutz spricht zuerst, weil jetzt konkret entschieden werden muss, ob Menschen im Stadion sofort in Bewegung gebracht werden.'
+  },
+  {
+    happened: 'Die verfassungsrechtliche Grenze steht offen im Raum: Unschuldige Menschen an Bord dürfen nicht einfach gegen Unschuldige im Stadion aufgerechnet werden.',
+    known: 'Rechtlich ist ein Abschuss hoch problematisch, selbst wenn dadurch viele Menschen gerettet werden könnten.',
+    conflict: 'Haltet ihr die Rechtsgrenze strikt ein oder öffnet ihr gedanklich schon jetzt eine Ausnahme?',
+    paths: [
+      'Grenze halten: Abschuss bleibt ausgeschlossen.',
+      'Ausnahme prüfen: Notstand wird als Sonderfall mitgedacht.',
+      'Verantwortung verteilen: Rechtliche Last nicht nur bei Koch verorten.'
+    ],
+    firstSpeaker: 'Ministerium spricht zuerst, weil diese Runde vor allem eine rechtliche und politische Grenzfrage ist.'
+  },
+  {
+    happened: 'Die Evakuierung beginnt, aber sie läuft langsam. Menschenmengen, Wege und Zeitdruck erschweren jede reale Rettung.',
+    known: 'Das Stadion ist noch nicht leer. Jede verlorene Minute erhöht das Risiko für Menschen am Boden.',
+    conflict: 'Soll jetzt alles auf praktische Räumung gesetzt werden oder müssen Recht und Kommunikation parallel mitlaufen?',
+    paths: [
+      'Maximal räumen: Alles der schnellen Evakuierung unterordnen.',
+      'Kontrolliert räumen: Panik vermeiden und trotzdem zügig handeln.',
+      'Absichern statt räumen: Eher auf Schadensbegrenzung und Ordnung setzen.'
+    ],
+    firstSpeaker: 'Katastrophenschutz spricht zuerst, weil hier die praktische Rettung im Stadionzentrum steht.'
+  },
+  {
+    happened: 'Die Befehlskette wird dichter, aber nicht klarer. Jede Ebene wartet auf Deckung, Freigabe oder ein ausdrückliches Verbot.',
+    known: 'Verantwortung wandert zwischen Politik, Führung und Cockpit hin und her. Gerade das macht die Lage gefährlich.',
+    conflict: 'Ist eine unklare Befehlskette jetzt schon selbst ein Versagen?',
+    paths: [
+      'Klare Befehle: Eine Stelle legt jetzt offen eine Linie fest.',
+      'Dokumentation: Verantwortung wird sauber sichtbar gemacht.',
+      'Deckung verweigern: Rollen bleiben vorsichtig und verschieben weiter.'
+    ],
+    firstSpeaker: 'Führungszentrum spricht zuerst, weil hier entschieden werden muss, ob endlich eine eindeutige Linie gesetzt wird.'
+  },
+  {
+    happened: 'Das Flugzeug nähert sich München. Es bleibt kaum noch Zeit für langsame Abstimmung oder spätere Korrekturen.',
+    known: 'Jede weitere Minute verringert die Möglichkeit, Entscheidungen noch zurückzunehmen.',
+    conflict: 'Ist Warten auf letzte Klarheit jetzt noch verantwortbar oder schon zu spät?',
+    paths: [
+      'Letzte Abstimmung: Noch einmal Freigabe oder Verbot einholen.',
+      'Sofort schützen: Alles auf Rettung im Stadion richten.',
+      'Letzte Eigenverantwortung vorbereiten: Koch rückt ins Zentrum.'
+    ],
+    firstSpeaker: 'Koch spricht zuerst, weil die Zeitlage jetzt unmittelbar auf seine spätere Entscheidung zuläuft.'
+  },
+  {
+    happened: 'Die Zeit läuft fast ab. Freigabe, Verbot und eigenmächtige Entscheidung stehen jetzt frontal gegeneinander.',
+    known: 'Es gibt keine saubere Lösung mehr. Jede Option hat schwere moralische und rechtliche Kosten.',
+    conflict: 'Welche dieser beschädigten Optionen ist noch am ehesten vertretbar?',
+    paths: [
+      'Verbot halten: Nicht schießen trotz hoher Gefahr.',
+      'Freigabe suchen: Politische oder rechtliche Deckung erzwingen.',
+      'Eigenentscheidung denken: Koch handelt notfalls gegen die Linie.'
+    ],
+    firstSpeaker: 'Koch spricht zuerst, weil in dieser Runde seine Rolle operativ am stärksten unter Druck steht.'
+  },
+  {
+    happened: 'Die Räumung stockt weiter, während die verbleibende Zeit zusammenschmilzt. Gute Entscheidungen können jetzt oft nur noch Schaden mindern.',
+    known: 'Nicht mehr alles ist rettbar. Die Frage lautet zunehmend, wo überhaupt noch wirksames Handeln möglich ist.',
+    conflict: 'Wer kann jetzt real noch Leben retten und wer nur noch Folgen begrenzen?',
+    paths: [
+      'Letzte Rettung: Noch möglichst viele Menschen aus dem Stadion bringen.',
+      'Letzte Intervention: In der Luft einzugreifen bleibt denkbar.',
+      'Schadensbegrenzung: Medizinische und organisatorische Folgen abfedern.'
+    ],
+    firstSpeaker: 'Katastrophenschutz spricht zuerst, weil nun die praktische Frage drängt, ob am Boden noch wirksam gerettet werden kann.'
+  },
+  {
+    happened: 'Die Schlussphase ist erreicht. Wenn jetzt nicht gehandelt wird, wird Nicht-Handeln selbst zur folgenreichen Entscheidung.',
+    known: 'Neutralität gibt es kaum noch. Auch das Unterlassen einer Handlung erzeugt jetzt unmittelbar Verantwortung.',
+    conflict: 'Ist Untätigkeit noch vertretbar oder bereits ein aktiver Beitrag zur Katastrophe?',
+    paths: [
+      'Noch eingreifen: Eine letzte aktive Karte legen.',
+      'Nicht eingreifen: Rechtliche oder moralische Grenze halten.',
+      'Verantwortung benennen: Klar machen, wer welches Risiko bewusst trägt.'
+    ],
+    firstSpeaker: 'Nelson spricht zuerst, weil jetzt die Frage nach Unterlassen und Verantwortung besonders scharf wird.'
+  },
+  {
+    happened: 'Die letzte Minute läuft. Vorbereiten ist vorbei. Jetzt legt jede Rolle offen, wofür sie im Extremfall steht.',
+    known: 'Nach dieser Runde geht es nicht mehr um Vorbereitung, sondern um die endgültige Entscheidung und ihre Folgen.',
+    conflict: 'Welche letzte Kartenkombination beschreibt eure Haltung am ehrlichsten?',
+    paths: [
+      'Rettung priorisieren: Möglichst viele Menschen im Stadion schützen.',
+      'Rechtsgrenze priorisieren: Kein Schritt über die verfassungsrechtliche Grenze.',
+      'Verantwortung verteilen: Die Last bewusst auf mehrere Rollen sichtbar machen.'
+    ],
+    firstSpeaker: 'Biegler spricht zuerst, weil jetzt besonders deutlich wird, wie eure Gruppe die Schlussentscheidung später rechtfertigen will.'
+  }
+];
+
 function getPhase(roundIndex) {
   if (roundIndex <= 3) return 'early';
   if (roundIndex <= 8) return 'middle';
@@ -703,6 +849,10 @@ function getRoundGuide(roundIndex = state.roundIndex) {
   return ROUND_GUIDES[Math.min(roundIndex, ROUND_GUIDES.length - 1)];
 }
 
+function getTeacherBriefing(roundIndex = state.roundIndex) {
+  return ROUND_TEACHER_BRIEFINGS[Math.min(roundIndex, ROUND_TEACHER_BRIEFINGS.length - 1)];
+}
+
 function getRoundNoteKey(roundIndex = state.roundIndex) {
   return String(roundIndex);
 }
@@ -762,12 +912,6 @@ function getMissingRoleIds() {
 
 function getRoundScenarioText(round, guide) {
   return `${guide.situation} ${guide.decisionNeed}`;
-}
-
-function getRoleOptionSummary(roleId, state) {
-  const cards = getAvailableCards(roleId, state).slice(0, 2);
-  if (!cards.length) return 'In dieser Runde liegt gerade keine spielbare Karte vor.';
-  return cards.map((card) => card.title).join(' oder ');
 }
 
 function addLogEntry(state, text) {
@@ -1598,41 +1742,45 @@ function renderStatusStrip() {
 function renderBriefing() {
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const guide = getRoundGuide();
+  const teaching = getTeacherBriefing();
   const resolutionSummary = state.lastResolution.length
-    ? `<div class="briefing-pod"><strong>Letzte Auflösung</strong><span>${state.lastResolution.join(' | ')}</span></div>`
+    ? `<div class="briefing-pod"><strong>Was in der letzten Runde entschieden wurde</strong><span>${state.lastResolution.join(' | ')}</span></div>`
     : '';
-  const optionMarkup = ROLE_ORDER.map((roleId) => `
-    <article class="briefing-action-card">
-      <strong>${ROLE_META[roleId].label}</strong>
-      <span>${getRoleOptionSummary(roleId, state)}</span>
-    </article>
-  `).join('');
 
   briefingCard.innerHTML = `
     <div class="briefing-frame">
       <div class="timeline-chip">Lagefenster der Runde</div>
       <div class="timeline-chip">T - ${round.minute} Minuten</div>
       <h3>${round.title}</h3>
-      <p>${guide.situation}</p>
+      <p>${teaching.happened}</p>
       <div class="briefing-grid">
         <div class="briefing-pod">
-          <strong>Was gerade passiert</strong>
-          <span>${guide.situation}</span>
+          <strong>Was ist passiert?</strong>
+          <span>${teaching.happened}</span>
         </div>
         <div class="briefing-pod">
-          <strong>Was jetzt entschieden werden muss</strong>
-          <span>${guide.decisionNeed}</span>
+          <strong>Was wissen wir sicher?</strong>
+          <span>${teaching.known}</span>
         </div>
         <div class="briefing-pod">
-          <strong>Streitfrage dieser Runde</strong>
-          <span>${guide.question}</span>
+          <strong>Was ist die Streitfrage?</strong>
+          <span>${teaching.conflict}</span>
+        </div>
+        <div class="briefing-pod">
+          <strong>Welche Rolle muss zuerst sprechen?</strong>
+          <span>${teaching.firstSpeaker}</span>
         </div>
         ${resolutionSummary}
       </div>
       <div class="briefing-options">
-        <strong>Konkrete Handlungsoptionen in dieser Runde</strong>
+        <strong>Welche drei Wege stehen euch offen?</strong>
         <div class="briefing-action-grid">
-          ${optionMarkup}
+          ${teaching.paths.map((path, index) => `
+            <article class="briefing-action-card">
+              <strong>Weg ${index + 1}</strong>
+              <span>${path}</span>
+            </article>
+          `).join('')}
         </div>
       </div>
     </div>
@@ -1832,24 +1980,25 @@ function renderCurrentTaskPanel() {
 
 function renderDiscussionPanel() {
   const guide = getRoundGuide();
-  const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
+  const teaching = getTeacherBriefing();
   const noteValue = state.notesByRound[getRoundNoteKey()] || '';
 
   discussionPanel.innerHTML = `
     <article class="prompt-card">
-      <h3>Welche Situation liegt vor?</h3>
-      <p>${guide.situation}</p>
-      <p>${round.pressure}</p>
+      <h3>Was ist passiert?</h3>
+      <p>${teaching.happened}</p>
+      <p>${teaching.known}</p>
     </article>
 
     <div class="question-box">
-      <strong>Genau diese Frage diskutiert ihr jetzt</strong>
-      <p>${guide.question}</p>
+      <strong>Was ist die Streitfrage?</strong>
+      <p>${teaching.conflict}</p>
     </div>
 
     <article class="prompt-card">
       <h3>Was müsst ihr am Ende entscheiden?</h3>
       <p>${guide.decisionNeed}</p>
+      <p><strong>Erste Wortmeldung:</strong> ${teaching.firstSpeaker}</p>
       <div class="decision-grid">
         ${ROLE_ORDER.map((roleId) => `
           <article class="decision-card">
