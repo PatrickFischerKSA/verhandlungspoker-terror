@@ -70,6 +70,35 @@ const ROLE_ASSIGNMENTS = {
   }
 };
 
+const ROLE_VOTE_WEIGHTS = {
+  katastrophenschutz: {
+    weight: 2,
+    reason: 'kennt die praktische Evakuierungs- und Paniklage im Stadion'
+  },
+  fuehrungszentrum: {
+    weight: 3,
+    reason: 'koordiniert Luftlage, Befehle und den gesamten Informationsfluss'
+  },
+  ministerium: {
+    weight: 3,
+    reason: 'trägt die rechtlich-politische Gesamtverantwortung des Staates'
+  },
+  koch: {
+    weight: 2,
+    reason: 'trägt im Jet die letzte operative Last der Entscheidung'
+  },
+  nelson: {
+    weight: 1,
+    reason: 'prüft die spätere Anklageperspektive gegen rechtswidriges Handeln'
+  },
+  biegler: {
+    weight: 1,
+    reason: 'prüft die spätere Verteidigungsperspektive unter Zeitdruck'
+  }
+};
+
+const TOTAL_VOTE_WEIGHT = ROLE_ORDER.reduce((sum, roleId) => sum + ROLE_VOTE_WEIGHTS[roleId].weight, 0);
+
 const ROLE_META = {
   koch: {
     label: 'Lars Koch',
@@ -677,6 +706,7 @@ function createInitialState() {
     roleModes: createEmptyRoleModes(),
     companionRoles: normalizeCompanionRoles(),
     notesByRound: {},
+    votesByRound: {},
     selections: {},
     lastResolution: [],
     resources: {
@@ -736,6 +766,7 @@ function hydrateState(input) {
     },
     companionRoles: normalizeCompanionRoles(input.companionRoles),
     notesByRound: input.notesByRound && typeof input.notesByRound === 'object' ? input.notesByRound : {},
+    votesByRound: input.votesByRound && typeof input.votesByRound === 'object' ? input.votesByRound : {},
     selections: input.selections && typeof input.selections === 'object' ? input.selections : {},
     lastResolution: Array.isArray(input.lastResolution) ? input.lastResolution : [],
     resources: {
@@ -899,6 +930,132 @@ function getRoundNoteKey(roundIndex = state.roundIndex) {
 function setRoundNote(value) {
   state.notesByRound[getRoundNoteKey()] = value;
   saveState(state);
+}
+
+function getRoundVoteKey(roundIndex = state.roundIndex) {
+  return String(roundIndex);
+}
+
+function ensureRoundVotes(roundIndex = state.roundIndex) {
+  const key = getRoundVoteKey(roundIndex);
+  if (!state.votesByRound[key] || typeof state.votesByRound[key] !== 'object') {
+    state.votesByRound[key] = {};
+  }
+  return state.votesByRound[key];
+}
+
+function getRoleVote(roleId, roundIndex = state.roundIndex) {
+  const votes = state.votesByRound[getRoundVoteKey(roundIndex)];
+  if (!votes || typeof votes !== 'object') {
+    return { choiceIndex: null, reason: '' };
+  }
+  const vote = votes[roleId];
+  return {
+    choiceIndex: Number.isInteger(vote?.choiceIndex) ? vote.choiceIndex : null,
+    reason: typeof vote?.reason === 'string' ? vote.reason : ''
+  };
+}
+
+function setRoleVoteChoice(roleId, choiceIndex) {
+  if (!ROLE_META[roleId]) return;
+  const votes = ensureRoundVotes();
+  votes[roleId] = {
+    ...getRoleVote(roleId),
+    choiceIndex
+  };
+  saveState(state);
+}
+
+function setRoleVoteReason(roleId, value) {
+  if (!ROLE_META[roleId]) return;
+  const votes = ensureRoundVotes();
+  votes[roleId] = {
+    ...getRoleVote(roleId),
+    reason: value.trimStart()
+  };
+  saveState(state);
+}
+
+function isVoteReasonValid(reason) {
+  return String(reason || '').trim().length >= 10;
+}
+
+function getLeadRoleId(roundIndex = state.roundIndex) {
+  const text = getTeacherBriefing(roundIndex).firstSpeaker.toLowerCase();
+  if (text.includes('führungszentrum')) return 'fuehrungszentrum';
+  if (text.includes('katastrophenschutz')) return 'katastrophenschutz';
+  if (text.includes('ministerium')) return 'ministerium';
+  if (text.includes('koch')) return 'koch';
+  if (text.includes('nelson')) return 'nelson';
+  if (text.includes('biegler')) return 'biegler';
+  return 'fuehrungszentrum';
+}
+
+function getRoundVoteOutcome(roundIndex = state.roundIndex) {
+  const teaching = getTeacherBriefing(roundIndex);
+  const options = teaching.paths.map((path, index) => ({
+    index,
+    path,
+    weight: 0,
+    roles: [],
+    reasons: []
+  }));
+  const missingRoles = [];
+
+  ROLE_ORDER.forEach((roleId) => {
+    const vote = getRoleVote(roleId, roundIndex);
+    if (!Number.isInteger(vote.choiceIndex) || vote.choiceIndex < 0 || vote.choiceIndex >= options.length || !isVoteReasonValid(vote.reason)) {
+      missingRoles.push(roleId);
+      return;
+    }
+
+    const voteWeight = ROLE_VOTE_WEIGHTS[roleId].weight;
+    const option = options[vote.choiceIndex];
+    option.weight += voteWeight;
+    option.roles.push(roleId);
+    option.reasons.push({
+      roleId,
+      reason: vote.reason.trim()
+    });
+  });
+
+  if (missingRoles.length) {
+    return {
+      complete: false,
+      options,
+      missingRoles,
+      totalWeight: TOTAL_VOTE_WEIGHT
+    };
+  }
+
+  const highestWeight = Math.max(...options.map((option) => option.weight));
+  const tiedOptions = options.filter((option) => option.weight === highestWeight);
+  let winner = tiedOptions[0];
+  let tiebreakReason = 'Mehrheit nach Gewichtspunkten';
+
+  if (tiedOptions.length > 1) {
+    const leadRoleId = getLeadRoleId(roundIndex);
+    const leadVote = getRoleVote(leadRoleId, roundIndex);
+    const leadChoice = tiedOptions.find((option) => option.index === leadVote.choiceIndex);
+    if (leadChoice) {
+      winner = leadChoice;
+      tiebreakReason = `Stimmgleichheit: Stichentscheid durch die zuerst sprechende Rolle (${ROLE_META[leadRoleId].label})`;
+    } else {
+      const highestRoleCount = Math.max(...tiedOptions.map((option) => option.roles.length));
+      const roleCountWinner = tiedOptions.find((option) => option.roles.length === highestRoleCount);
+      winner = roleCountWinner || tiedOptions[0];
+      tiebreakReason = 'Stimmgleichheit: Entscheidung über die größere Zahl beteiligter Rollen';
+    }
+  }
+
+  return {
+    complete: true,
+    options,
+    missingRoles: [],
+    totalWeight: TOTAL_VOTE_WEIGHT,
+    winner,
+    tiebreakReason
+  };
 }
 
 function setPlayerName(roleId, value) {
@@ -1641,6 +1798,12 @@ function selectCard(roleId, cardId) {
     roundFeedback.className = 'round-feedback tone-danger';
     return;
   }
+  const voteOutcome = getRoundVoteOutcome();
+  if (!voteOutcome.complete) {
+    roundFeedback.textContent = 'Gebt zuerst für alle sechs Rollen das Kurzvotum ab. Erst der automatisch erzeugte Rundenentscheid schaltet die Auswahlkarten frei.';
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
   state.selections[roleId] = cardId;
   saveState(state);
   render();
@@ -1965,6 +2128,8 @@ function renderCurrentTaskPanel() {
   const missingPlayerNames = getMissingPlayerNameRoleIds();
   const namesReady = missingPlayerNames.length === 0;
   const missingRoles = getMissingRoleIds();
+  const voteOutcome = getRoundVoteOutcome();
+  const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
   const readyToResolve = state.setupComplete && missingRoles.length === 0;
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
@@ -1990,26 +2155,34 @@ function renderCurrentTaskPanel() {
     },
     {
       label: 'Diskutieren',
-      detail: 'Beantwortet gemeinsam die Leitfrage dieser Runde und notiert eure Begründung direkt im Notizfeld darunter.',
-      status: state.setupComplete ? 'active' : 'pending'
+      detail: !state.setupComplete
+        ? 'Die Abstimmung wird erst freigeschaltet, wenn die Partie gestartet wurde.'
+        : voteOutcome.complete
+        ? 'Alle Rollen haben ihr Kurzvotum abgegeben. Der gewichtete Rundenentscheid wurde daraus erzeugt.'
+        : `Im Abschnitt „4. Diskussion und Abstimmung“ gibt jetzt jede Rolle ein Kurzvotum ab: Weg wählen und Begründung schreiben. Es fehlen noch: ${missingVoteText}.`,
+      status: !state.setupComplete ? 'pending' : voteOutcome.complete ? 'done' : 'active'
     },
     {
       label: 'Auswahlkarten in den Rollenfeldern anklicken',
       detail: !state.setupComplete
         ? 'Die Auswahlkarten bleiben gesperrt, bis die Partie oben im Unterrichtsstart-Modus gestartet wurde.'
+        : !voteOutcome.complete
+        ? 'Die Auswahlkarten bleiben gesperrt, bis alle sechs Kurzvoten abgegeben wurden und der Rundenentscheid automatisch erzeugt ist.'
         : missingRoles.length
         ? `Es fehlen noch Auswahlkarten für: ${nextRolesText}. Geht zu „5. Auswahlkarten pro Rolle anklicken“. Dort seht ihr sechs große Rollenfelder. In jedem offenen Rollenfeld klickt ihr genau eine rechteckige Auswahlkarte mit Titel und Kurzbeschreibung an.`
         : 'Alle sechs Rollen haben unten im Abschnitt „5. Auswahlkarten pro Rolle anklicken“ bereits genau eine Auswahlkarte.',
-      status: !state.setupComplete ? 'pending' : readyToResolve ? 'done' : 'active'
+      status: !state.setupComplete || !voteOutcome.complete ? 'pending' : readyToResolve ? 'done' : 'active'
     },
     {
       label: 'Button drücken',
       detail: !state.setupComplete
         ? 'Auch die Auswertung bleibt gesperrt, bis die Partie gestartet wurde.'
+        : !voteOutcome.complete
+        ? 'Auch die Auswertung bleibt gesperrt, bis die sechs Kurzvoten abgegeben und die Auswahlkarten gewählt wurden.'
         : readyToResolve
         ? 'Drückt jetzt „6. Runde auswerten“. Lest danach rechts Protokoll, Matrix und Meta-System.'
         : 'Diesen Button drückt ihr erst, wenn wirklich alle Rollen eine Karte haben.',
-      status: !state.setupComplete ? 'pending' : readyToResolve ? 'active' : 'pending'
+      status: !state.setupComplete || !voteOutcome.complete ? 'pending' : readyToResolve ? 'active' : 'pending'
     }
   ];
 
@@ -2028,6 +2201,8 @@ function renderCurrentTaskPanel() {
         ? namesReady
           ? 'Die Rollen sind eingerichtet. Drückt jetzt oben „Spiel starten“.'
           : `Richtet zuerst die fehlenden Rollen ein: ${missingPlayerText}.`
+        : !voteOutcome.complete
+        ? `Gebt jetzt die fehlenden Kurzvoten ab für ${missingVoteText}.`
         : readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
         : `Diskutiert kurz und klickt danach die fehlenden Auswahlkarten für ${nextRolesText} an.`}
@@ -2044,7 +2219,7 @@ function renderCurrentTaskPanel() {
       `).join('')}
     </ol>
     <p class="guide-note">
-      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach sagt jede Person aus ihrer Rolle in einem Satz, was jetzt am wichtigsten ist. Erst dann geht ihr zum Abschnitt „5. Auswahlkarten pro Rolle anklicken“. Dort klickt ihr in jedem großen Rollenfeld genau eine rechteckige Auswahlkarte an.
+      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Erst wenn daraus der gewichtete Rundenentscheid erzeugt wurde, geht ihr zu „5. Auswahlkarten pro Rolle anklicken“.
     </p>
   `;
 }
@@ -2052,7 +2227,9 @@ function renderCurrentTaskPanel() {
 function renderDiscussionPanel() {
   const guide = getRoundGuide();
   const teaching = getTeacherBriefing();
-  const noteValue = state.notesByRound[getRoundNoteKey()] || '';
+  const voteOutcome = getRoundVoteOutcome();
+  const winner = voteOutcome.winner;
+  const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
 
   discussionPanel.innerHTML = `
     <article class="prompt-card">
@@ -2098,16 +2275,97 @@ function renderDiscussionPanel() {
     </article>
 
     <article class="prompt-card">
-      <h3>Wer entscheidet gleich konkret etwas?</h3>
+      <h3>So wird in dieser Runde entschieden</h3>
+      <p>Es gibt zuerst eine offene Abstimmung über die drei Wege aus dem Lagefenster. Jede Rolle wählt genau einen Weg und schreibt ein kurzes Votum von mindestens einem Satz.</p>
+      <p>Nicht alle Stimmen zählen gleich stark. Das ist bewusst so, weil einige Rollen in dieser Lage mehr operative oder rechtlich-politische Verantwortung tragen als andere. Die Gewichtung ist transparent und für jede Runde gleich:</p>
       <div class="decision-grid">
         ${ROLE_ORDER.map((roleId) => `
           <article class="decision-card">
-            <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label}</strong>
+            <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label} · Gewicht ${ROLE_VOTE_WEIGHTS[roleId].weight}</strong>
             <span>${getRolePlayerLabel(roleId)}</span>
-            <span>Diese Person oder Gruppe wählt gleich genau eine Karte für diese Rolle.</span>
+            <span>${ROLE_VOTE_WEIGHTS[roleId].reason}</span>
           </article>
         `).join('')}
       </div>
+      <p class="small-note">Bei Stimmgleichheit entscheidet transparent die Rolle, die in dieser Runde zuerst sprechen muss.</p>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Gewichtete Abstimmung dieser Runde</h3>
+      <div class="vote-grid">
+        ${ROLE_ORDER.map((roleId) => {
+          const vote = getRoleVote(roleId);
+          const voteLabel = ROLE_VOTE_WEIGHTS[roleId];
+          return `
+            <article class="vote-card">
+              <div class="vote-card-head">
+                <div>
+                  <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label}</strong>
+                  <span>${getRolePlayerLabel(roleId)}</span>
+                </div>
+                <span class="vote-weight-badge">Gewicht ${voteLabel.weight}</span>
+              </div>
+              <p class="vote-card-note">Warum diese Stimme mehr oder weniger zählt: ${voteLabel.reason}.</p>
+              <div class="vote-choice-row">
+                ${teaching.paths.map((path, index) => `
+                  <button
+                    class="vote-choice-btn ${vote.choiceIndex === index ? 'selected' : ''}"
+                    type="button"
+                    data-vote-choice-role="${roleId}"
+                    data-vote-choice-index="${index}"
+                  >
+                    <strong>Weg ${index + 1}</strong>
+                    <span>${path}</span>
+                  </button>
+                `).join('')}
+              </div>
+              <label class="vote-label" for="voteReason-${roleId}">Kurzes Votum dieser Rolle</label>
+              <textarea
+                id="voteReason-${roleId}"
+                class="vote-reason-field"
+                data-vote-reason="${roleId}"
+                placeholder="Schreibt hier in einem kurzen Satz, warum diese Rolle für ihren Weg stimmt."
+              >${escapeHtml(vote.reason)}</textarea>
+            </article>
+          `;
+        }).join('')}
+      </div>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Automatisch erzeugter Rundenentscheid</h3>
+      ${voteOutcome.complete ? `
+        <div class="vote-result-card is-ready">
+          <p><strong>Entscheid:</strong> Weg ${winner.index + 1} gewinnt mit ${winner.weight} von ${voteOutcome.totalWeight} Gewichtspunkten.</p>
+          <p><strong>Gewonnene Linie:</strong> ${winner.path}</p>
+          <p><strong>Entscheidregel:</strong> ${voteOutcome.tiebreakReason}</p>
+        </div>
+      ` : `
+        <div class="vote-result-card">
+          <p><strong>Noch kein Entscheid:</strong> Es fehlen noch vollständige Kurzvoten für ${missingVoteText}.</p>
+          <p>Erst wenn alle sechs Rollen einen Weg gewählt und ein kurzes Votum geschrieben haben, erzeugt die App den Rundenentscheid automatisch.</p>
+        </div>
+      `}
+      <div class="vote-tally-grid">
+        ${voteOutcome.options.map((option) => `
+          <article class="vote-tally-card ${voteOutcome.complete && winner.index === option.index ? 'winner' : ''}">
+            <strong>Weg ${option.index + 1}</strong>
+            <span>${option.path}</span>
+            <span>${option.weight} / ${voteOutcome.totalWeight} Gewichtspunkte</span>
+            <span>${option.roles.length ? option.roles.map((roleId) => ROLE_META[roleId].short).join(', ') : 'noch keine Stimmen'}</span>
+          </article>
+        `).join('')}
+      </div>
+      ${voteOutcome.complete ? `
+        <div class="vote-reason-list">
+          ${winner.reasons.map((entry) => `
+            <article class="vote-reason-card">
+              <strong>${ROLE_META[entry.roleId].label}</strong>
+              <span>${entry.reason}</span>
+            </article>
+          `).join('')}
+        </div>
+      ` : ''}
     </article>
 
     <article class="prompt-card">
@@ -2116,24 +2374,23 @@ function renderDiscussionPanel() {
         ${guide.prompts.map((prompt) => `<li>${prompt}</li>`).join('')}
       </ol>
     </article>
-
-    <label class="note-label" for="discussionNote">
-      Hier schreibt ihr die gemeinsame Antwort auf die Diskussionsfrage auf
-    </label>
-    <textarea
-      id="discussionNote"
-      class="note-field"
-      placeholder="${guide.notePrompt}"
-    >${escapeHtml(noteValue)}</textarea>
-    <p class="small-note">Die Notiz wird lokal gespeichert. Ihr müsst keinen extra Speichern-Knopf drücken.</p>
   `;
 
-  const noteField = document.querySelector('#discussionNote');
-  if (noteField) {
-    noteField.addEventListener('input', () => {
-      setRoundNote(noteField.value);
+  discussionPanel.querySelectorAll('[data-vote-choice-role]').forEach((button) => {
+    button.addEventListener('click', () => {
+      setRoleVoteChoice(button.dataset.voteChoiceRole, Number(button.dataset.voteChoiceIndex));
+      render();
     });
-  }
+  });
+
+  discussionPanel.querySelectorAll('[data-vote-reason]').forEach((field) => {
+    field.addEventListener('input', () => {
+      setRoleVoteReason(field.dataset.voteReason, field.value);
+    });
+    field.addEventListener('blur', () => {
+      render();
+    });
+  });
 }
 
 function renderSelectionSummary() {
@@ -2155,6 +2412,7 @@ function renderSelectionSummary() {
 
 function renderRoles() {
   const namesReady = getMissingPlayerNameRoleIds().length === 0;
+  const voteOutcome = getRoundVoteOutcome();
   rolesGrid.innerHTML = Object.keys(ROLE_META).map((roleId) => {
     const role = ROLE_META[roleId];
     const assignment = ROLE_ASSIGNMENTS[roleId];
@@ -2203,7 +2461,7 @@ function renderRoles() {
           type="button"
           data-role="${roleId}"
           data-card="${card.id}"
-          ${namesReady ? '' : 'disabled'}
+          ${namesReady && voteOutcome.complete ? '' : 'disabled'}
           style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
         >
           <span class="choice-kicker">Auswahlkarte für ${role.short}</span>
@@ -2232,9 +2490,11 @@ function renderRoles() {
           </div>
         </div>
         <p class="role-goal">${role.goal}</p>
-        <p class="small-note">${namesReady
-          ? `Unter diesem Rollenfeld liegen die anklickbaren Auswahlkarten für ${role.label}. ${getRolePlayerLabel(roleId)} klickt jetzt genau eine rechteckige Auswahlkarte an.`
-          : 'Diese Rollenkarte wird erst freigeschaltet, wenn oben alle sechs Namen eingetragen sind.'}</p>
+        <p class="small-note">${!namesReady
+          ? 'Diese Rollenkarte wird erst freigeschaltet, wenn oben alle sechs Namen eingetragen sind.'
+          : !voteOutcome.complete
+          ? 'Diese Auswahlkarten werden erst freigeschaltet, wenn in Schritt 4 alle sechs Rollen ihren Weg gewählt und ihr Kurzvotum geschrieben haben.'
+          : `Unter diesem Rollenfeld liegen die anklickbaren Auswahlkarten für ${role.label}. ${getRolePlayerLabel(roleId)} klickt jetzt genau eine rechteckige Auswahlkarte an, um den erzeugten Rundenentscheid für diese Rolle umzusetzen.`}</p>
         <div class="card-choice-grid">${cardsMarkup}</div>
       </article>
     `;
@@ -2618,6 +2878,7 @@ function render() {
   renderEndScreen();
 
   const missingPlayerNames = getMissingPlayerNameRoleIds();
+  const voteOutcome = getRoundVoteOutcome();
   document.body.classList.toggle('overlay-active', state.setupComplete && gameOverlayOpen);
   gameOverlay.classList.toggle('hidden', !(state.setupComplete && gameOverlayOpen));
   gameOverlay.setAttribute('aria-hidden', state.setupComplete && gameOverlayOpen ? 'false' : 'true');
@@ -2626,7 +2887,7 @@ function render() {
   resumeGameBtn.textContent = gameOverlayOpen ? 'Spielfenster ist geöffnet' : 'Laufende Partie öffnen';
   navOpenGameBtn.disabled = !state.setupComplete;
   navOpenGameBtn.textContent = state.setupComplete ? 'Direkt zur Partie' : 'Partie noch nicht gestartet';
-  resolveBtn.disabled = state.finished || !state.setupComplete;
+  resolveBtn.disabled = state.finished || !state.setupComplete || !voteOutcome.complete;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
     roundFeedback.className = 'round-feedback tone-neutral';
@@ -2636,11 +2897,15 @@ function render() {
       ? `Unterrichtsstart noch nicht abgeschlossen. Diese Rollen brauchen noch einen Namen oder den Modus „gemeinsam in der Gruppe“: ${names}.`
       : 'Unterrichtsstart bereit. Drückt oben „Spiel starten“, um Runde 1 freizuschalten.';
     roundFeedback.className = 'round-feedback tone-danger';
+  } else if (!voteOutcome.complete) {
+    const names = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
+    roundFeedback.textContent = `Nächster Schritt: Gebt in „4. Diskussion und Abstimmung“ noch vollständige Kurzvoten ab für ${names}. Erst dann erzeugt die App den Rundenentscheid und schaltet die Auswahlkarten frei.`;
+    roundFeedback.className = 'round-feedback tone-legal';
   } else {
     const missingRoles = getMissingRoleIds();
     if (missingRoles.length) {
       const names = missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
-      roundFeedback.textContent = `Nächster Schritt: Wählt noch eine Karte für ${names}. Erst danach drückt ihr „6. Runde auswerten“.`;
+      roundFeedback.textContent = `Der Rundenentscheid steht fest: Weg ${voteOutcome.winner.index + 1}. Wählt jetzt noch eine Auswahlkarte für ${names}. Erst danach drückt ihr „6. Runde auswerten“.`;
       roundFeedback.className = 'round-feedback tone-legal';
     } else {
       roundFeedback.textContent = 'Alle sechs Rollen haben gewählt. Drückt jetzt „6. Runde auswerten“ und lest danach unten Protokoll, Matrix und Meta-System.';

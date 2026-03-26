@@ -401,6 +401,147 @@ h1 span {
   gap: 14px;
 }
 
+.vote-grid,
+.vote-tally-grid,
+.vote-reason-list {
+  display: grid;
+  gap: 12px;
+}
+
+.vote-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vote-card,
+.vote-tally-card,
+.vote-reason-card,
+.vote-result-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.vote-card {
+  display: grid;
+  gap: 12px;
+}
+
+.vote-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.vote-card-head strong,
+.vote-card-head span,
+.vote-card-note,
+.vote-tally-card span,
+.vote-reason-card span,
+.vote-result-card p {
+  display: block;
+}
+
+.vote-card-head span,
+.vote-card-note,
+.vote-tally-card span,
+.vote-reason-card span,
+.vote-result-card p {
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.vote-weight-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(66, 95, 143, 0.1);
+  color: var(--legal);
+  font-size: 0.8rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.vote-choice-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.vote-choice-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(250, 246, 240, 0.92);
+  padding: 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vote-choice-btn strong,
+.vote-choice-btn span {
+  display: block;
+}
+
+.vote-choice-btn span {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.vote-choice-btn.selected {
+  border-color: rgba(66, 95, 143, 0.42);
+  background: rgba(66, 95, 143, 0.1);
+  box-shadow: 0 14px 24px rgba(66, 95, 143, 0.12);
+}
+
+.vote-label {
+  font-weight: 800;
+}
+
+.vote-reason-field {
+  width: 100%;
+  min-height: 112px;
+  resize: vertical;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 14px 16px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.vote-result-card {
+  margin-bottom: 12px;
+}
+
+.vote-result-card.is-ready {
+  border-color: rgba(47, 111, 89, 0.28);
+  background: rgba(47, 111, 89, 0.08);
+}
+
+.vote-tally-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vote-tally-card {
+  display: grid;
+  gap: 6px;
+}
+
+.vote-tally-card.winner {
+  border-color: rgba(47, 111, 89, 0.28);
+  background: rgba(47, 111, 89, 0.08);
+}
+
+.vote-reason-card {
+  display: grid;
+  gap: 6px;
+}
+
 .scenario-card {
   padding: 18px;
   border-radius: 18px;
@@ -1480,7 +1621,9 @@ h1 span {
 
   .assignment-grid,
   .decision-grid,
-  .briefing-action-grid {
+  .briefing-action-grid,
+  .vote-grid,
+  .vote-tally-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1541,6 +1684,12 @@ h1 span {
 
   .role-card-header {
     flex-direction: column;
+  }
+
+  .vote-card-head,
+  .vote-choice-row {
+    grid-template-columns: 1fr;
+    display: grid;
   }
 
   .button-row {
