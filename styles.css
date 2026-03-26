@@ -241,6 +241,22 @@ h1 span {
   line-height: 1.58;
 }
 
+.assignment-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.assignment-input {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 11px 13px;
+  color: var(--ink);
+}
+
 .guide-panel {
   display: grid;
   gap: 14px;
@@ -774,6 +790,12 @@ h1 span {
 .choice-btn:hover {
   transform: translateY(-1px);
   border-color: rgba(24, 32, 44, 0.28);
+}
+
+.choice-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
 }
 
 .choice-btn.selected {

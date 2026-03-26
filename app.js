@@ -440,6 +440,10 @@ function createSessionId() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
+function createEmptyPlayerNames() {
+  return Object.fromEntries(ROLE_ORDER.map((roleId) => [roleId, '']));
+}
+
 function normalizeCompanionRoles(input) {
   return Object.fromEntries(
     ROLE_ORDER.map((roleId) => [roleId, false])
@@ -453,6 +457,7 @@ function createInitialState() {
     finished: false,
     restored: false,
     ending: null,
+    playerNames: createEmptyPlayerNames(),
     companionRoles: normalizeCompanionRoles(),
     notesByRound: {},
     selections: {},
@@ -503,6 +508,10 @@ function hydrateState(input) {
     ...initial,
     ...input,
     sessionId: typeof input.sessionId === 'string' ? input.sessionId : initial.sessionId,
+    playerNames: {
+      ...initial.playerNames,
+      ...((input.playerNames && typeof input.playerNames === 'object') ? input.playerNames : {})
+    },
     companionRoles: normalizeCompanionRoles(input.companionRoles),
     notesByRound: input.notesByRound && typeof input.notesByRound === 'object' ? input.notesByRound : {},
     selections: input.selections && typeof input.selections === 'object' ? input.selections : {},
@@ -664,6 +673,20 @@ function getRoundNoteKey(roundIndex = state.roundIndex) {
 function setRoundNote(value) {
   state.notesByRound[getRoundNoteKey()] = value;
   saveState(state);
+}
+
+function setPlayerName(roleId, value) {
+  if (!ROLE_META[roleId]) return;
+  state.playerNames[roleId] = value.trimStart();
+  saveState(state);
+}
+
+function getPlayerName(roleId) {
+  return (state.playerNames[roleId] || '').trim();
+}
+
+function getMissingPlayerNameRoleIds() {
+  return ROLE_ORDER.filter((roleId) => !getPlayerName(roleId));
 }
 
 function getMissingRoleIds() {
@@ -1344,6 +1367,13 @@ function resetState() {
 
 function selectCard(roleId, cardId) {
   if (state.finished) return;
+  const missingNames = getMissingPlayerNameRoleIds();
+  if (missingNames.length) {
+    const names = missingNames.map((item) => ROLE_META[item].short).join(', ');
+    roundFeedback.textContent = `Tragt zuerst alle sechs Namen ein. Es fehlen noch Namen bei: ${names}.`;
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
   state.selections[roleId] = cardId;
   saveState(state);
   render();
@@ -1401,6 +1431,14 @@ function applyCompanionAnswer(roleId, rawCode) {
 
 function resolveRound() {
   if (state.finished) return;
+
+  const missingNames = getMissingPlayerNameRoleIds();
+  if (missingNames.length > 0) {
+    const names = missingNames.map((roleId) => ROLE_META[roleId].short).join(', ');
+    roundFeedback.textContent = `Vor dem Spielstart müssen alle Namen eingetragen sein. Es fehlen noch: ${names}.`;
+    roundFeedback.className = 'round-feedback tone-danger';
+    return;
+  }
 
   const missingRoles = ROLE_ORDER.filter((roleId) => !state.selections[roleId]);
   if (missingRoles.length > 0) {
@@ -1534,50 +1572,86 @@ function renderRoleAssignmentPanel() {
   roleAssignmentPanel.innerHTML = ROLE_ORDER.map((roleId) => {
     const role = ROLE_META[roleId];
     const assignment = ROLE_ASSIGNMENTS[roleId];
+    const playerName = state.playerNames[roleId] || '';
     return `
       <article class="assignment-card">
         <span class="assignment-slot">${assignment.slot}</span>
         <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
         <p>${role.subtitle}</p>
         <p>${assignment.duty}</p>
+        <label class="assignment-label" for="playerName-${roleId}">Name der spielenden Person</label>
+        <input
+          id="playerName-${roleId}"
+          class="assignment-input"
+          type="text"
+          data-player-name="${roleId}"
+          placeholder="${assignment.slot} trägt hier den Namen ein"
+          value="${escapeHtml(playerName)}"
+        />
       </article>
     `;
   }).join('');
+
+  roleAssignmentPanel.querySelectorAll('[data-player-name]').forEach((input) => {
+    input.addEventListener('input', () => {
+      setPlayerName(input.dataset.playerName, input.value);
+    });
+    input.addEventListener('change', () => {
+      render();
+    });
+    input.addEventListener('blur', () => {
+      render();
+    });
+  });
 }
 
 function renderCurrentTaskPanel() {
+  const missingPlayerNames = getMissingPlayerNameRoleIds();
+  const namesReady = missingPlayerNames.length === 0;
   const missingRoles = getMissingRoleIds();
-  const readyToResolve = missingRoles.length === 0;
+  const readyToResolve = namesReady && missingRoles.length === 0;
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const nextRolesText = missingRoles.length
     ? missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ')
     : 'Alle Rollen haben eine Karte.';
+  const missingPlayerText = missingPlayerNames.map((roleId) => ROLE_ASSIGNMENTS[roleId].slot).join(', ');
 
   const steps = [
     {
+      label: 'Namen eintragen',
+      detail: namesReady
+        ? 'Alle sechs Rollen sind einer spielenden Person zugeordnet.'
+        : `Bevor es losgeht, müssen diese Rollen noch einen Namen bekommen: ${missingPlayerText}.`,
+      status: namesReady ? 'done' : 'active'
+    },
+    {
       label: 'Lage lesen',
       detail: 'Lest zuerst oben „Lageüberblick“ und „Lage lesen“, damit alle dieselbe Ausgangslage im Blick haben.',
-      status: 'done'
+      status: namesReady ? 'done' : 'pending'
     },
     {
       label: 'Diskutieren',
       detail: 'Beantwortet gemeinsam die Leitfrage dieser Runde und notiert eure Begründung direkt im Notizfeld darunter.',
-      status: 'active'
+      status: namesReady ? 'active' : 'pending'
     },
     {
       label: 'Karten wählen',
-      detail: missingRoles.length
+      detail: !namesReady
+        ? 'Die Kartenwahl bleibt gesperrt, bis alle sechs Namen eingetragen sind.'
+        : missingRoles.length
         ? `Es fehlen noch Karten für: ${nextRolesText}. Klickt in jeder offenen Rolle genau eine Karte an.`
         : 'Alle sechs Rollen sind gewählt. Die Runde ist bereit für den nächsten Schritt.',
-      status: readyToResolve ? 'done' : 'active'
+      status: !namesReady ? 'pending' : readyToResolve ? 'done' : 'active'
     },
     {
       label: 'Button drücken',
-      detail: readyToResolve
+      detail: !namesReady
+        ? 'Auch die Auswertung bleibt gesperrt, bis alle Namen eingetragen sind.'
+        : readyToResolve
         ? 'Drückt jetzt „6. Runde auswerten“. Lest danach unten Protokoll, Matrix und Meta-System.'
         : 'Diesen Button drückt ihr erst, wenn wirklich alle Rollen eine Karte haben.',
-      status: readyToResolve ? 'active' : 'pending'
+      status: !namesReady ? 'pending' : readyToResolve ? 'active' : 'pending'
     }
   ];
 
@@ -1592,7 +1666,9 @@ function renderCurrentTaskPanel() {
       </div>
     </article>
     <p class="task-intro">
-      Nächste Aktion in Runde ${state.roundIndex + 1}: ${readyToResolve
+      Nächste Aktion in Runde ${state.roundIndex + 1}: ${!namesReady
+        ? `Tragt zuerst die fehlenden Namen ein: ${missingPlayerText}.`
+        : readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
         : `Diskutiert kurz und wählt danach die fehlenden Karten für ${nextRolesText}.`}
     </p>
@@ -1636,6 +1712,7 @@ function renderDiscussionPanel() {
         ${ROLE_ORDER.map((roleId) => `
           <article class="decision-card">
             <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label}</strong>
+            <span>${getPlayerName(roleId) || 'Noch kein Name eingetragen'}</span>
             <span>Diese Person entscheidet gleich, welche Karte ihre Rolle in dieser Runde legt.</span>
           </article>
         `).join('')}
@@ -1671,6 +1748,7 @@ function renderDiscussionPanel() {
 function renderSelectionSummary() {
   selectionSummary.innerHTML = ROLE_ORDER.map((roleId) => {
     const role = ROLE_META[roleId];
+    const playerName = getPlayerName(roleId);
     const selectedCardId = state.selections[roleId];
     const availableCards = getAvailableCards(roleId, state);
     const selectedCard = availableCards.find((card) => card.id === selectedCardId)
@@ -1678,16 +1756,18 @@ function renderSelectionSummary() {
 
     return `
       <span class="selection-chip ${selectedCard ? 'done' : 'pending'} ${!selectedCard ? 'desktop-only' : ''}">
-        ${role.short} · ${selectedCard ? selectedCard.title : 'noch keine Karte gewählt'}
+        ${role.short} · ${playerName || 'kein Name'} · ${selectedCard ? selectedCard.title : 'noch keine Karte gewählt'}
       </span>
     `;
   }).join('');
 }
 
 function renderRoles() {
+  const namesReady = getMissingPlayerNameRoleIds().length === 0;
   rolesGrid.innerHTML = Object.keys(ROLE_META).map((roleId) => {
     const role = ROLE_META[roleId];
     const assignment = ROLE_ASSIGNMENTS[roleId];
+    const playerName = getPlayerName(roleId);
     const row = state.matrix[roleId];
     const availableCards = getAvailableCards(roleId, state);
     const selectedCardId = state.selections[roleId];
@@ -1702,6 +1782,7 @@ function renderRoles() {
               <p class="mini-label">${assignment.slot}</p>
               <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
               <p>${role.subtitle}</p>
+              <p class="small-note">${playerName || 'Name fehlt noch'}</p>
             </div>
             <div class="role-scoreline">
               <span class="score-badge">aktiv ${row.active}</span>
@@ -1731,6 +1812,7 @@ function renderRoles() {
           type="button"
           data-role="${roleId}"
           data-card="${card.id}"
+          ${namesReady ? '' : 'disabled'}
           style="${selected ? `background:${role.soft};border-color:${role.color};` : ''}"
         >
           <h4>${card.title}</h4>
@@ -1749,6 +1831,7 @@ function renderRoles() {
             <p class="mini-label">${assignment.slot}</p>
             <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
             <p>${role.subtitle}</p>
+            <p class="small-note">${playerName || 'Name fehlt noch'}</p>
           </div>
           <div class="role-scoreline">
             <span class="score-badge">aktiv ${row.active}</span>
@@ -1757,7 +1840,9 @@ function renderRoles() {
           </div>
         </div>
         <p class="role-goal">${role.goal}</p>
-        <p class="small-note">Diese Person entscheidet jetzt, welche Karte ihre Rolle in Runde ${state.roundIndex + 1} legt.</p>
+        <p class="small-note">${namesReady
+          ? `Diese Person entscheidet jetzt, welche Karte ihre Rolle in Runde ${state.roundIndex + 1} legt.`
+          : 'Diese Rollenkarte wird erst freigeschaltet, wenn oben alle sechs Namen eingetragen sind.'}</p>
         <div class="card-choice-grid">${cardsMarkup}</div>
       </article>
     `;
@@ -2139,10 +2224,15 @@ function render() {
   renderLog();
   renderEndScreen();
 
-  resolveBtn.disabled = state.finished;
+  const missingPlayerNames = getMissingPlayerNameRoleIds();
+  resolveBtn.disabled = state.finished || missingPlayerNames.length > 0;
   if (state.finished) {
     roundFeedback.textContent = 'Die Partie ist abgeschlossen. Über „Neue Partie“ könnt ihr eine neue Verantwortungsspur legen.';
     roundFeedback.className = 'round-feedback tone-neutral';
+  } else if (missingPlayerNames.length) {
+    const names = missingPlayerNames.map((roleId) => `${ROLE_ASSIGNMENTS[roleId].slot} / ${ROLE_META[roleId].short}`).join(', ');
+    roundFeedback.textContent = `Bevor gespielt wird, müssen oben alle sechs Namen eingetragen sein. Es fehlen noch: ${names}.`;
+    roundFeedback.className = 'round-feedback tone-danger';
   } else {
     const missingRoles = getMissingRoleIds();
     if (missingRoles.length) {
