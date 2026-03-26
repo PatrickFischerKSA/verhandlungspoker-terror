@@ -200,6 +200,47 @@ h1 span {
   margin-bottom: 22px;
 }
 
+.assignment-panel {
+  margin-bottom: 22px;
+}
+
+.assignment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.assignment-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.74);
+  display: grid;
+  gap: 10px;
+}
+
+.assignment-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(24, 32, 44, 0.08);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.assignment-card h3,
+.assignment-card p {
+  margin: 0;
+}
+
+.assignment-card p {
+  color: var(--muted);
+  line-height: 1.58;
+}
+
 .guide-panel {
   display: grid;
   gap: 14px;
@@ -231,6 +272,43 @@ h1 span {
 .discussion-panel-body {
   display: grid;
   gap: 14px;
+}
+
+.scenario-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(66, 95, 143, 0.16);
+  background: rgba(66, 95, 143, 0.07);
+  display: grid;
+  gap: 12px;
+}
+
+.scenario-card h3,
+.scenario-card p {
+  margin: 0;
+}
+
+.scenario-card p {
+  color: var(--muted);
+  line-height: 1.64;
+}
+
+.scenario-pill-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scenario-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(66, 95, 143, 0.14);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ink);
 }
 
 .task-intro {
@@ -342,6 +420,31 @@ h1 span {
   gap: 8px;
   color: var(--muted);
   line-height: 1.62;
+}
+
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.decision-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.76);
+  display: grid;
+  gap: 8px;
+}
+
+.decision-card strong,
+.decision-card span {
+  display: block;
+}
+
+.decision-card span {
+  color: var(--muted);
+  line-height: 1.58;
 }
 
 .note-label {
@@ -1171,6 +1274,11 @@ h1 span {
 
 @media (max-width: 1180px) {
   .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-grid,
+  .decision-grid {
     grid-template-columns: 1fr;
   }
 

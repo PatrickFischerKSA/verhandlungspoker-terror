@@ -43,6 +43,33 @@ const ROLE_CODE_TO_ID = Object.fromEntries(
   Object.entries(ROLE_SHORT_CODES).map(([roleId, code]) => [code, roleId])
 );
 
+const ROLE_ASSIGNMENTS = {
+  katastrophenschutz: {
+    slot: 'Person 1',
+    duty: 'organisiert Räumung und Schutz im Stadionumfeld'
+  },
+  fuehrungszentrum: {
+    slot: 'Person 2',
+    duty: 'koordiniert Luftlage, Befehle und Informationsfluss'
+  },
+  ministerium: {
+    slot: 'Person 3',
+    duty: 'vertritt Recht, politische Deckung und Staatsverantwortung'
+  },
+  koch: {
+    slot: 'Person 4',
+    duty: 'muss als Pilot im Jet die letzte operative Entscheidung tragen'
+  },
+  nelson: {
+    slot: 'Person 5',
+    duty: 'sammelt Argumente der Anklage gegen rechtswidriges Handeln'
+  },
+  biegler: {
+    slot: 'Person 6',
+    duty: 'sammelt Argumente der Verteidigung für Zeitdruck und Pflichtenkollision'
+  }
+};
+
 const ROLE_META = {
   koch: {
     label: 'Lars Koch',
@@ -641,6 +668,10 @@ function setRoundNote(value) {
 
 function getMissingRoleIds() {
   return ROLE_ORDER.filter((roleId) => !state.selections[roleId]);
+}
+
+function getRoundScenarioText(round, guide) {
+  return `Situation in dieser Runde: ${round.summary} ${round.pressure} Ihr müsst jetzt entscheiden, welche Rolle sofort handeln, welche Rolle absichern und welche Rolle warnen oder bremsen soll.`;
 }
 
 function addLogEntry(state, text) {
@@ -1499,10 +1530,26 @@ function renderResolutionOrder() {
   }).join('');
 }
 
+function renderRoleAssignmentPanel() {
+  roleAssignmentPanel.innerHTML = ROLE_ORDER.map((roleId) => {
+    const role = ROLE_META[roleId];
+    const assignment = ROLE_ASSIGNMENTS[roleId];
+    return `
+      <article class="assignment-card">
+        <span class="assignment-slot">${assignment.slot}</span>
+        <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
+        <p>${role.subtitle}</p>
+        <p>${assignment.duty}</p>
+      </article>
+    `;
+  }).join('');
+}
+
 function renderCurrentTaskPanel() {
   const missingRoles = getMissingRoleIds();
   const readyToResolve = missingRoles.length === 0;
   const guide = getRoundGuide();
+  const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const nextRolesText = missingRoles.length
     ? missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ')
     : 'Alle Rollen haben eine Karte.';
@@ -1535,6 +1582,15 @@ function renderCurrentTaskPanel() {
   ];
 
   currentTaskPanel.innerHTML = `
+    <article class="scenario-card">
+      <h3>Konkrete Situation in Runde ${state.roundIndex + 1}</h3>
+      <p>${getRoundScenarioText(round, guide)}</p>
+      <div class="scenario-pill-row">
+        <span class="scenario-pill">T - ${round.minute} Minuten</span>
+        <span class="scenario-pill">${state.statuses.stadiumStatus}</span>
+        <span class="scenario-pill">${state.statuses.rulesStatus}</span>
+      </div>
+    </article>
     <p class="task-intro">
       Nächste Aktion in Runde ${state.roundIndex + 1}: ${readyToResolve
         ? 'Die Entscheidungen sind vollständig. Ihr könnt jetzt auswerten.'
@@ -1551,34 +1607,50 @@ function renderCurrentTaskPanel() {
         </li>
       `).join('')}
     </ol>
-    <p class="guide-note">${guide.discussion}</p>
+    <p class="guide-note">
+      Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach sagt jede Person aus ihrer Rolle in einem Satz, was jetzt am wichtigsten ist. Erst dann wird pro Rolle genau eine Karte gewählt.
+    </p>
   `;
 }
 
 function renderDiscussionPanel() {
   const guide = getRoundGuide();
+  const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
   const noteValue = state.notesByRound[getRoundNoteKey()] || '';
 
   discussionPanel.innerHTML = `
     <article class="prompt-card">
-      <h3>Diskussionsfrage dieser Runde</h3>
-      <p>${guide.discussion}</p>
+      <h3>Welche Situation liegt vor?</h3>
+      <p>${round.summary}</p>
+      <p>${round.focus}</p>
     </article>
 
     <div class="question-box">
-      <strong>Frage an die Gruppe</strong>
+      <strong>Genau diese Frage diskutiert ihr jetzt</strong>
       <p>${guide.question}</p>
     </div>
 
     <article class="prompt-card">
-      <h3>Darauf sollt ihr achten</h3>
+      <h3>Was müsst ihr am Ende entscheiden?</h3>
+      <div class="decision-grid">
+        ${ROLE_ORDER.map((roleId) => `
+          <article class="decision-card">
+            <strong>${ROLE_ASSIGNMENTS[roleId].slot}: ${ROLE_META[roleId].label}</strong>
+            <span>Diese Person entscheidet gleich, welche Karte ihre Rolle in dieser Runde legt.</span>
+          </article>
+        `).join('')}
+      </div>
+    </article>
+
+    <article class="prompt-card">
+      <h3>Darauf sollt ihr bei der Diskussion achten</h3>
       <ol class="discussion-list">
         ${guide.prompts.map((prompt) => `<li>${prompt}</li>`).join('')}
       </ol>
     </article>
 
     <label class="note-label" for="discussionNote">
-      Hier schreibt ihr eure Gruppenantwort auf
+      Hier schreibt ihr die gemeinsame Antwort auf die Diskussionsfrage auf
     </label>
     <textarea
       id="discussionNote"
@@ -1615,6 +1687,7 @@ function renderSelectionSummary() {
 function renderRoles() {
   rolesGrid.innerHTML = Object.keys(ROLE_META).map((roleId) => {
     const role = ROLE_META[roleId];
+    const assignment = ROLE_ASSIGNMENTS[roleId];
     const row = state.matrix[roleId];
     const availableCards = getAvailableCards(roleId, state);
     const selectedCardId = state.selections[roleId];
@@ -1626,6 +1699,7 @@ function renderRoles() {
         <article class="role-card">
           <div class="role-card-header">
             <div>
+              <p class="mini-label">${assignment.slot}</p>
               <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
               <p>${role.subtitle}</p>
             </div>
@@ -1634,8 +1708,9 @@ function renderRoles() {
               <span class="score-badge">unterlassen ${row.omitted}</span>
               <span class="score-badge">rechtlich ${row.legal}</span>
             </div>
-          </div>
+        </div>
         <p class="role-goal">${role.goal}</p>
+        <p class="small-note">Entscheidung dieser Person in dieser Runde: Welche Karte passt jetzt am besten zur Lage?</p>
         <div class="guide-note">
             Diese Rolle wird in dieser Runde über ein Handy gespielt. Scannt den QR-Code im Seitenbereich,
             wählt dort eine Karte und übernehmt anschließend den Antwortcode auf dem Desktop.
@@ -1671,6 +1746,7 @@ function renderRoles() {
       <article class="role-card">
         <div class="role-card-header">
           <div>
+            <p class="mini-label">${assignment.slot}</p>
             <h3><span class="role-accent" style="background:${role.color}"></span>${role.label}</h3>
             <p>${role.subtitle}</p>
           </div>
@@ -1681,6 +1757,7 @@ function renderRoles() {
           </div>
         </div>
         <p class="role-goal">${role.goal}</p>
+        <p class="small-note">Diese Person entscheidet jetzt, welche Karte ihre Rolle in Runde ${state.roundIndex + 1} legt.</p>
         <div class="card-choice-grid">${cardsMarkup}</div>
       </article>
     `;
@@ -2046,6 +2123,7 @@ function renderInvalidPhoneScreen() {
 function render() {
   updateStatuses(state);
   renderRestoreBanner();
+  renderRoleAssignmentPanel();
   renderStatusStrip();
   renderBriefing();
   renderCurrentTaskPanel();
@@ -2084,6 +2162,7 @@ const phoneLead = document.querySelector('#phoneLead');
 const phoneStatusPanel = document.querySelector('#phoneStatusPanel');
 const phoneRolePanel = document.querySelector('#phoneRolePanel');
 const phoneActionPanel = document.querySelector('#phoneActionPanel');
+const roleAssignmentPanel = document.querySelector('#roleAssignmentPanel');
 const statusStrip = document.querySelector('#statusStrip');
 const briefingCard = document.querySelector('#briefingCard');
 const currentTaskPanel = document.querySelector('#currentTaskPanel');
