@@ -3805,7 +3805,7 @@ function renderDiscussionPanel() {
         </div>
         <div class="briefing-line">
           <strong>Theoriefrage im Verfahren</strong>
-          <span>${courtPrompt.theoryFocus}</span>
+          <span>${courtPrompt.theoryFocus} Wenn ihr diese Unterscheidung vor der Runde noch einmal kurz ansehen wollt, öffnet hier das vorbereitende Video: <a href="https://www.dropbox.com/scl/fi/0q2zm7rgr03b7l9bz133z/STRASSENBAHN-das-philosophische-Gedankenexperiment-filosofix.mp4?rlkey=oh1qz7n1nhgq0kcuu8jpgipt2&st=ud6qhs4q&dl=0" target="_blank" rel="noreferrer noopener">Straßenbahn - das philosophische Gedankenexperiment</a>.</span>
         </div>
         <div class="briefing-line">
           <strong>Stimmen zuordnen</strong>
@@ -4203,6 +4203,7 @@ function renderReferencePanel() {
       <p>${courtPrompt.theoryFocus}</p>
       <p>${courtPrompt.attribution}</p>
       <p>${courtPrompt.classAction}</p>
+      <p class="small-note">Vorbereitender Link zur Theoriefrage: <a href="https://www.dropbox.com/scl/fi/0q2zm7rgr03b7l9bz133z/STRASSENBAHN-das-philosophische-Gedankenexperiment-filosofix.mp4?rlkey=oh1qz7n1nhgq0kcuu8jpgipt2&st=ud6qhs4q&dl=0" target="_blank" rel="noreferrer noopener">Straßenbahn - das philosophische Gedankenexperiment</a></p>
     </article>
   `;
 }
