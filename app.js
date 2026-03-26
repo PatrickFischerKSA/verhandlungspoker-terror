@@ -1740,6 +1740,25 @@ function getRoundArgumentLens(roundIndex = state.roundIndex) {
   return ROUND_ARGUMENT_LENSES[Math.min(roundIndex, ROUND_ARGUMENT_LENSES.length - 1)];
 }
 
+function getDramaticCourtPrompt(roundIndex = state.roundIndex) {
+  const teaching = getTeacherBriefing(roundIndex);
+  const lens = getRoundArgumentLens(roundIndex);
+  const leadRoleId = getLeadRoleId(roundIndex);
+  const leadRole = ROLE_META[leadRoleId];
+
+  return {
+    interruption: `Der Gerichtspräsident unterbricht das Verfahren und sagt sinngemäß: Bevor hier weiter entschieden wird, will das Gericht hören, wie ${leadRole.label} die Lage deutet und ob hier gerade eher Rettungslogik oder Grenzlogik den Ton angibt.`,
+    sceneFlow: [
+      `${leadRole.label} eröffnet die Runde und nimmt Stellung zur Streitfrage: ${teaching.conflict}`,
+      `Danach spricht die Seite von Lars Koch: ${lens.koch}`,
+      `Danach folgt Nelsons Gegenangriff: ${lens.nelson}`
+    ],
+    theoryFocus: `Fragt euch jetzt ausdrücklich: Welche Position argumentiert eher utilitaristisch, also stärker mit dem Retten möglichst vieler Menschen? Welche Position argumentiert eher deontologisch oder rechtsstaatlich, also stärker mit Grenze, Würde und Verbot?`,
+    attribution: `Ordnet eure eigenen Voten bewusst zu: Klingt euer Satz eher nach Lars Koch, eher nach Nelson oder eher nach einer richterlichen Abwägung?`,
+    classAction: `Erst wenn diese drei Stimmen im Raum waren, geht ihr in die Abstimmung. Eure Stimmabgabe soll also wie der nächste Schritt im Verfahren wirken und nicht wie ein loses Meinungsbild.`
+  };
+}
+
 function getPoliticalClimate(inputState = state) {
   return POLITICAL_CLIMATES[normalizePoliticalClimateId(inputState.politicalClimateId)] || POLITICAL_CLIMATES.grundlinie;
 }
@@ -2407,7 +2426,13 @@ function generateClosingTexts(state) {
     'Eine Verurteilung würde dann nicht bedeuten, dass die Bedrohung klein war, sondern dass der Rechtsstaat sich auch unter maximalem Druck nicht selbst entgrenzen darf.'
   ].join(' ');
 
-  return { indictment, defense, trolley, koch, judgeAcquit, judgeConvict };
+  const classroomIntegration = [
+    'Die Schlussphase dieses Spiels liest eure Voten deshalb nicht wie ein Arbeitsblatt, sondern wie die letzte Zuspitzung des Verfahrens.',
+    'Jetzt lässt sich rückblickend prüfen: Wer argumentierte eher utilitaristisch mit der Rettung möglichst vieler Menschen, wer eher deontologisch mit Menschenwürde, Verbot und Grenze?',
+    'Und genau daran knüpft die Endauswertung an: Welche Sätze klangen nach Lars Koch, welche nach Nelson und welche schon nach einer richterlichen Schlussbegründung?'
+  ].join(' ');
+
+  return { indictment, defense, trolley, koch, judgeAcquit, judgeConvict, classroomIntegration };
 }
 
 const CARD_LIBRARY = {
@@ -3410,6 +3435,7 @@ function renderCurrentTaskPanel() {
   const readyToResolve = state.setupComplete && voteOutcome.complete && selectedMeasure && authorityOutcome.allowed && missingRoles.length === 0;
   const guide = getRoundGuide();
   const round = ROUNDS[Math.min(state.roundIndex, ROUNDS.length - 1)];
+  const courtPrompt = getDramaticCourtPrompt();
   const nextRolesText = missingRoles.length
     ? missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ')
     : 'Alle Rollen haben eine Karte.';
@@ -3546,6 +3572,9 @@ function renderCurrentTaskPanel() {
       Konkreter Arbeitsauftrag: Alle sechs Personen schauen auf dieselbe Situation. Danach stimmt jede Rolle in „4. Diskussion und Abstimmung“ auf einen der drei Wege ab und schreibt ein kurzes Votum. Danach wählt die Klasse zusätzlich einen gemeinsamen Krisenbeschluss mit Folgen für die Lage. In Schritt 5 prüfen einzelne Rollen mit Sonderrecht den Mehrheitsweg. Erst wenn der Weg freigegeben ist, geht ihr zu „6. Auswahlkarten pro Rolle anklicken“.
     </p>
     <p class="guide-note">
+      Dramaturgischer Ablauf dieser Runde: ${courtPrompt.interruption} Erst danach eröffnet ${ROLE_META[getLeadRoleId()].label} die Aussprache, dann klingt die Koch-Perspektive an, dann Nelsons Gegenposition. Eure Abstimmung ist also Teil der Verhandlung und nicht nur eine isolierte Klassenaufgabe.
+    </p>
+    <p class="guide-note">
       Politische Zusatzregel dieses Spiels: In dieser Partie regiert <strong>${politicalClimate.label}</strong>. ${getPoliticalDecisionContext()} ${politicalClimate.recognizesEmergency
         ? `Falls eure Karten später wirklich auf Ausnahmefreigabe oder Abschuss hinauslaufen, entscheidet die App einmal per Zufall, ob diese Regierung die Klausel politisch wirksam werden lässt (${Math.round(politicalClimate.activationChance * 100)} % Chance).`
         : 'Falls eure Karten später auf Ausnahmefreigabe oder Abschuss hinauslaufen, wird diese Klausel politisch nicht wirksam.'}
@@ -3557,6 +3586,7 @@ function renderDiscussionPanel() {
   const guide = getRoundGuide();
   const teaching = getTeacherBriefing();
   const lens = getRoundArgumentLens();
+  const courtPrompt = getDramaticCourtPrompt();
   const voteOutcome = getRoundVoteOutcome();
   const winner = voteOutcome.winner;
   const missingVoteText = voteOutcome.missingRoles.map((roleId) => ROLE_META[roleId].short).join(', ');
@@ -3760,6 +3790,33 @@ function renderDiscussionPanel() {
         </div>
       </div>
       <p class="small-note">Diese Kästen sind keine wörtlichen Zitate, sondern didaktische Annäherungen an die Denkfiguren des Stücks.</p>
+    </article>
+
+    <article class="prompt-card">
+      <h3>So läuft die Verhandlung in dieser Runde weiter</h3>
+      <div class="briefing-stack">
+        <div class="briefing-line">
+          <strong>Zwischenruf des Gerichtspräsidenten</strong>
+          <span>${courtPrompt.interruption}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Szenischer Ablauf jetzt</strong>
+          <span>${courtPrompt.sceneFlow.join(' ')}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Theoriefrage im Verfahren</strong>
+          <span>${courtPrompt.theoryFocus}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Stimmen zuordnen</strong>
+          <span>${courtPrompt.attribution}</span>
+        </div>
+        <div class="briefing-line">
+          <strong>Was ihr dann konkret tut</strong>
+          <span>${courtPrompt.classAction}</span>
+        </div>
+      </div>
+      <p class="small-note">Damit arbeitet ihr nicht neben dem Stück, sondern mitten in seiner Verfahrenslogik: Richterfrage, Koch-Linie, Nelson-Linie, dann euer Votum.</p>
     </article>
   `;
 
@@ -4122,6 +4179,7 @@ function renderMetaSummary() {
 
 function renderReferencePanel() {
   const lens = getRoundArgumentLens();
+  const courtPrompt = getDramaticCourtPrompt();
   referencePanel.innerHTML = `
     <article class="prompt-card">
       <h3>Trolleyproblem</h3>
@@ -4139,6 +4197,12 @@ function renderReferencePanel() {
       <h3>Richterliche Leitfrage</h3>
       <p>${lens.judge}</p>
       <p class="small-note">Didaktische Paraphrase in der Logik des Stücks, nicht als wörtliches Zitat.</p>
+    </article>
+    <article class="prompt-card">
+      <h3>Verfahrensauftrag Der Runde</h3>
+      <p>${courtPrompt.theoryFocus}</p>
+      <p>${courtPrompt.attribution}</p>
+      <p>${courtPrompt.classAction}</p>
     </article>
   `;
 }
@@ -4298,6 +4362,7 @@ function renderEndScreen() {
   kochText.textContent = closing.koch;
   judgeAcquitText.textContent = closing.judgeAcquit;
   judgeConvictText.textContent = closing.judgeConvict;
+  classroomIntegrationText.textContent = closing.classroomIntegration;
   endScreen.classList.remove('hidden');
 }
 
@@ -4801,6 +4866,7 @@ const trolleyText = document.querySelector('#trolleyText');
 const kochText = document.querySelector('#kochText');
 const judgeAcquitText = document.querySelector('#judgeAcquitText');
 const judgeConvictText = document.querySelector('#judgeConvictText');
+const classroomIntegrationText = document.querySelector('#classroomIntegrationText');
 const restoredBanner = document.querySelector('#restoredBanner');
 const newGameBtn = document.querySelector('#newGameBtn');
 const resumeGameBtn = document.querySelector('#resumeGameBtn');
