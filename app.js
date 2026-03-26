@@ -1571,6 +1571,7 @@ function renderBriefing() {
 
   briefingCard.innerHTML = `
     <div class="briefing-frame">
+      <div class="timeline-chip">Lagefenster der Runde</div>
       <div class="timeline-chip">T - ${round.minute} Minuten</div>
       <h3>${round.title}</h3>
       <p>${round.summary}</p>
@@ -1719,8 +1720,8 @@ function renderCurrentTaskPanel() {
       status: state.setupComplete ? 'done' : 'active'
     },
     {
-      label: 'Lage lesen',
-      detail: 'Lest zuerst oben „Lageüberblick“ und „Lage lesen“, damit alle dieselbe Ausgangslage im Blick haben.',
+      label: 'Lagefenster lesen',
+      detail: 'Lest zuerst oben „1. Lageüberblick“ und direkt darunter „2. Lagefenster“, damit alle dieselbe Ausgangslage im Blick haben.',
       status: state.setupComplete ? 'done' : 'pending'
     },
     {
