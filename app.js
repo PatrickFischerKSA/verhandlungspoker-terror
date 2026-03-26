@@ -354,7 +354,7 @@ const ROUND_GUIDES = [
     prompts: [
       'Welche Karte passt am besten zur eigenen Verantwortung der Rolle?',
       'Wer braucht jetzt ausdrücklich politische oder rechtliche Deckung?',
-      'Welche Entscheidung würde ihr vor Gericht am ehesten verteidigen?'
+      'Welche Entscheidung würdet ihr vor Gericht am ehesten verteidigen?'
     ],
     notePrompt: 'Schreibt die Entscheidung auf, die eure Gruppe in dieser Runde noch am ehesten verantworten kann.'
   },
@@ -1635,14 +1635,14 @@ function renderRoles() {
               <span class="score-badge">rechtlich ${row.legal}</span>
             </div>
           </div>
-          <p class="role-goal">${role.goal}</p>
-          <div class="guide-note">
-            Diese Rolle wird in dieser Runde ueber ein Handy gespielt. Scannt den QR-Code im Seitenbereich,
-            waehlt dort eine Karte und uebernehmt anschliessend den Antwortcode auf dem Desktop.
+        <p class="role-goal">${role.goal}</p>
+        <div class="guide-note">
+            Diese Rolle wird in dieser Runde über ein Handy gespielt. Scannt den QR-Code im Seitenbereich,
+            wählt dort eine Karte und übernehmt anschließend den Antwortcode auf dem Desktop.
           </div>
           <div class="choice-tags">
             <span class="tag">${availableCards.length} Karten in dieser Runde</span>
-            <span class="tag">${selectedCard ? `Auswahl: ${selectedCard.title}` : 'Noch keine Auswahl uebernommen'}</span>
+            <span class="tag">${selectedCard ? `Auswahl: ${selectedCard.title}` : 'Noch keine Auswahl übernommen'}</span>
           </div>
         </article>
       `;
@@ -1796,7 +1796,7 @@ function renderCompanionPanel() {
   if (!activeRoles.length) {
     companionPanel.innerHTML = `
       <p class="companion-empty">
-        Aktuell ist keine Rolle fuer den Handy-Modus aktiviert. Die Partie laeuft damit komplett
+        Aktuell ist keine Rolle für den Handy-Modus aktiviert. Die Partie läuft damit komplett
         und eindeutig auf dem Desktop: eine Karte pro Rolle, dann „Runde auswerten“.
       </p>
     `;
@@ -1817,7 +1817,7 @@ function renderCompanionPanel() {
         <div class="companion-card-head">
           <div>
             <h3>${role.label}</h3>
-            <p>Runde ${state.roundIndex + 1}, T - ${round.minute} Minuten. Der QR-Code gilt nur fuer diese Runde.</p>
+            <p>Runde ${state.roundIndex + 1}, T - ${round.minute} Minuten. Der QR-Code gilt nur für diese Runde.</p>
           </div>
           <span class="companion-status">${selectedCard ? 'Auswahl liegt vor' : 'Warte auf Handy'}</span>
         </div>
@@ -1855,7 +1855,7 @@ function renderCompanionPanel() {
     button.addEventListener('click', () => {
       copyText(buildInviteUrl(button.dataset.copyUrl))
         .then(() => {
-          roundFeedback.textContent = `Der Rollenlink fuer ${ROLE_META[button.dataset.copyUrl].label} wurde in die Zwischenablage kopiert.`;
+          roundFeedback.textContent = `Der Rollenlink für ${ROLE_META[button.dataset.copyUrl].label} wurde in die Zwischenablage kopiert.`;
           roundFeedback.className = 'round-feedback tone-safe';
         })
         .catch(() => {
@@ -1892,7 +1892,7 @@ function renderEndScreen() {
     { label: 'Tote an Bord', value: state.ending.planeVictims },
     { label: 'Tote im Stadionbereich', value: state.ending.stadiumCasualties },
     { label: 'Evakuierte Menschen', value: state.ending.evacuatedPeople.toLocaleString('de-DE') },
-    { label: 'Jurische Tendenz', value: verdict }
+    { label: 'Juristische Tendenz', value: verdict }
   ].map((item) => `
     <article class="ending-stat">
       <span>${item.label}</span>
@@ -2027,7 +2027,7 @@ function renderPhoneScreen(invite, selectedIndex = null) {
 function renderInvalidPhoneScreen() {
   desktopApp.classList.add('hidden');
   phoneApp.classList.remove('hidden');
-  phoneLead.textContent = 'Der QR-Code ist ungueltig oder veraltet. Bitte scannt den frischen Code direkt von der aktuellen Desktop-Runde.';
+  phoneLead.textContent = 'Der QR-Code ist ungültig oder veraltet. Bitte scannt den frischen Code direkt von der aktuellen Desktop-Runde.';
   phoneStatusPanel.innerHTML = '';
   phoneRolePanel.innerHTML = `
     <div class="panel-head">
