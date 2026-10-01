@@ -1,25 +1,27 @@
 :root {
-  --bg: #d7d4cd;
-  --bg-deep: #111722;
-  --paper: #f5f1e8;
-  --paper-strong: #fffaf1;
-  --ink: #18202c;
-  --muted: #5d6470;
-  --line: rgba(24, 32, 44, 0.12);
-  --line-strong: rgba(24, 32, 44, 0.24);
-  --accent: #8d5e29;
-  --accent-soft: #c39a64;
+  --nav: #101f2c;
+  --lime: #dfef78;
+  --bg: #f4f6f7;
+  --bg-deep: #101f2c;
+  --paper: #fff;
+  --paper-strong: #fff;
+  --ink: #132b3c;
+  --muted: #53636e;
+  --line: #d7dfe3;
+  --line-strong: #acbbc5;
+  --accent: #174c68;
+  --accent-soft: #e9f0f4;
   --danger: #8f2f2f;
   --danger-soft: #d77a6b;
   --safe: #2f6f59;
   --safe-soft: #7cb9a0;
   --legal: #425f8f;
   --legal-soft: #9fb6dc;
-  --shadow: 0 24px 60px rgba(16, 22, 31, 0.16);
-  --radius-xl: 28px;
-  --radius-lg: 22px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+  --shadow: none;
+  --radius-xl: 7px;
+  --radius-lg: 7px;
+  --radius-md: 6px;
+  --radius-sm: 5px;
 }
 
 * {
@@ -34,11 +36,8 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ink);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(195, 154, 100, 0.32), transparent 28%),
-    radial-gradient(circle at 100% 0%, rgba(66, 95, 143, 0.18), transparent 24%),
-    linear-gradient(180deg, #e5e0d6 0%, #d7d4cd 100%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
 }
 
 body.overlay-active {
@@ -71,7 +70,7 @@ select {
 .panel,
 .restore-banner {
   border: 1px solid rgba(255, 255, 255, 0.64);
-  background: linear-gradient(180deg, rgba(255, 250, 241, 0.94), rgba(245, 241, 232, 0.92));
+  background: #e9f0f4;
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
 }
@@ -188,7 +187,7 @@ h1 span {
   color: var(--ink);
   text-decoration: none;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
   transition: transform 0.18s ease, border-color 0.18s ease;
 }
 
@@ -266,9 +265,9 @@ h1 span {
 
 .assignment-card {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.74);
+  background: #fff;
   display: grid;
   gap: 10px;
 }
@@ -304,9 +303,9 @@ h1 span {
 .assignment-input {
   width: 100%;
   min-height: 46px;
-  border-radius: 14px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   padding: 11px 13px;
   color: var(--ink);
 }
@@ -319,9 +318,9 @@ h1 span {
 .assignment-select {
   width: 100%;
   min-height: 46px;
-  border-radius: 14px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   padding: 11px 13px;
   color: var(--ink);
 }
@@ -334,7 +333,7 @@ h1 span {
 
 .setup-card {
   padding: 18px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid rgba(32, 50, 77, 0.16);
   background: rgba(32, 50, 77, 0.06);
   display: grid;
@@ -367,7 +366,7 @@ h1 span {
   width: 100%;
   text-align: left;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(250, 246, 240, 0.94);
   padding: 16px;
   cursor: pointer;
@@ -395,7 +394,7 @@ h1 span {
 .mode-choice-btn.selected {
   border-color: rgba(66, 95, 143, 0.42);
   background: rgba(66, 95, 143, 0.1);
-  box-shadow: 0 14px 24px rgba(66, 95, 143, 0.12);
+  box-shadow: none;
 }
 
 .setup-pill {
@@ -403,7 +402,7 @@ h1 span {
   align-items: center;
   padding: 7px 11px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.84);
+  background: #fff;
   border: 1px solid var(--line);
   font-size: 0.82rem;
   font-weight: 800;
@@ -430,7 +429,7 @@ h1 span {
 .guide-note {
   margin: 0;
   padding: 14px 16px;
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(66, 95, 143, 0.08);
   color: var(--muted);
   line-height: 1.65;
@@ -458,9 +457,9 @@ h1 span {
 .vote-reason-card,
 .vote-result-card {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
 }
 
 .vote-card {
@@ -515,7 +514,7 @@ h1 span {
   width: 100%;
   text-align: left;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(250, 246, 240, 0.92);
   padding: 12px;
   cursor: pointer;
@@ -536,7 +535,7 @@ h1 span {
 .vote-choice-btn.selected {
   border-color: rgba(66, 95, 143, 0.42);
   background: rgba(66, 95, 143, 0.1);
-  box-shadow: 0 14px 24px rgba(66, 95, 143, 0.12);
+  box-shadow: none;
 }
 
 .vote-label {
@@ -547,9 +546,9 @@ h1 span {
   width: 100%;
   min-height: 112px;
   resize: vertical;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.94);
+  background: #fff;
   padding: 14px 16px;
   color: var(--ink);
   line-height: 1.6;
@@ -573,9 +572,9 @@ h1 span {
 .authority-card,
 .authority-result-card {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
 }
 
 .authority-card {
@@ -613,7 +612,7 @@ h1 span {
 .authority-choice-btn {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(250, 246, 240, 0.92);
   padding: 12px;
   font-weight: 800;
@@ -625,7 +624,7 @@ h1 span {
 .authority-choice-btn.selected {
   border-color: rgba(66, 95, 143, 0.42);
   background: rgba(66, 95, 143, 0.1);
-  box-shadow: 0 14px 24px rgba(66, 95, 143, 0.12);
+  box-shadow: none;
 }
 
 .authority-choice-btn.is-block,
@@ -633,7 +632,7 @@ h1 span {
   border-color: rgba(143, 47, 47, 0.34);
   background: rgba(143, 47, 47, 0.1);
   color: var(--danger);
-  box-shadow: 0 14px 24px rgba(143, 47, 47, 0.12);
+  box-shadow: none;
 }
 
 .authority-result-card {
@@ -672,7 +671,7 @@ h1 span {
 
 .scenario-card {
   padding: 18px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid rgba(66, 95, 143, 0.16);
   background: rgba(66, 95, 143, 0.07);
   display: grid;
@@ -700,7 +699,7 @@ h1 span {
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
+  background: #fff;
   border: 1px solid rgba(66, 95, 143, 0.14);
   font-size: 0.8rem;
   font-weight: 800;
@@ -725,9 +724,9 @@ h1 span {
 .briefing-fact-card,
 .measure-result-card {
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
 }
 
 .briefing-fact-card strong,
@@ -750,7 +749,7 @@ h1 span {
   width: 100%;
   text-align: left;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(250, 246, 240, 0.94);
   padding: 14px;
   cursor: pointer;
@@ -778,7 +777,7 @@ h1 span {
 .measure-btn.selected {
   border-color: rgba(141, 94, 41, 0.34);
   background: rgba(141, 94, 41, 0.08);
-  box-shadow: 0 14px 24px rgba(141, 94, 41, 0.12);
+  box-shadow: none;
 }
 
 .measure-result-card {
@@ -802,9 +801,9 @@ h1 span {
 
 .briefing-action-card {
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.74);
+  background: #fff;
   display: grid;
   gap: 6px;
 }
@@ -840,9 +839,9 @@ h1 span {
   gap: 12px;
   align-items: start;
   padding: 12px 14px;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
 }
 
 .task-step-index {
@@ -883,9 +882,9 @@ h1 span {
 
 .prompt-card {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.74);
+  background: #fff;
 }
 
 .prompt-card h3,
@@ -909,9 +908,9 @@ h1 span {
 
 .briefing-line {
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(250, 246, 240, 0.9);
+  background: #f4f6f7;
 }
 
 .briefing-line strong {
@@ -926,7 +925,7 @@ h1 span {
 
 .question-box {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 7px;
   background: rgba(143, 47, 47, 0.08);
   border: 1px solid rgba(143, 47, 47, 0.18);
 }
@@ -960,9 +959,9 @@ h1 span {
 
 .decision-card {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
   display: grid;
   gap: 8px;
 }
@@ -986,9 +985,9 @@ h1 span {
   width: 100%;
   min-height: 136px;
   resize: vertical;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   padding: 14px 16px;
   color: var(--ink);
   line-height: 1.6;
@@ -1020,13 +1019,13 @@ h1 span {
 
 .primary-btn {
   color: #fff9f1;
-  background: linear-gradient(135deg, #1d2d44 0%, #8d5e29 100%);
-  box-shadow: 0 14px 24px rgba(29, 45, 68, 0.22);
+  background: #e9f0f4;
+  box-shadow: none;
   font-weight: 800;
 }
 
 .ghost-btn {
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
   border: 1px solid var(--line);
   color: var(--ink);
   font-weight: 700;
@@ -1042,7 +1041,7 @@ h1 span {
 }
 
 .restore-banner {
-  border-radius: 18px;
+  border-radius: 7px;
   padding: 14px 18px;
   margin-bottom: 22px;
   color: var(--legal);
@@ -1076,7 +1075,7 @@ h1 span {
   padding: 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
 }
 
 .status-card strong {
@@ -1133,8 +1132,8 @@ h1 span {
 
 .briefing-pod {
   padding: 14px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.66);
+  border-radius: 7px;
+  background: #fff;
   border: 1px solid var(--line);
 }
 
@@ -1161,7 +1160,7 @@ h1 span {
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
   border: 1px solid var(--line);
   font-weight: 700;
 }
@@ -1180,7 +1179,7 @@ h1 span {
 .round-feedback {
   margin-bottom: 16px;
   padding: 14px 16px;
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(24, 32, 44, 0.05);
   color: var(--muted);
   line-height: 1.6;
@@ -1202,7 +1201,7 @@ h1 span {
   border: 1px solid var(--line);
   font-size: 0.84rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
 }
 
 .selection-chip.done {
@@ -1231,10 +1230,9 @@ h1 span {
 
 .role-card {
   padding: 18px;
-  border-radius: 20px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 244, 236, 0.84));
+  background: #e9f0f4;
   display: grid;
   gap: 14px;
 }
@@ -1294,8 +1292,8 @@ h1 span {
   width: 100%;
   text-align: left;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.82);
+  border-radius: 7px;
+  background: #fff;
   padding: 14px;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1326,7 +1324,7 @@ h1 span {
 
 .choice-btn.selected {
   border-color: transparent;
-  box-shadow: 0 14px 22px rgba(24, 32, 44, 0.12);
+  box-shadow: none;
 }
 
 .choice-btn h4 {
@@ -1466,8 +1464,8 @@ h1 span {
 
 .meta-card {
   padding: 14px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.74);
+  border-radius: 7px;
+  background: #fff;
   border: 1px solid var(--line);
 }
 
@@ -1509,7 +1507,7 @@ h1 span {
   padding: 10px 14px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
   font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
@@ -1533,17 +1531,17 @@ h1 span {
 .companion-empty {
   margin: 0;
   padding: 16px;
-  border-radius: 16px;
+  border-radius: 7px;
   background: rgba(24, 32, 44, 0.05);
   color: var(--muted);
   line-height: 1.65;
 }
 
 .companion-card {
-  border-radius: 18px;
+  border-radius: 7px;
   padding: 16px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
   display: grid;
   gap: 14px;
 }
@@ -1596,9 +1594,9 @@ h1 span {
   gap: 8px;
   justify-items: center;
   padding: 12px;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
 }
 
 .companion-qr strong {
@@ -1615,7 +1613,7 @@ h1 span {
   width: 148px;
   height: 148px;
   padding: 10px;
-  border-radius: 16px;
+  border-radius: 7px;
   background: #fff;
   border: 1px solid var(--line);
   box-shadow: inset 0 0 0 1px rgba(24, 32, 44, 0.03);
@@ -1646,9 +1644,9 @@ h1 span {
   width: 100%;
   min-height: 54px;
   resize: vertical;
-  border-radius: 14px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   padding: 12px 14px;
   color: var(--ink);
 }
@@ -1658,7 +1656,7 @@ h1 span {
   border-radius: 999px;
   padding: 11px 14px;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.78);
+  background: #fff;
   font-weight: 700;
 }
 
@@ -1687,9 +1685,9 @@ h1 span {
 
 .phone-status-card {
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 7px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
 }
 
 .phone-status-card strong,
@@ -1718,8 +1716,8 @@ h1 span {
   justify-content: center;
   min-height: 76px;
   padding: 18px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(29, 45, 68, 0.96), rgba(141, 94, 41, 0.92));
+  border-radius: 7px;
+  background: #e9f0f4;
   color: #fffaf1;
   font-size: clamp(1.1rem, 4vw, 1.6rem);
   font-weight: 900;
@@ -1736,8 +1734,8 @@ h1 span {
 
 .phone-package-box {
   padding: 16px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(29, 45, 68, 0.96), rgba(141, 94, 41, 0.92));
+  border-radius: 7px;
+  background: #e9f0f4;
   color: #fffaf1;
   line-height: 1.55;
   word-break: break-word;
@@ -1791,9 +1789,8 @@ h1 span {
 
 .ending-headline {
   padding: 18px 20px;
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(29, 45, 68, 0.94), rgba(141, 94, 41, 0.94));
+  border-radius: 7px;
+  background: #e9f0f4;
   color: #fffaf1;
   margin-bottom: 18px;
 }
@@ -1817,9 +1814,9 @@ h1 span {
 }
 
 .ending-stat {
-  border-radius: 16px;
+  border-radius: 7px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.76);
+  background: #fff;
   border: 1px solid var(--line);
 }
 
@@ -1841,9 +1838,9 @@ h1 span {
 }
 
 .closing-card {
-  border-radius: 18px;
+  border-radius: 7px;
   padding: 18px;
-  background: rgba(255, 255, 255, 0.78);
+  background: #fff;
   border: 1px solid var(--line);
 }
 
@@ -2004,3 +2001,95 @@ h1 span {
     height: 128px;
   }
 }
+
+/* Erscheinungsbild der Terror-Lernumgebung: Typografie, Flächen und Interaktion. */
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+h2, .panel-head h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+h3, h4 { line-height: 1.35; }
+button, input, select, textarea { font-family: inherit; }
+button, a { touch-action: manipulation; }
+a { color: var(--accent); text-underline-offset: 4px; }
+.hero { border: 0; background: transparent; box-shadow: none; }
+.hero-copy { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
+.hero-note {
+  background: var(--nav);
+  border: 1px solid var(--nav);
+  color: #fff;
+  box-shadow: none;
+  align-content: start;
+  border-radius: 7px;
+}
+.hero-note .note-kicker { color: var(--lime); }
+.hero-note p:last-child { color: #c5d4df; line-height: 1.7; }
+.eyebrow, .note-kicker { letter-spacing: 1.8px; font-weight: 750; }
+.panel { background: #fff; border-color: var(--line); box-shadow: none; backdrop-filter: none; }
+.panel-head { flex-wrap: wrap; }
+.panel-head h2 { flex: 0 1 auto; }
+.panel-head p { flex: 1 1 320px; }
+.primary-btn {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: #fff;
+  border-radius: 5px;
+  box-shadow: none;
+  font-weight: 650;
+}
+.primary-btn:hover:not(:disabled) { background: #28526a; }
+.ghost-btn, .ghost-link, .copy-btn { background: #fff; border-color: #acbbc5; border-radius: 5px; }
+.ghost-btn:hover:not(:disabled), .ghost-link:hover, .copy-btn:hover { background: #eaf0f3; }
+button:focus-visible, a:focus-visible, input:focus-visible,
+textarea:focus-visible, select:focus-visible, summary:focus-visible {
+  outline: 3px solid #da9a27;
+  outline-offset: 4px;
+}
+input, textarea, select { accent-color: var(--accent); }
+.page-shell, .panel, .hero-copy, .hero-note { min-width: 0; }
+h1, h2, h3, h4, button, a { overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  h1 { font-size: 2.15rem; }
+  h2, .panel-head h2 { font-size: 1.55rem; }
+  .panel-head p { flex-basis: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; }
+}
+
+.hero-copy { padding: 24px 0; }
+h1 span { color: var(--ink); }
+.hero-note { padding: 28px; }
+.game-overlay-shell { background: var(--bg); border-radius: 7px; }
+.game-overlay-header { border-top: 3px solid var(--ink); }
+.role-card, .restore-banner { background: #fff; }
+.phone-code, .phone-package-box, .ending-headline { background: var(--nav); color: #fff; }
+.ending-headline p { color: #c5d4df; }
+.mode-choice-btn.selected, .vote-choice-btn.selected,
+.authority-choice-btn.selected, .measure-btn.selected {
+  background: #f2f7da; border-color: #6e8633; box-shadow: inset 3px 0 #6e8633;
+}
+.authority-choice-btn.is-block.selected {
+  background: #faeded; border-color: var(--danger); box-shadow: inset 3px 0 var(--danger);
+}
+.choice-btn.selected { box-shadow: inset 3px 0 var(--ink); }
+.toggle-input:checked + span { background: #f2f7da; border-color: #6e8633; }
+.toggle-input:focus-visible + span { outline: 3px solid #da9a27; outline-offset: 4px; }
+.tag, .choice-kicker, .timeline-chip, .score-badge, .assignment-slot,
+.setup-pill, .selection-chip, .toggle-pill span, .order-chip { border-radius: 3px; }
+@media (max-width: 720px) {
+  .hero-copy { padding: 12px 0; }
+  .guide-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.guide-panel { align-content: start; }
+.guide-panel .panel-head { display: grid; gap: 12px; }
